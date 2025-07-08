@@ -1,9 +1,10 @@
 package com.divary.global.oauth.service.social;
 
 import com.divary.common.enums.SocialType;
+import com.divary.global.oauth.dto.LoginResponseDTO;
 
 public interface SocialOauth {
-    String verifyAndLogin(String code);
+    LoginResponseDTO verifyAndLogin(String code);
 
     default SocialType type() {
         if (this instanceof GoogleOauth) { //다른 소셜 로그인 추가 가능
