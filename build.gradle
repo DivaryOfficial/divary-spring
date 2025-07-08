@@ -38,7 +38,13 @@ dependencies {
 	
 	// H2 데이터베이스 (개발/테스트용)
 	runtimeOnly 'com.h2database:h2'
-	
+
+	// MySQL 데이터베이스에 접속하기 위한 JDBC 드라이버 (RDS 연결 시 필수)
+	implementation 'mysql:mysql-connector-java:8.0.33'
+
+	// S3
+	implementation 'software.amazon.awssdk:s3:2.25.57'
+
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	
