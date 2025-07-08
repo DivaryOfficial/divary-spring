@@ -36,4 +36,13 @@ public class OauthService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("알 수 없는 SocialLoginType 입니다."));
     }
+
+    public String authenticateWithAccessToken(SocialType socialLoginType, String accessToken) {
+        SocialOauth socialOauth = this.findSocialOauthByType(socialLoginType);
+        if (socialOauth == null) {
+            throw new IllegalArgumentException("지원하지 않는 소셜 로그인입니다.");
+        }
+
+        return socialOauth.verifyAndLogin(accessToken);
+    }
 }
