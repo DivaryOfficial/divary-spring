@@ -23,10 +23,6 @@ public class ChatRoom extends BaseEntity {
     @Schema(description = "사용자 ID", example = "1")
     private Long userId;
 
-    @Column(name = "public_id", nullable = false, length = 21)
-    @Schema(description = "공개 채팅방 ID", example = "chat_12345abcde67890fg")
-    private String publicId;
-
     @Column(name = "title", nullable = false, length = 20)
     @Schema(description = "채팅방 제목", example = "해양생물 문의")
     private String title;
@@ -42,9 +38,8 @@ public class ChatRoom extends BaseEntity {
     private Map<String, Object> metadata;
 
     @Builder
-    public ChatRoom(Long userId, String publicId, String title, Map<String, Object> messages, Map<String, Object> metadata) {
+    public ChatRoom(Long userId, String title, Map<String, Object> messages, Map<String, Object> metadata) {
         this.userId = userId;
-        this.publicId = publicId;
         this.title = title;
         this.messages = messages;
         this.metadata = metadata;

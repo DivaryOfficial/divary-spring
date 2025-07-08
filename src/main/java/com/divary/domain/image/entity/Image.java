@@ -21,7 +21,7 @@ public class Image extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
-    @Schema(description = "이미지 타입", example = "PROFILE")
+    @Schema(description = "이미지 타입", example = "DOGAM")
     private ImageType type;
 
     @Column(name = "original_filename", nullable = false, length = 255)
