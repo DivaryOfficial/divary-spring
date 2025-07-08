@@ -14,6 +14,7 @@ public class LoginResponseDTO {
     private Long id;
     private String email;
     private SocialType socialType;
+    private String name;
     private Role role;
     private Level level;
 }
