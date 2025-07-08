@@ -279,6 +279,8 @@ public class SwaggerConfig {
 
 모든 API는 `ApiResponse<T>` 형식으로 응답합니다.
 
+### 기본 응답 형식
+
 ```json
 {
   "timestamp": "2025-06-30T01:43:07.956473",
@@ -287,6 +289,38 @@ public class SwaggerConfig {
   "message": "요청이 성공적으로 처리되었습니다.",
   "data": {
     // 실제 데이터 👍
+  }
+}
+```
+
+### 페이지네이션 응답 형식
+
+목록 조회 API에서 페이지네이션이 필요한 경우 `PagedResponse<T>`를 사용합니다.
+
+```java
+@GetMapping("/members")
+public ApiResponse<PagedResponse<MemberDto>> getMembers(
+    @RequestParam(defaultValue = "1") int page,
+    @RequestParam(defaultValue = "10") int limit) {
+    
+    List<MemberDto> members = memberService.getMembers(page, limit);
+    int totalPage = memberService.getTotalPage(limit);
+    
+    PagedResponse<MemberDto> pagedData = PagedResponse.of(members, limit, page, totalPage);
+    return ApiResponse.success(pagedData);
+}
+```
+
+응답 예시:
+```json
+{
+  "data": {
+    "content": [...],
+    "pagination": {
+      "limit": 10,
+      "currentPage": 1,
+      "totalPage": 5
+    }
   }
 }
 ```
