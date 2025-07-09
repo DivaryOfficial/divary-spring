@@ -15,10 +15,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "동행자 정보")
 public class Companion extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Schema(description = "동행자 ID", example = "30")
-    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "logbook_id")

@@ -1,6 +1,7 @@
 package com.divary.domain.logbook.entity;
 
 import com.divary.common.entity.BaseEntity;
+import com.divary.domain.Member.entity.Member;
 import com.divary.domain.logbook.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,14 +17,9 @@ import java.time.LocalDateTime;
 @Builder
 public class LogBook extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Schema(description = "로그 ID", example = "1")
-    private Long id;
-
-    @Column(name = "user_id", nullable = false)
-    @Schema(description = "사용자 ID", example = "1001")
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     @Column(name = "name", nullable = false, length = 40)
     @Schema(description = "로그 제목", example = "고래 원정")
