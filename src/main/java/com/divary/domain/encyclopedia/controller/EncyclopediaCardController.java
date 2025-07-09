@@ -3,6 +3,7 @@ package com.divary.domain.encyclopedia.controller;
 import com.divary.common.response.ApiResponse;
 import com.divary.domain.encyclopedia.dto.EncyclopediaCardResponse;
 import com.divary.domain.encyclopedia.service.EncyclopediaCardService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +13,11 @@ import org.springframework.web.bind.annotation.*;
 public class EncyclopediaCardController {
 
     private final EncyclopediaCardService encyclopediaCardService;
+
+    @GetMapping
+    public ApiResponse<List<EncyclopediaCardResponse>> getCards(@RequestParam(required = false) String type) {
+        return ApiResponse.success(encyclopediaCardService.getCards(type));
+    }
 
     @GetMapping("/{cardId}/summary")
     public ApiResponse<EncyclopediaCardResponse> getSummary(@PathVariable Long cardId) {
