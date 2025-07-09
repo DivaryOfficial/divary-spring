@@ -1,6 +1,7 @@
 package com.divary.domain.encyclopedia.service;
 
-import com.divary.domain.encyclopedia.dto.EncyclopediaCardSummaryResponse;
+import com.divary.domain.encyclopedia.dto.EncyclopediaCardResponse;
+import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
 import com.divary.domain.encyclopedia.repository.EncyclopediaCardRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
@@ -15,10 +16,16 @@ public class EncyclopediaCardService {
     private final EncyclopediaCardRepository encyclopediaCardRepository;
 
     @Transactional(readOnly = true)
-    public EncyclopediaCardSummaryResponse getSummary(Long id) {
-        return encyclopediaCardRepository.findById(id)
-                .map(EncyclopediaCardSummaryResponse::from)
+    public EncyclopediaCardResponse getSummary(Long id) {
+        EncyclopediaCard card = encyclopediaCardRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SUMMARY_NOT_FOUND));
+        return EncyclopediaCardResponse.summaryOf(card);
     }
 
+    @Transactional(readOnly = true)
+    public EncyclopediaCardResponse getDetail(Long id) {
+        EncyclopediaCard card = encyclopediaCardRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.DETAIL_NOT_FOUND));
+        return EncyclopediaCardResponse.detailOf(card);
+    }
 }
