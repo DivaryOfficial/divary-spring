@@ -2,8 +2,10 @@ package com.divary.domain.encyclopedia.service;
 
 import com.divary.domain.encyclopedia.dto.AppearanceResponse;
 import com.divary.domain.encyclopedia.dto.EncyclopediaCardResponse;
+import com.divary.domain.encyclopedia.dto.PersonalityResponse;
 import com.divary.domain.encyclopedia.entity.Appearance;
 import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
+import com.divary.domain.encyclopedia.entity.Personality;
 import com.divary.domain.encyclopedia.repository.EncyclopediaCardRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
@@ -75,5 +77,19 @@ public class EncyclopediaCardService {
                 .etc(appearance.getEtc())
                 .build();
     }
+
+    @Transactional(readOnly = true)
+    public PersonalityResponse getPersonality(Long cardId) {
+        EncyclopediaCard card = encyclopediaCardRepository.findById(cardId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
+
+        Personality personality = card.getPersonality();
+        if (personality == null) {
+            throw new BusinessException(ErrorCode.CARD_PERSONALITY_NOT_FOUND);
+        }
+
+        return PersonalityResponse.from(personality);
+    }
+
 
 }

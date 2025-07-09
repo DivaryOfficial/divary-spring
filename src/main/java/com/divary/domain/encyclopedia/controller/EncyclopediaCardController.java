@@ -3,6 +3,7 @@ package com.divary.domain.encyclopedia.controller;
 import com.divary.common.response.ApiResponse;
 import com.divary.domain.encyclopedia.dto.AppearanceResponse;
 import com.divary.domain.encyclopedia.dto.EncyclopediaCardResponse;
+import com.divary.domain.encyclopedia.dto.PersonalityResponse;
 import com.divary.domain.encyclopedia.service.EncyclopediaCardService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +35,11 @@ public class EncyclopediaCardController {
     public ApiResponse<AppearanceResponse> getAppearance(@PathVariable Long cardId) {
         return ApiResponse.success(encyclopediaCardService.getAppearance(cardId));
     }
+
+    @GetMapping("/{cardId}/personality")
+    public ApiResponse<PersonalityResponse> getPersonality(@PathVariable Long cardId) {
+        return ApiResponse.success(encyclopediaCardService.getPersonality(cardId));
+    }
+
 
 }
