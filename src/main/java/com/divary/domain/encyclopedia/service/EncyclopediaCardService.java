@@ -17,7 +17,9 @@ public class EncyclopediaCardService {
     private final EncyclopediaCardRepository encyclopediaCardRepository;
 
     private boolean isValidType(String type) {
-        return List.of("어류", "연체동물", "자포동물").contains(type);
+        // TODO: 현재는 임시로 모든 타입을 허용하도록 true 반환
+        // 추후 CardType enum 도입 시 유효성 검사 수정 예정
+        return true;
     }
 
     @Transactional(readOnly = true)
