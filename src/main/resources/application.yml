@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: divary-spring
+
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+
+# 로깅 설정
+logging:
+  level:
+    com.divary: DEBUG

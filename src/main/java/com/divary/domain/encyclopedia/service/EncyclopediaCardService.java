@@ -3,9 +3,11 @@ package com.divary.domain.encyclopedia.service;
 import com.divary.domain.encyclopedia.dto.AppearanceResponse;
 import com.divary.domain.encyclopedia.dto.EncyclopediaCardResponse;
 import com.divary.domain.encyclopedia.dto.PersonalityResponse;
+import com.divary.domain.encyclopedia.dto.SignificantResponse;
 import com.divary.domain.encyclopedia.entity.Appearance;
 import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
 import com.divary.domain.encyclopedia.entity.Personality;
+import com.divary.domain.encyclopedia.entity.Significant;
 import com.divary.domain.encyclopedia.repository.EncyclopediaCardRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
@@ -89,6 +91,24 @@ public class EncyclopediaCardService {
         }
 
         return PersonalityResponse.from(personality);
+    }
+
+    @Transactional(readOnly = true)
+    public SignificantResponse getSignificant(Long cardId) {
+        EncyclopediaCard card = encyclopediaCardRepository.findById(cardId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
+
+        Significant significant = card.getSignificant();
+        if (significant == null) {
+            throw new BusinessException(ErrorCode.CARD_SIGNIFICANT_NOT_FOUND);
+        }
+
+        return SignificantResponse.builder()
+                .toxicity(significant.getToxicity())
+                .strategy(significant.getStrategy())
+                .observeTip(significant.getObserveTip())
+                .otherFeature(significant.getOtherFeature())
+                .build();
     }
 
 

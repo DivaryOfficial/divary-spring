@@ -21,7 +21,8 @@ public enum ErrorCode {
     CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_001", "해당 카드에 대한 정보를 찾을 수 없습니다."),
     TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_002", "존재하지 않는 종류입니다."),
     CARD_APPEARANCE_NOT_FOUND(HttpStatus.NOT_FOUND,"APPEARANCE_NOT_FOUND", "해당 생물에 대한 외모 정보가 아직 없습니다."),
-    CARD_PERSONALITY_NOT_FOUND(HttpStatus.NOT_FOUND, "PERSONALITY_NOT_FOUND", "해당 생물에 대한 성격 정보가 아직 없습니다.");
+    CARD_PERSONALITY_NOT_FOUND(HttpStatus.NOT_FOUND, "PERSONALITY_NOT_FOUND", "해당 생물에 대한 성격 정보가 아직 없습니다."),
+    CARD_SIGNIFICANT_NOT_FOUND(HttpStatus.NOT_FOUND, "SIGNIFICANT_NOT_FOUND", "해당 생물에 대한 특이사항 정보가 아직 없습니다.");
 
     private final HttpStatus status;
     private final String code;
