@@ -1,5 +1,6 @@
 package com.divary.common.response;
 
+import com.divary.common.dto.BasePaginationDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,3 +1,4 @@
+
 package com.divary.domain.chatroom.repository;
 
 import com.divary.domain.chatroom.entity.ChatRoom;

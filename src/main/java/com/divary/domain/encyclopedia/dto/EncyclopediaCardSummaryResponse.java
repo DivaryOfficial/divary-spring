@@ -37,6 +37,7 @@ public record EncyclopediaCardSummaryResponse(
                 card.getSize(),
                 card.getAppearPeriod(),
                 card.getPlace(),
+                // TODO: 이후 이미지 테이블과 연관되면 실제 이미지 URL 리스트로 교체 예정
                 List.of("https://marinepedia.com/images/card" + card.getId() + "-1.jpg") // 예시
         );
     }
