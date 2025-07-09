@@ -1,6 +1,8 @@
 package com.divary.domain.encyclopedia.service;
 
+import com.divary.domain.encyclopedia.dto.AppearanceResponse;
 import com.divary.domain.encyclopedia.dto.EncyclopediaCardResponse;
+import com.divary.domain.encyclopedia.entity.Appearance;
 import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
 import com.divary.domain.encyclopedia.repository.EncyclopediaCardRepository;
 import com.divary.global.exception.BusinessException;
@@ -44,14 +46,34 @@ public class EncyclopediaCardService {
     @Transactional(readOnly = true)
     public EncyclopediaCardResponse getSummary(Long id) {
         EncyclopediaCard card = encyclopediaCardRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.SUMMARY_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
         return EncyclopediaCardResponse.summaryOf(card);
     }
 
     @Transactional(readOnly = true)
     public EncyclopediaCardResponse getDetail(Long id) {
         EncyclopediaCard card = encyclopediaCardRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.DETAIL_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
         return EncyclopediaCardResponse.detailOf(card);
     }
+
+    @Transactional(readOnly = true)
+    public AppearanceResponse getAppearance(Long cardId) {
+        EncyclopediaCard card = encyclopediaCardRepository.findById(cardId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
+
+        Appearance appearance = card.getAppearance();
+        if (appearance == null) {
+            throw new BusinessException(ErrorCode.CARD_APPEARANCE_NOT_FOUND);
+        }
+
+        return AppearanceResponse.builder()
+                .body(appearance.getBody())
+                .colorCodes(appearance.getColorCodes())
+                .color(appearance.getColor())
+                .pattern(appearance.getPattern())
+                .etc(appearance.getEtc())
+                .build();
+    }
+
 }

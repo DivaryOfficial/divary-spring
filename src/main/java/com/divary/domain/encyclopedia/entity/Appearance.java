@@ -3,6 +3,7 @@ package com.divary.domain.encyclopedia.entity;
 import com.divary.common.entity.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,8 +27,10 @@ public class Appearance extends BaseEntity {
     @Schema(description = "기타 설명", example = "등지느러미가 큼")
     private String etc;
 
-    @Schema(description = "색상 코드 목록", example = "#F2F2F2,#FFD700")
-    private String colorCodes;
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "appearance_color_codes", joinColumns = @JoinColumn(name = "appearance_id"))
+    @Column(name = "color_code")
+    private List<String> colorCodes;
 
     @OneToOne
     @JoinColumn(name = "card_id", nullable = false, unique = true)

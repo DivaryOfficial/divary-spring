@@ -1,6 +1,7 @@
 package com.divary.domain.encyclopedia.controller;
 
 import com.divary.common.response.ApiResponse;
+import com.divary.domain.encyclopedia.dto.AppearanceResponse;
 import com.divary.domain.encyclopedia.dto.EncyclopediaCardResponse;
 import com.divary.domain.encyclopedia.service.EncyclopediaCardService;
 import java.util.List;
@@ -28,4 +29,10 @@ public class EncyclopediaCardController {
     public ApiResponse<EncyclopediaCardResponse> getDetail(@PathVariable Long cardId) {
         return ApiResponse.success(encyclopediaCardService.getDetail(cardId));
     }
+
+    @GetMapping("/{cardId}/appearance")
+    public ApiResponse<AppearanceResponse> getAppearance(@PathVariable Long cardId) {
+        return ApiResponse.success(encyclopediaCardService.getAppearance(cardId));
+    }
+
 }
