@@ -1,11 +1,8 @@
-package com.divary.domain.logbook.entity;
+package com.divary.domain.Logbook.entity;
 
 import com.divary.common.entity.BaseEntity;
-import com.divary.domain.Logbook.entity.LogBook;
 import com.divary.domain.Logbook.enums.CompanionType;
-import com.divary.domain.logbook.enums.CompanionType;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
