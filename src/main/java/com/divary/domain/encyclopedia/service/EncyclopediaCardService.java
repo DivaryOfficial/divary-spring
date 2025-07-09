@@ -2,6 +2,8 @@ package com.divary.domain.encyclopedia.service;
 
 import com.divary.domain.encyclopedia.dto.EncyclopediaCardResponse;
 import com.divary.domain.encyclopedia.repository.EncyclopediaCardRepository;
+import com.divary.global.exception.BusinessException;
+import com.divary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,6 @@ public class EncyclopediaCardService {
     public EncyclopediaCardResponse findById(Long id) {
         return encyclopediaCardRepository.findById(id)
                 .map(EncyclopediaCardResponse::from)
-                .orElseThrow(() -> new IllegalArgumentException("도감카드를 찾을 수 없습니다. id=" + id));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
     }
 }

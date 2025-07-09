@@ -15,9 +15,10 @@ public enum ErrorCode {
 
     // 실제 사용되는 검증 에러들
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "VALIDATION_001", "입력값 검증에 실패했습니다."),
-    REQUIRED_FIELD_MISSING(HttpStatus.BAD_REQUEST, "VALIDATION_002", "필수 필드가 누락되었습니다.");
+    REQUIRED_FIELD_MISSING(HttpStatus.BAD_REQUEST, "VALIDATION_002", "필수 필드가 누락되었습니다."),
 
     // TODO: 비즈니스 로직 개발하면서 필요한 에러코드들 추가
+    CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_001", "도감카드를 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;
