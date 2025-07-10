@@ -36,7 +36,6 @@ public class EncyclopediaCardService {
                     .map(EncyclopediaCardResponse::summaryOf)
                     .toList();
         }
-
         // type 유효성 검사
         if (!isValidType(type)) {
             throw new BusinessException(ErrorCode.TYPE_NOT_FOUND);
@@ -48,68 +47,10 @@ public class EncyclopediaCardService {
     }
 
     @Transactional(readOnly = true)
-    public EncyclopediaCardResponse getSummary(Long id) {
-        EncyclopediaCard card = encyclopediaCardRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
-        return EncyclopediaCardResponse.summaryOf(card);
-    }
-
-    @Transactional(readOnly = true)
     public EncyclopediaCardResponse getDetail(Long id) {
         EncyclopediaCard card = encyclopediaCardRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
-        return EncyclopediaCardResponse.detailOf(card);
+        return EncyclopediaCardResponse.from(card);
     }
-
-    @Transactional(readOnly = true)
-    public AppearanceResponse getAppearance(Long cardId) {
-        EncyclopediaCard card = encyclopediaCardRepository.findById(cardId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
-
-        Appearance appearance = card.getAppearance();
-        if (appearance == null) {
-            throw new BusinessException(ErrorCode.CARD_APPEARANCE_NOT_FOUND);
-        }
-
-        return AppearanceResponse.builder()
-                .body(appearance.getBody())
-                .colorCodes(appearance.getColorCodes())
-                .color(appearance.getColor())
-                .pattern(appearance.getPattern())
-                .etc(appearance.getEtc())
-                .build();
-    }
-
-    @Transactional(readOnly = true)
-    public PersonalityResponse getPersonality(Long cardId) {
-        EncyclopediaCard card = encyclopediaCardRepository.findById(cardId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
-
-        Personality personality = card.getPersonality();
-        if (personality == null) {
-            throw new BusinessException(ErrorCode.CARD_PERSONALITY_NOT_FOUND);
-        }
-
-        return PersonalityResponse.from(personality);
-    }
-
-    @Transactional(readOnly = true)
-    public SignificantResponse getSignificant(Long cardId) {
-        EncyclopediaCard card = encyclopediaCardRepository.findById(cardId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
-
-        Significant significant = card.getSignificant();
-        if (significant == null) {
-            throw new BusinessException(ErrorCode.CARD_SIGNIFICANT_NOT_FOUND);
-        }
-
-        return SignificantResponse.builder()
-                .toxicity(significant.getToxicity())
-                .strategy(significant.getStrategy())
-                .observeTip(significant.getObserveTip())
-                .otherFeature(significant.getOtherFeature())
-                .build();
-    }
-
 
 }

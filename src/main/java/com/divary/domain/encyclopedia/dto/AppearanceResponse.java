@@ -1,6 +1,8 @@
 package com.divary.domain.encyclopedia.dto;
 
+import com.divary.domain.encyclopedia.entity.Appearance;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Arrays;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -25,4 +27,24 @@ public class AppearanceResponse {
 
     @Schema(description = "기타 특징", example = "머리 부분에 촉수처럼 생긴 더듬이 두 개 있음")
     private String etc;
+
+    public static AppearanceResponse from(Appearance appearance) {
+        return AppearanceResponse.builder()
+                .body(appearance.getBody())
+                .colorCodes(parseColorCodes(appearance.getColorCodes()))
+                .color(appearance.getColor())
+                .pattern(appearance.getPattern())
+                .etc(appearance.getEtc())
+                .build();
+    }
+
+    private static List<String> parseColorCodes(String colorCodesStr) {
+        if (colorCodesStr == null || colorCodesStr.isBlank()) {
+            return List.of();
+        }
+
+        return Arrays.stream(colorCodesStr.split(","))
+                .map(String::trim)
+                .toList();
+    }
 }

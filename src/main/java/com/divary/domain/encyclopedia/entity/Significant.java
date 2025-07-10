@@ -1,18 +1,16 @@
 package com.divary.domain.encyclopedia.entity;
 
-import com.divary.common.entity.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "significant")
+@Embeddable
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Schema(description = "생물특이사항")
-public class Significant extends BaseEntity {
+public class Significant {
 
     @Schema(description = "독성 여부", example = "무독성")
     private String toxicity;
@@ -26,7 +24,4 @@ public class Significant extends BaseEntity {
     @Schema(description = "기타 특성", example = "야행성")
     private String otherFeature;
 
-    @OneToOne
-    @JoinColumn(name = "card_id", nullable = false, unique = true)
-    private EncyclopediaCard card;
 }

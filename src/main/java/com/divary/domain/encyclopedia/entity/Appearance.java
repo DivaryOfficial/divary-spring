@@ -1,19 +1,16 @@
 package com.divary.domain.encyclopedia.entity;
 
-import com.divary.common.entity.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "appearance")
+@Embeddable
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Schema(description = "생물외모")
-public class Appearance extends BaseEntity {
+public class Appearance {
 
     @Schema(description = "몸 형태", example = "긴 타원형")
     private String body;
@@ -27,12 +24,7 @@ public class Appearance extends BaseEntity {
     @Schema(description = "기타 설명", example = "등지느러미가 큼")
     private String etc;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "appearance_color_codes", joinColumns = @JoinColumn(name = "appearance_id"))
-    @Column(name = "color_code")
-    private List<String> colorCodes;
+    @Schema(description = "색상 코드", example = "[\"#FFFFFF\", \"#FFEB85\"]")
+    private String colorCodes;
 
-    @OneToOne
-    @JoinColumn(name = "card_id", nullable = false, unique = true)
-    private EncyclopediaCard card;
 }

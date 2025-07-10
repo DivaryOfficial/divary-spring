@@ -22,29 +22,9 @@ public class EncyclopediaCardController {
         return ApiResponse.success(encyclopediaCardService.getCards(type));
     }
 
-    @GetMapping("/{cardId}/summary")
-    public ApiResponse<EncyclopediaCardResponse> getSummary(@PathVariable Long cardId) {
-        return ApiResponse.success(encyclopediaCardService.getSummary(cardId));
-    }
-
-    @GetMapping("/{cardId}/detail")
+    @GetMapping("/{cardId}")
     public ApiResponse<EncyclopediaCardResponse> getDetail(@PathVariable Long cardId) {
         return ApiResponse.success(encyclopediaCardService.getDetail(cardId));
-    }
-
-    @GetMapping("/{cardId}/appearance")
-    public ApiResponse<AppearanceResponse> getAppearance(@PathVariable Long cardId) {
-        return ApiResponse.success(encyclopediaCardService.getAppearance(cardId));
-    }
-
-    @GetMapping("/{cardId}/personality")
-    public ApiResponse<PersonalityResponse> getPersonality(@PathVariable Long cardId) {
-        return ApiResponse.success(encyclopediaCardService.getPersonality(cardId));
-    }
-
-    @GetMapping("/{cardId}/significant")
-    public ApiResponse<SignificantResponse> getSignificant(@PathVariable Long cardId) {
-        return ApiResponse.success(encyclopediaCardService.getSignificant(cardId));
     }
 
 }

@@ -3,6 +3,8 @@ package com.divary.domain.encyclopedia.entity;
 import com.divary.common.entity.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,12 +31,20 @@ public class EncyclopediaCard extends BaseEntity {
     @Schema(description = "서식지", example = "연안 암초 지역")
     private String place;
 
-    @OneToOne(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ElementCollection
+    @CollectionTable(name = "encyclopedia_card_image_urls", joinColumns = @JoinColumn(name = "card_id"))
+    @Column(name = "image_url")
+    private List<String> imageUrls = new ArrayList<>();
+
+    @Embedded
+    @Schema(description = "외모 값 객체")
     private Appearance appearance;
 
-    @OneToOne(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Embedded
+    @Schema(description = "성격 값 객체")
     private Personality personality;
 
-    @OneToOne(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Embedded
+    @Schema(description = "특이사항 값 객체")
     private Significant significant;
 }

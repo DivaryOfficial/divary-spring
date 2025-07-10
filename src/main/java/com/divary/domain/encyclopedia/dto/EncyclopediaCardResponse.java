@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 @Builder
-@Schema(description = "도감 카드 응답 공통 DTO")
+@Schema(description = "도감 카드 상세 응답")
 public class EncyclopediaCardResponse {
 
     @Schema(description = "도감 카드 ID", example = "3")
@@ -29,23 +29,35 @@ public class EncyclopediaCardResponse {
     @Schema(description = "서식지", example = "따뜻한 연안, 바위 틈")
     private String place;
 
-    @Schema(description = "이미지 URL 목록", example = "[\"...\"]")
+    @Schema(
+            description = "이미지 URL 목록",
+            example = "[\"https://s3.example.com/card1-img1.jpg\", \"https://s3.example.com/card1-img2.jpg\"]"
+    )
     private List<String> imageUrls;
-    
 
+    @Schema(description = "외모 정보")
+    private AppearanceResponse appearance;
+
+    @Schema(description = "성격 정보")
+    private PersonalityResponse personality;
+
+    @Schema(description = "특이사항 정보")
+    private SignificantResponse significant;
+
+    // 썸네일 응답용
     public static EncyclopediaCardResponse summaryOf(com.divary.domain.encyclopedia.entity.EncyclopediaCard card) {
         return EncyclopediaCardResponse.builder()
                 .id(card.getId())
                 .name(card.getName())
                 .type(card.getType())
-                .size(card.getSize())
-                .appearPeriod(card.getAppearPeriod())
-                .place(card.getPlace())
-                .imageUrls(List.of("https://marinepedia.com/images/card" + card.getId() + "-1.jpg"))
+                .imageUrls(card.getImageUrls())
                 .build();
     }
 
-    public static EncyclopediaCardResponse detailOf(com.divary.domain.encyclopedia.entity.EncyclopediaCard card) {
+    // 상세 응답용
+    public static EncyclopediaCardResponse from(
+            com.divary.domain.encyclopedia.entity.EncyclopediaCard card) {
+
         return EncyclopediaCardResponse.builder()
                 .id(card.getId())
                 .name(card.getName())
@@ -53,11 +65,11 @@ public class EncyclopediaCardResponse {
                 .size(card.getSize())
                 .appearPeriod(card.getAppearPeriod())
                 .place(card.getPlace())
-                .imageUrls(List.of(
-                        "https://s3.example.com/card" + card.getId() + "-img1.jpg",
-                        "https://s3.example.com/card" + card.getId() + "-img2.jpg",
-                        "https://s3.example.com/card" + card.getId() + "-img3.jpg"
-                ))
+                .imageUrls(card.getImageUrls())
+                .appearance(AppearanceResponse.from(card.getAppearance()))
+                .personality(PersonalityResponse.from(card.getPersonality()))
+                .significant(SignificantResponse.from(card.getSignificant()))
                 .build();
     }
+
 }
