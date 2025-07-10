@@ -1,5 +1,8 @@
 package com.divary.domain.chatroom.service;
 
+import com.divary.domain.chatroom.dto.response.OpenAIResponse;
+import com.divary.global.exception.BusinessException;
+import com.divary.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+// TODO : 에러 처리 추가 필요 현재는 500 에러로만 처리
 public class OpenAIService {
 
     @Value("${openai.api.key}")
@@ -35,6 +39,7 @@ public class OpenAIService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    // 제목 생성 첫 메시지로부터 제목 자동 생성 (현우님이 주신 프롬프트양식 사용)
     public String generateTitle(String userMessage) {
         try {
             String titlePrompt = """
@@ -71,7 +76,7 @@ public class OpenAIService {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", model);
             requestBody.put("max_tokens", 50);
-            requestBody.put("temperature", 0.3);
+            requestBody.put("temperature", 0.6);
 
             Map<String, Object> systemMessage = new HashMap<>();
             systemMessage.put("role", "system");
@@ -86,7 +91,7 @@ public class OpenAIService {
             JsonNode jsonNode = objectMapper.readTree(response);
             String generatedTitle = jsonNode.path("choices").get(0).path("message").path("content").asText().trim();
             
-            // 30자 제한 확인
+            // 30자 제한 초과 시 말줄임표
             if (generatedTitle.length() > 30) {
                 generatedTitle = generatedTitle.substring(0, 27) + "...";
             }
@@ -94,26 +99,10 @@ public class OpenAIService {
             return generatedTitle;
         } catch (Exception e) {
             log.error("제목 생성 중 오류 발생: {}", e.getMessage());
-            return generateFallbackTitle(userMessage);
-        }
-    }
-
-    private String generateFallbackTitle(String message) {
-        if (message == null || message.trim().isEmpty()) {
             return "새 채팅방";
         }
-        
-        String cleanMessage = message.replaceAll("[\\r\\n\\t]", " ")
-                                .replaceAll("\\s+", " ")
-                                .trim();
-        
-        if (cleanMessage.length() <= 30) {
-            return cleanMessage;
-        } else {
-            return cleanMessage.substring(0, 27) + "...";
-        }
     }
-
+    // 메세지 전송
     public OpenAIResponse sendMessage(String message, MultipartFile imageFile) {
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -154,10 +143,11 @@ public class OpenAIService {
             return parseResponse(response);
         } catch (Exception e) {
             log.error("OpenAI API 호출 중 오류 발생: {}", e.getMessage());
-            throw new RuntimeException("OpenAI API 호출 실패", e);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 
+    // 응답 파싱
     private OpenAIResponse parseResponse(String response) {
         try {
             JsonNode jsonNode = objectMapper.readTree(response);
@@ -182,14 +172,14 @@ public class OpenAIService {
                     .build();
         } catch (Exception e) {
             log.error("OpenAI 응답 파싱 중 오류 발생: {}", e.getMessage());
-            throw new RuntimeException("OpenAI 응답 파싱 실패", e);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 
     private double calculateCost(int promptTokens, int completionTokens) {
-        // gpt-4o-mini 가격 (2024년 기준)
-        double inputCostPer1K = 0.00015;  // $0.00015 per 1K tokens
-        double outputCostPer1K = 0.0006;  // $0.0006 per 1K tokens
+        // gpt-4o-mini 가격 (홈페이지 참고)
+        double inputCostPer1K = 0.0006;   
+        double outputCostPer1K = 0.0024;  
         
         return (promptTokens * inputCostPer1K / 1000) + (completionTokens * outputCostPer1K / 1000);
     }
@@ -200,77 +190,8 @@ public class OpenAIService {
             return Base64.getEncoder().encodeToString(imageBytes);
         } catch (Exception e) {
             log.error("이미지 Base64 인코딩 중 오류 발생: {}", e.getMessage());
-            throw new RuntimeException("이미지 인코딩 실패", e);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
 
-    public static class OpenAIResponse {
-        private String content;
-        private int promptTokens;
-        private int completionTokens;
-        private int totalTokens;
-        private String model;
-        private double cost;
-
-        public static OpenAIResponseBuilder builder() {
-            return new OpenAIResponseBuilder();
-        }
-
-        public String getContent() { return content; }
-        public int getPromptTokens() { return promptTokens; }
-        public int getCompletionTokens() { return completionTokens; }
-        public int getTotalTokens() { return totalTokens; }
-        public String getModel() { return model; }
-        public double getCost() { return cost; }
-
-        public static class OpenAIResponseBuilder {
-            private String content;
-            private int promptTokens;
-            private int completionTokens;
-            private int totalTokens;
-            private String model;
-            private double cost;
-
-            public OpenAIResponseBuilder content(String content) {
-                this.content = content;
-                return this;
-            }
-
-            public OpenAIResponseBuilder promptTokens(int promptTokens) {
-                this.promptTokens = promptTokens;
-                return this;
-            }
-
-            public OpenAIResponseBuilder completionTokens(int completionTokens) {
-                this.completionTokens = completionTokens;
-                return this;
-            }
-
-            public OpenAIResponseBuilder totalTokens(int totalTokens) {
-                this.totalTokens = totalTokens;
-                return this;
-            }
-
-            public OpenAIResponseBuilder model(String model) {
-                this.model = model;
-                return this;
-            }
-
-            public OpenAIResponseBuilder cost(double cost) {
-                this.cost = cost;
-                return this;
-            }
-
-            public OpenAIResponse build() {
-                OpenAIResponse response = new OpenAIResponse();
-                response.content = this.content;
-                response.promptTokens = this.promptTokens;
-                response.completionTokens = this.completionTokens;
-                response.totalTokens = this.totalTokens;
-                response.model = this.model;
-                response.cost = this.cost;
-                return response;
-            }
-        }
-    }
 }
