@@ -1,0 +1,24 @@
+package com.divary.domain.logbook.dto;
+
+import com.divary.domain.logbook.enums.IconType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+public class LogBookRequestDTO {
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreateDTO{
+
+        @NotNull
+        private IconType iconType;
+
+        @NotBlank
+        private String name;
+    }
+}
