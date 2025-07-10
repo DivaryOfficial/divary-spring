@@ -5,9 +5,10 @@ import com.divary.domain.chatroom.dto.Message;
 import com.divary.domain.chatroom.dto.request.ChatRoomCreateRequest;
 import com.divary.domain.chatroom.dto.response.ChatRoomCreateResponse;
 import com.divary.domain.chatroom.dto.response.ChatRoomResponse;
+import com.divary.domain.chatroom.dto.response.OpenAIResponse;
 import com.divary.domain.chatroom.entity.ChatRoom;
 import com.divary.domain.chatroom.repository.ChatRoomRepository;
-import com.divary.domain.chatroom.service.OpenAIService.OpenAIResponse;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,13 +27,12 @@ public class ChatRoomService {
     private final OpenAIService openAIService;  
 
     // 채팅방 생성 (첫 메시지로)
-    @Transactional
+    @Transactional // TODO : 추후 메서드 분리 예정
     public ChatRoomCreateResponse createChatRoom(ChatRoomCreateRequest request) {
         // 임시로 사용자 ID 하드코딩
         // TODO: 사용자 ID를 Authorization 헤더에서 가져오도록 수정
         Long userId = 1L;
         
-        // 첫 메시지로부터 제목 자동 생성 (OpenAI 사용)
         String title = openAIService.generateTitle(request.getFirstMessage());
         
         // 첫 메시지 저장
@@ -58,7 +58,8 @@ public class ChatRoomService {
         assistantMessageData.put("timestamp", System.currentTimeMillis());
         assistantMessageData.put("type", "assistant");
         
-        initialMessages.put("msg_001", firstMessageData);
+        // 첫 메시지와 AI 응답 메시지는 순번이 정해져 있음. 후에 대화 메세지 추가 시 순번 자동 증가
+        initialMessages.put("msg_001", firstMessageData); 
         initialMessages.put("msg_002", assistantMessageData);
         
         // 메타데이터 설정
@@ -105,7 +106,7 @@ public class ChatRoomService {
         if (request.getImage() != null && !request.getImage().isEmpty()) {
             Message.AttachmentDto attachment = Message.AttachmentDto.builder()
                     .id(1L)
-                    .fileUrl("https://example_url_image.com")
+                    .fileUrl("https://example_url_image.com") // TODO: s3 이미지 업로드 후 이미지 URL 설정
                     .originalFilename(request.getImage().getOriginalFilename())
                     .build();
             userMessage.setAttachments(List.of(attachment));
