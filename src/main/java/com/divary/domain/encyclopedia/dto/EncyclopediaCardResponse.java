@@ -1,5 +1,6 @@
 package com.divary.domain.encyclopedia.dto;
 
+import com.divary.domain.encyclopedia.enums.Type;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +18,7 @@ public class EncyclopediaCardResponse {
     @Schema(description = "이름", example = "갯송사리")
     private String name;
 
-    @Schema(description = "종류", example = "연체동물")
+    @Schema(description = "종류", example = "어류")
     private String type;
 
     @Schema(description = "크기", example = "약 1.5~6cm")
@@ -44,24 +45,13 @@ public class EncyclopediaCardResponse {
     @Schema(description = "특이사항 정보")
     private SignificantResponse significant;
 
-    // 썸네일 응답용
-    public static EncyclopediaCardResponse summaryOf(com.divary.domain.encyclopedia.entity.EncyclopediaCard card) {
-        return EncyclopediaCardResponse.builder()
-                .id(card.getId())
-                .name(card.getName())
-                .type(card.getType())
-                .imageUrls(card.getImageUrls())
-                .build();
-    }
-
-    // 상세 응답용
     public static EncyclopediaCardResponse from(
             com.divary.domain.encyclopedia.entity.EncyclopediaCard card) {
 
         return EncyclopediaCardResponse.builder()
                 .id(card.getId())
                 .name(card.getName())
-                .type(card.getType())
+                .type(card.getType().getDescription())
                 .size(card.getSize())
                 .appearPeriod(card.getAppearPeriod())
                 .place(card.getPlace())

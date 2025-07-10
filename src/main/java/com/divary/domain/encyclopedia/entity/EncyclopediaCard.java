@@ -1,6 +1,7 @@
 package com.divary.domain.encyclopedia.entity;
 
 import com.divary.common.entity.BaseEntity;
+import com.divary.domain.encyclopedia.enums.Type;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -19,8 +20,10 @@ public class EncyclopediaCard extends BaseEntity {
     @Schema(description = "생물 이름", example = "쥐치")
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     @Schema(description = "생물 종류", example = "어류")
-    private String type;
+    private Type type;
 
     @Schema(description = "생물 크기", example = "30cm")
     private String size;

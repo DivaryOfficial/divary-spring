@@ -2,15 +2,18 @@ package com.divary.domain.encyclopedia.service;
 
 import com.divary.domain.encyclopedia.dto.AppearanceResponse;
 import com.divary.domain.encyclopedia.dto.EncyclopediaCardResponse;
+import com.divary.domain.encyclopedia.dto.EncyclopediaCardSummaryResponse;
 import com.divary.domain.encyclopedia.dto.PersonalityResponse;
 import com.divary.domain.encyclopedia.dto.SignificantResponse;
 import com.divary.domain.encyclopedia.entity.Appearance;
 import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
 import com.divary.domain.encyclopedia.entity.Personality;
 import com.divary.domain.encyclopedia.entity.Significant;
+import com.divary.domain.encyclopedia.enums.Type;
 import com.divary.domain.encyclopedia.repository.EncyclopediaCardRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
+import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,27 +25,24 @@ public class EncyclopediaCardService {
 
     private final EncyclopediaCardRepository encyclopediaCardRepository;
 
-    private boolean isValidType(String type) {
-        // TODO: 현재는 임시로 모든 타입을 허용하도록 true 반환
-        // 추후 CardType enum 도입 시 유효성 검사 수정 예정
-        return true;
+    public static boolean isValidType(String name) {
+        return Arrays.stream(Type.values()).anyMatch(t -> t.name().equals(name));
     }
 
     @Transactional(readOnly = true)
-    public List<EncyclopediaCardResponse> getCards(String type) {
-        // 전체 조회
+    public List<EncyclopediaCardSummaryResponse > getCards(String type) {
         if (type == null) {
             return encyclopediaCardRepository.findAll().stream()
-                    .map(EncyclopediaCardResponse::summaryOf)
+                    .map(EncyclopediaCardSummaryResponse::from)
                     .toList();
         }
-        // type 유효성 검사
+
         if (!isValidType(type)) {
             throw new BusinessException(ErrorCode.TYPE_NOT_FOUND);
         }
 
         return encyclopediaCardRepository.findAllByType(type).stream()
-                .map(EncyclopediaCardResponse::summaryOf)
+                .map(EncyclopediaCardSummaryResponse::from)
                 .toList();
     }
 
