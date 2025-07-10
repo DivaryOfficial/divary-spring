@@ -1,7 +1,8 @@
 package com.divary.domain.encyclopedia.dto;
 
 import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
-import com.divary.domain.encyclopedia.enums.Type;
+import com.divary.domain.image.entity.Image;
+import com.divary.domain.image.entity.ImageType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Optional;
 import lombok.Builder;
@@ -34,7 +35,7 @@ public class EncyclopediaCardResponse {
 
     @Schema(
             description = "이미지 URL 목록",
-            example = "[\"https://s3.example.com/card1-img1.jpg\", \"https://s3.example.com/card1-img2.jpg\"]"
+            example = "[\"https://s3.example.com/card1-img1.jpg\", \"https://s3.example.com/card1-img2.jpg\",\"https://s3.example.com/card1-img3.jpg\"]"
     )
     private List<String> imageUrls;
 
@@ -48,7 +49,6 @@ public class EncyclopediaCardResponse {
     private SignificantResponse significant;
 
     public static EncyclopediaCardResponse from(EncyclopediaCard card) {
-
         return EncyclopediaCardResponse.builder()
                 .id(card.getId())
                 .name(card.getName())
@@ -56,7 +56,12 @@ public class EncyclopediaCardResponse {
                 .size(card.getSize())
                 .appearPeriod(card.getAppearPeriod())
                 .place(card.getPlace())
-                .imageUrls(card.getImageUrls())
+                .imageUrls(
+                        card.getImages().stream()
+                                .filter(img -> img.getType() == ImageType.DOGAM)
+                                .map(Image::getS3Key)
+                                .toList()
+                )
                 .appearance(Optional.ofNullable(card.getAppearance())
                         .map(AppearanceResponse::from)
                         .orElse(null))
@@ -68,5 +73,6 @@ public class EncyclopediaCardResponse {
                         .orElse(null))
                 .build();
     }
+
 
 }
