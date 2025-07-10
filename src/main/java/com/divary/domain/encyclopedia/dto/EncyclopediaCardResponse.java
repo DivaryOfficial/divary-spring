@@ -1,7 +1,9 @@
 package com.divary.domain.encyclopedia.dto;
 
+import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
 import com.divary.domain.encyclopedia.enums.Type;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Optional;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -45,8 +47,7 @@ public class EncyclopediaCardResponse {
     @Schema(description = "특이사항 정보")
     private SignificantResponse significant;
 
-    public static EncyclopediaCardResponse from(
-            com.divary.domain.encyclopedia.entity.EncyclopediaCard card) {
+    public static EncyclopediaCardResponse from(EncyclopediaCard card) {
 
         return EncyclopediaCardResponse.builder()
                 .id(card.getId())
@@ -56,9 +57,15 @@ public class EncyclopediaCardResponse {
                 .appearPeriod(card.getAppearPeriod())
                 .place(card.getPlace())
                 .imageUrls(card.getImageUrls())
-                .appearance(AppearanceResponse.from(card.getAppearance()))
-                .personality(PersonalityResponse.from(card.getPersonality()))
-                .significant(SignificantResponse.from(card.getSignificant()))
+                .appearance(Optional.ofNullable(card.getAppearance())
+                        .map(AppearanceResponse::from)
+                        .orElse(null))
+                .personality(Optional.ofNullable(card.getPersonality())
+                        .map(PersonalityResponse::from)
+                        .orElse(null))
+                .significant(Optional.ofNullable(card.getSignificant())
+                        .map(SignificantResponse::from)
+                        .orElse(null))
                 .build();
     }
 

@@ -1,14 +1,8 @@
 package com.divary.domain.encyclopedia.service;
 
-import com.divary.domain.encyclopedia.dto.AppearanceResponse;
 import com.divary.domain.encyclopedia.dto.EncyclopediaCardResponse;
 import com.divary.domain.encyclopedia.dto.EncyclopediaCardSummaryResponse;
-import com.divary.domain.encyclopedia.dto.PersonalityResponse;
-import com.divary.domain.encyclopedia.dto.SignificantResponse;
-import com.divary.domain.encyclopedia.entity.Appearance;
 import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
-import com.divary.domain.encyclopedia.entity.Personality;
-import com.divary.domain.encyclopedia.entity.Significant;
 import com.divary.domain.encyclopedia.enums.Type;
 import com.divary.domain.encyclopedia.repository.EncyclopediaCardRepository;
 import com.divary.global.exception.BusinessException;
@@ -25,23 +19,32 @@ public class EncyclopediaCardService {
 
     private final EncyclopediaCardRepository encyclopediaCardRepository;
 
-    public static boolean isValidType(String name) {
-        return Arrays.stream(Type.values()).anyMatch(t -> t.name().equals(name));
+    private static Type convertDescriptionToEnum(String description) {
+        return Arrays.stream(Type.values())
+                .filter(type -> type.getDescription().equals(description))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.TYPE_NOT_FOUND));
+    }
+
+    private static boolean isValidDescription(String description) {
+        return Arrays.stream(Type.values())
+                .anyMatch(t -> t.getDescription().equals(description));
     }
 
     @Transactional(readOnly = true)
-    public List<EncyclopediaCardSummaryResponse > getCards(String type) {
-        if (type == null) {
+    public List<EncyclopediaCardSummaryResponse > getCards(String description) {
+        if (description == null) {
             return encyclopediaCardRepository.findAll().stream()
                     .map(EncyclopediaCardSummaryResponse::from)
                     .toList();
         }
 
-        if (!isValidType(type)) {
+        if (!isValidDescription(description)) {
             throw new BusinessException(ErrorCode.TYPE_NOT_FOUND);
         }
 
-        return encyclopediaCardRepository.findAllByType(type).stream()
+        Type typeEnum = convertDescriptionToEnum(description);
+        return encyclopediaCardRepository.findAllByType(typeEnum).stream()
                 .map(EncyclopediaCardSummaryResponse::from)
                 .toList();
     }

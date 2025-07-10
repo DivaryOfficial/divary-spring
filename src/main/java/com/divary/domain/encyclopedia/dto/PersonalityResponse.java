@@ -1,5 +1,6 @@
 package com.divary.domain.encyclopedia.dto;
 
+import com.divary.domain.encyclopedia.embedded.Personality;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,7 +22,7 @@ public class PersonalityResponse {
     @Schema(description = "반응성", example = "위협 자극에 민감하지 않고 느긋한 편")
     private String reactivity;
 
-    public static PersonalityResponse from(com.divary.domain.encyclopedia.entity.Personality personality) {
+    public static PersonalityResponse from(Personality personality) {
         return PersonalityResponse.builder()
                 .activity(personality.getActivity())
                 .socialSkill(personality.getSocialSkill())

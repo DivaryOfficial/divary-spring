@@ -1,4 +1,4 @@
-package com.divary.domain.encyclopedia.entity;
+package com.divary.domain.encyclopedia.embedded;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;

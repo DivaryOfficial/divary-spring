@@ -1,6 +1,6 @@
 package com.divary.domain.encyclopedia.dto;
 
-import com.divary.domain.encyclopedia.entity.Appearance;
+import com.divary.domain.encyclopedia.embedded.Appearance;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Arrays;
 import lombok.Builder;

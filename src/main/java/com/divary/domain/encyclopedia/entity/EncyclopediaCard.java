@@ -1,6 +1,9 @@
 package com.divary.domain.encyclopedia.entity;
 
 import com.divary.common.entity.BaseEntity;
+import com.divary.domain.encyclopedia.embedded.Appearance;
+import com.divary.domain.encyclopedia.embedded.Personality;
+import com.divary.domain.encyclopedia.embedded.Significant;
 import com.divary.domain.encyclopedia.enums.Type;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;

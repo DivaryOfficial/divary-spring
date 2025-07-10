@@ -1,6 +1,6 @@
 package com.divary.domain.encyclopedia.dto;
 
-import com.divary.domain.encyclopedia.entity.Significant;
+import com.divary.domain.encyclopedia.embedded.Significant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
