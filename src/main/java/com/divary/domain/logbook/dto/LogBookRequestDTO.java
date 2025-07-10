@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 public class LogBookRequestDTO {
     @Builder
     @Getter
@@ -20,5 +22,8 @@ public class LogBookRequestDTO {
 
         @NotBlank
         private String name;
+
+        @NotNull
+        private LocalDate date;
     }
 }

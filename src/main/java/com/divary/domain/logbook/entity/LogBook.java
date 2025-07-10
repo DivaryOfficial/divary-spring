@@ -9,12 +9,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
 
-@Entity
 @Getter
 @Schema(description = "다이빙 로그")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Entity
 public class LogBook extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)

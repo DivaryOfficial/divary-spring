@@ -3,7 +3,7 @@ package com.divary.domain.logbook.controller;
 import com.divary.common.response.ApiResponse;
 import com.divary.domain.logbook.dto.LogBookRequestDTO;
 import com.divary.domain.logbook.dto.LogBookResponseDTO;
-import com.divary.domain.logbook.service.LogBookServiceImpl;
+import com.divary.domain.logbook.service.LogBookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Log API", description = "로그북 관련 API")
 public class LogBookController {
 
-    private final LogBookServiceImpl logBookServiceImpl;
+    private final LogBookService logBookServiceImpl;
 
     @PostMapping
     @Operation(summary = "로그 생성", description = "다이빙 로그를 생성합니다.")
-    public ApiResponse<LogBookResponseDTO.CreatResultDTO> createLog
+    public ApiResponse<LogBookResponseDTO.CreateResultDTO> createLog
             (@RequestBody @Valid LogBookRequestDTO.CreateDTO createDTO)
     {
-        LogBookResponseDTO.CreatResultDTO responseDto = logBookServiceImpl.createLog(createDTO);
+        LogBookResponseDTO.CreateResultDTO responseDto = logBookServiceImpl.createLog(createDTO);
         return ApiResponse.success(responseDto);
     }
 
