@@ -22,9 +22,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Member extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     @NotNull
     private String email;
