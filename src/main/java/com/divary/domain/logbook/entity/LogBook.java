@@ -7,14 +7,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
-@Entity
 @Getter
 @Schema(description = "다이빙 로그")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Entity
 public class LogBook extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -28,7 +28,7 @@ public class LogBook extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "icon", nullable = false)
     @Schema(description = "아이콘 타입", example = "WHALE")
-    private IconType icon;
+    private IconType iconType;
 
     @Column(name = "accumulation",nullable = false)
     @Schema(description = "누적 횟수", example = "3")
@@ -36,7 +36,7 @@ public class LogBook extends BaseEntity {
 
     @Column(name = "date", nullable = false)
     @Schema(description = "다이빙 날짜", example = "2025-07-25")
-    private LocalDateTime date;
+    private LocalDate date;
 
     @Column(name = "place",length = 50)
     @Schema(description = "다이빙 지역", example = "제주도 서귀포시")
