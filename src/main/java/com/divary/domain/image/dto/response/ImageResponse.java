@@ -14,13 +14,13 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "이미지 업로드 응답")
-public class ImageUploadResponse {
+@Schema(description = "이미지 조회 응답")
+public class ImageResponse {
     
     @Schema(description = "이미지 ID", example = "1")
     private Long id;
     
-    @Schema(description = "이미지 파일 URL", example = "https://s3.amazonaws.com/bucket/users/1/chat/image.jpg")
+    @Schema(description = "이미지 파일 URL", example = "https://presigned-url...")
     private String fileUrl;
     
     @Schema(description = "원본 파일명", example = "diving_photo.jpg")
@@ -33,24 +33,28 @@ public class ImageUploadResponse {
     private Long height;
     
     @Schema(description = "이미지 타입", example = "USER_CHAT")
-    private ImageType imageType;
+    private ImageType type;
     
-    @Schema(description = "업로드 일시", example = "2024-01-15T10:30:00")
-    private LocalDateTime uploadedAt;
+    @Schema(description = "생성 일시", example = "2025-01-15T10:30:00")
+    private LocalDateTime createdAt;
+    
+    @Schema(description = "수정 일시", example = "2025-01-15T10:30:00")
+    private LocalDateTime updatedAt;
     
     @Schema(description = "사용자 ID", example = "1")
     private Long userId;
     
-    public static ImageUploadResponse from(Image image, String fileUrl) {
-        return ImageUploadResponse.builder()
+    public static ImageResponse from(Image image, String fileUrl) {
+        return ImageResponse.builder()
                 .id(image.getId())
                 .fileUrl(fileUrl)
                 .originalFilename(image.getOriginalFilename())
                 .width(image.getWidth())
                 .height(image.getHeight())
-                .imageType(image.getType())
-                .uploadedAt(image.getCreatedAt())
+                .type(image.getType())
+                .createdAt(image.getCreatedAt())
+                .updatedAt(image.getUpdatedAt())
                 .userId(image.getUserId())
                 .build();
     }
-}
+} 
