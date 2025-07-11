@@ -68,6 +68,8 @@ public class GoogleOauth implements SocialOauth {
                     .build());
         }
 
+        //todo JWT 토큰 관리 추가
+
         // 3. 응답 생성
         return LoginResponseDTO.builder()
                 .email(member.getEmail())
