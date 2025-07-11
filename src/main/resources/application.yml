@@ -43,7 +43,8 @@ logging:
     com.divary: DEBUG
 
 # 애플리케이션 커스텀 설정
-app:
-  jwt:
-    secret: divarySecretKeyForJWTTokenGenerationAndValidation2024
-    expiration: 86400000 # 24시간
+jwt:
+  secretKey: divarySecretKeyForJWTTokenGenerationAndValidation2024
+  expiration:
+    access: 14400000 #4시간
+    refresh: 604800000

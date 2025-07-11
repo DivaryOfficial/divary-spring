@@ -15,8 +15,7 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorizeHttpRequests ->
                 authorizeHttpRequests
-                        .requestMatchers("/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/", "/auth/**").permitAll() // 소셜 로그인 엔드포인트는 인증 없이 접근 가능
-                        .anyRequest().authenticated() // 그 외의 요청은 인증이 필요
+                        .anyRequest().permitAll()
         );
 
 
