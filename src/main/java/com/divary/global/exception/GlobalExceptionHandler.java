@@ -71,6 +71,16 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.METHOD_NOT_ALLOWED));
     }
 
+    // InvalidTokenException 처리
+    @ExceptionHandler(InvalidTokenException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleInvalidTokenException(InvalidTokenException e) {
+        log.error("Invalid Token: {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)  // Unauthorized 상태 코드 반환
+                .body(ApiResponse.error(ErrorCode.INVALID_TOKEN));  // 오류 코드 반환
+    }
+
+
     /**
      * 기타 모든 예외 처리
      */
