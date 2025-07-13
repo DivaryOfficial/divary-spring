@@ -129,5 +129,12 @@ public class ImageService {
         }
     }
 
+    public List<ImageResponse> getImagesByType(ImageType imageType, Long userId, String additionalPath) {
+        String uploadPath = imagePathService.generateUserUploadPath(imageType, userId, additionalPath);
+        List<Image> images = imageRepository.findByS3KeyStartingWith(uploadPath);
+        return images.stream()
+                .map(image -> ImageResponse.from(image, imageStorageService.generatePublicUrl(image.getS3Key())))
+                .collect(Collectors.toList());
+    }
 
 } 

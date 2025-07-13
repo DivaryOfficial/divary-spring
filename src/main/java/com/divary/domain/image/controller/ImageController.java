@@ -55,20 +55,6 @@ public class ImageController {
         return ApiResponse.success("이미지 업로드가 완료되었습니다.", response);
     }
 
-
-    @Operation(summary = "타입별 이미지 목록 조회", description = "특정 타입의 이미지 목록을 조회합니다.")
-    @ApiErrorExamples({
-            ErrorCode.INVALID_INPUT_VALUE
-    })
-    @GetMapping("/path")
-    public ApiResponse<List<ImageResponse>> getImagesByPath(
-            @Parameter(description = "검색할 경로 패턴", example = "users/1/chat/")
-            @RequestParam String pathPattern
-    ) {
-        List<ImageResponse> images = imageService.getImagesByPath(pathPattern);
-        return ApiResponse.success("경로별 이미지 목록을 조회했습니다.", images);
-    }
-
     @Operation(summary = "이미지 삭제", description = "S3와 DB에서 이미지를 삭제합니다.")
     @ApiErrorExamples({
             ErrorCode.INTERNAL_SERVER_ERROR
@@ -93,5 +79,23 @@ public class ImageController {
     ) {
         ImageResponse image = imageService.getImageById(imageId);
         return ApiResponse.success("이미지 정보를 조회했습니다.", image);
+    }
+
+    @Operation(summary = "이미지 타입별 상세 정보 조회", description = "ImageType을 기준으로 해당 타입의 이미지 상세 정보를 조회합니다.")
+    @ApiErrorExamples({
+            ErrorCode.INVALID_INPUT_VALUE,
+            ErrorCode.INTERNAL_SERVER_ERROR
+    })
+    @GetMapping("/type/{imageType}")
+    public ApiResponse<List<ImageResponse>> getImagesByType(
+            @Parameter(description = "이미지 타입", example = "USER_DIVING_LOG")
+            @PathVariable ImageType imageType,
+            @Parameter(description = "사용자 ID (USER 타입의 경우 필수)", example = "1")
+            @RequestParam(required = false) Long userId,
+            @Parameter(description = "추가 경로 (선택사항)", example = "additional/path")
+            @RequestParam(required = false) String additionalPath
+    ) {
+        List<ImageResponse> images = imageService.getImagesByType(imageType, userId, additionalPath);
+        return ApiResponse.success("이미지 타입별 상세 정보를 조회했습니다.", images);
     }
 } 
