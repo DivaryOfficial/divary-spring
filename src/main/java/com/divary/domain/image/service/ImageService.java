@@ -16,6 +16,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Slf4j
 @Service
@@ -69,14 +71,12 @@ public class ImageService {
         }
     }
 
-    // 사용자의 이미지 목록 조회
-    public List<Image> getUserImages(Long userId) {
-        return imageRepository.findByUserId(userId);
-    }
-
     // 경로 패턴으로 이미지 목록 조회
-    public List<Image> getImagesByPath(String pathPattern) {
-        return imageRepository.findByS3KeyStartingWith(pathPattern);
+    public List<ImageResponse> getImagesByPath(String pathPattern) {
+        List<Image> images = imageRepository.findByS3KeyStartingWith(pathPattern);
+        return images.stream()
+                .map(image -> ImageResponse.from(image, imageStorageService.generatePublicUrl(image.getS3Key())))
+                .collect(Collectors.toList());
     }
 
     // 이미지 상세 조회 (URL 포함)
@@ -88,21 +88,6 @@ public class ImageService {
         return ImageResponse.from(image, fileUrl);
     }
     
-    // s3Key로 URL 생성
-    public String generateUrlFromS3Key(String s3Key) {
-        return imageStorageService.generatePublicUrl(s3Key);
-    }
-    
-    // 유저 이미지 업로드 경로 생성 (위임)
-    public String generateUserUploadPath(ImageType imageType, Long userId, String additionalPath) {
-        return imagePathService.generateUserUploadPath(imageType, userId, additionalPath);
-    }
-    
-    // 시스템 이미지 업로드 경로 생성 (위임)
-    public String generateSystemUploadPath(ImageType imageType, String additionalPath) {
-        return imagePathService.generateSystemUploadPath(imageType, additionalPath);
-    }
-
     // 이미지 삭제
     @Transactional
     public void deleteImage(Long imageId) {

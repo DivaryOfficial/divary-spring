@@ -3,8 +3,6 @@ package com.divary.domain.image.controller;
 import com.divary.common.response.ApiResponse;
 import com.divary.domain.image.dto.request.ImageUploadRequest;
 import com.divary.domain.image.dto.response.ImageResponse;
-
-import com.divary.domain.image.entity.Image;
 import com.divary.domain.image.entity.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.global.config.SwaggerConfig.ApiErrorExamples;
@@ -57,29 +55,17 @@ public class ImageController {
         return ApiResponse.success("이미지 업로드가 완료되었습니다.", response);
     }
 
-    @Operation(summary = "사용자별 이미지 목록 조회", description = "특정 사용자가 업로드한 이미지 목록을 조회합니다.")
-    @ApiErrorExamples({
-            ErrorCode.INVALID_INPUT_VALUE
-    })
-    @GetMapping("/user/{userId}")
-    public ApiResponse<List<Image>> getUserImages(
-            @Parameter(description = "사용자 ID", example = "1")
-            @PathVariable Long userId
-    ) {
-        List<Image> images = imageService.getUserImages(userId);
-        return ApiResponse.success("사용자 이미지 목록을 조회했습니다.", images);
-    }
 
     @Operation(summary = "타입별 이미지 목록 조회", description = "특정 타입의 이미지 목록을 조회합니다.")
     @ApiErrorExamples({
             ErrorCode.INVALID_INPUT_VALUE
     })
     @GetMapping("/path")
-    public ApiResponse<List<Image>> getImagesByPath(
+    public ApiResponse<List<ImageResponse>> getImagesByPath(
             @Parameter(description = "검색할 경로 패턴", example = "users/1/chat/")
             @RequestParam String pathPattern
     ) {
-        List<Image> images = imageService.getImagesByPath(pathPattern);
+        List<ImageResponse> images = imageService.getImagesByPath(pathPattern);
         return ApiResponse.success("경로별 이미지 목록을 조회했습니다.", images);
     }
 
