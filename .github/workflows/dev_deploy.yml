@@ -27,13 +27,19 @@ jobs:
           echo "${{ secrets.APPLICATION_PROD_YML }}" > ./src/main/resources/application-prod.yml
         shell: bash
 
+      - name: Generate application-dev.yml for testing
+        run: |
+          mkdir -p ./src/main/resources
+          echo "${{ secrets.APPLICATION_DEV_YML }}" > ./src/main/resources/application-dev.yml
+        shell: bash
+
       - name: Grant permission to gradlew
         run: chmod +x gradlew
 
       - name: Build with Gradle
         run: ./gradlew build
 
-      - name: Compress JAR with tar.gz  # jar 파일 압축
+      - name: Compress JAR with tar.gz # jar 파일 압축
         run: |
           mkdir -p package
           cp build/libs/*.jar package/
@@ -44,7 +50,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: divary-artifact
-          path: divary-app.tar.gz  # 압축된 tar.gz 파일만 업로드
+          path: divary-app.tar.gz # 압축된 tar.gz 파일만 업로드
 
   deploy:
     needs: build
