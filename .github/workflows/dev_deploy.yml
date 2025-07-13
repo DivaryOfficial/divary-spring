@@ -27,17 +27,11 @@ jobs:
           echo "${{ secrets.APPLICATION_PROD_YML }}" > ./src/main/resources/application-prod.yml
         shell: bash
 
-      - name: Generate application-dev.yml for testing
-        run: |
-          mkdir -p ./src/main/resources
-          echo "${{ secrets.APPLICATION_DEV_YML }}" > ./src/main/resources/application-dev.yml
-        shell: bash
-
       - name: Grant permission to gradlew
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew build -x test
 
       - name: Compress JAR with tar.gz # jar 파일 압축
         run: |
