@@ -35,6 +35,11 @@ public class ImageService {
         validateUploadRequest(request);
         
         try {
+            // 이미지 크기 추출
+            BufferedImage bufferedImage = ImageIO.read(request.getFile().getInputStream());
+            Long width = bufferedImage != null ? (long) bufferedImage.getWidth() : null;
+            Long height = bufferedImage != null ? (long) bufferedImage.getHeight() : null;
+            
             // 파일명 생성
             String fileName = imageStorageService.generateUniqueFileName(request.getFile().getOriginalFilename());
             
@@ -44,15 +49,10 @@ public class ImageService {
             // S3에 업로드
             imageStorageService.uploadToS3(s3Key, request.getFile());
             
-            // 이미지 크기 추출
-            BufferedImage bufferedImage = ImageIO.read(request.getFile().getInputStream());
-            Long width = bufferedImage != null ? (long) bufferedImage.getWidth() : null;
-            Long height = bufferedImage != null ? (long) bufferedImage.getHeight() : null;
-            
             // DB에 저장
             Image image = Image.builder()
                     .s3Key(s3Key)
-                    .type(null) // 경로 기반으로 변경됨
+                    .type(null)
                     .originalFilename(request.getOriginalFilename() != null ? 
                                     request.getOriginalFilename() : request.getFile().getOriginalFilename())
                     .width(width)
@@ -127,6 +127,33 @@ public class ImageService {
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new BusinessException(ErrorCode.VALIDATION_ERROR);
         }
+    }
+
+    // 타입별 이미지 업로드
+    @Transactional
+    public ImageResponse uploadImageByType(ImageType imageType, org.springframework.web.multipart.MultipartFile file, Long userId, String additionalPath, String originalFilename) {
+        // 업로드 경로 생성
+        String uploadPath;
+        if (imageType.name().startsWith("USER_")) {
+            uploadPath = imagePathService.generateUserUploadPath(imageType, userId, additionalPath);
+        } else {
+            uploadPath = imagePathService.generateSystemUploadPath(imageType, additionalPath);
+        }
+        
+        ImageUploadRequest request = ImageUploadRequest.builder()
+                .file(file)
+                .uploadPath(uploadPath)
+                .originalFilename(originalFilename)
+                .build();
+        
+        ImageResponse response = uploadImage(request);
+        
+        Image savedImage = imageRepository.findById(response.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR));
+        savedImage.updateType(imageType);
+        
+        // 업데이트된 이미지로 응답 생성
+        return ImageResponse.from(savedImage, response.getFileUrl());
     }
 
     public List<ImageResponse> getImagesByType(ImageType imageType, Long userId, String additionalPath) {

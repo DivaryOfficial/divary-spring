@@ -81,6 +81,33 @@ public class ImageController {
         return ApiResponse.success("이미지 정보를 조회했습니다.", image);
     }
 
+    @Operation(summary = "타입별 이미지 업로드", description = "ImageType을 기준으로 이미지를 업로드합니다.")
+    @ApiErrorExamples({
+            ErrorCode.VALIDATION_ERROR,
+            ErrorCode.INTERNAL_SERVER_ERROR
+    })
+    @PostMapping(value = "/upload/type/{imageType}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ImageResponse> uploadImageByType(
+            @Parameter(description = "이미지 타입", example = "USER_DIVING_LOG")
+            @PathVariable ImageType imageType,
+            
+            @Parameter(description = "업로드할 이미지 파일", required = true,
+                      content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE))
+            @RequestPart("file") MultipartFile file,
+            
+            @Parameter(description = "사용자 ID (USER 타입의 경우 필수)", example = "1")
+            @RequestParam(required = false) Long userId,
+            
+            @Parameter(description = "추가 경로 (선택사항)", example = "additional/path")
+            @RequestParam(required = false) String additionalPath,
+            
+            @Parameter(description = "원본 파일명 (선택사항)", example = "diving_photo.jpg")
+            @RequestParam(value = "originalFilename", required = false) String originalFilename
+    ) {
+        ImageResponse response = imageService.uploadImageByType(imageType, file, userId, additionalPath, originalFilename);
+        return ApiResponse.success("타입별 이미지 업로드가 완료되었습니다.", response);
+    }
+
     @Operation(summary = "이미지 타입별 상세 정보 조회", description = "ImageType을 기준으로 해당 타입의 이미지 상세 정보를 조회합니다.")
     @ApiErrorExamples({
             ErrorCode.INVALID_INPUT_VALUE,

@@ -55,4 +55,8 @@ public class Image extends BaseEntity {
         this.width = width;
         this.height = height;
     }
+    
+    public void updateType(ImageType type) {
+        this.type = type;
+    }
 }
