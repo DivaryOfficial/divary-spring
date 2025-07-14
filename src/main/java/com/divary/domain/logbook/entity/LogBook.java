@@ -30,13 +30,16 @@ public class LogBook extends BaseEntity {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "icon", nullable = false)
+    @Column(name = "icon_type", nullable = false)
     @Schema(description = "아이콘 타입", example = "WHALE")
     private IconType iconType;
 
     @Column(name = "accumulation",nullable = false)
     @Schema(description = "누적 횟수", example = "3")
     private int accumulation;
+
+    @Column(name = "save_status")
+    private saveStatus saveStatus;
 
     @Column(name = "date", nullable = false)
     @Schema(description = "다이빙 날짜", example = "2025-07-25")
