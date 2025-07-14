@@ -10,7 +10,7 @@ import java.util.HashMap;
 public class ChatRoomMetadataService {
 
     // 메타데이터 생성
-    public ChatRoomMetadata createMetadata(OpenAIResponse aiResponse) {
+    public ChatRoomMetadata createMetadata(OpenAIResponse aiResponse, String lastMessageId, int messageCount) {
         ChatRoomMetadata.Usage usage = ChatRoomMetadata.Usage.builder()
                 .promptTokens(aiResponse.getPromptTokens())
                 .completionTokens(aiResponse.getCompletionTokens())
@@ -20,8 +20,8 @@ public class ChatRoomMetadataService {
                 .build();
         
         return ChatRoomMetadata.builder()
-                .lastMessageId("msg_002")
-                .messageCount(2)
+                .lastMessageId(lastMessageId)
+                .messageCount(messageCount)
                 .usage(usage)
                 .build();
     }

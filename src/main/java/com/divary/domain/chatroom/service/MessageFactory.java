@@ -90,4 +90,20 @@ public class MessageFactory {
                 .timestamp(LocalDateTime.now().plusSeconds(15))
                 .build();
     }
+
+    // 다음 메시지 ID 생성
+    public String generateNextMessageId(HashMap<String, Object> messages) {
+        int maxNumber = 0;
+        for (String key : messages.keySet()) {
+            if (key.startsWith("msg_")) {
+                try {
+                    int number = Integer.parseInt(key.substring(4));
+                    maxNumber = Math.max(maxNumber, number);
+                } catch (NumberFormatException e) {
+                    // 잘못된 형식의 키는 무시
+                }
+            }
+        }
+        return String.format("msg_%03d", maxNumber + 1);
+    }
 }

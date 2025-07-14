@@ -35,13 +35,13 @@ public class ChatRoomService {
     @Transactional
     public ChatRoomCreateResponse createChatRoom(ChatRoomCreateRequest request) {
         Long userId = getCurrentUserId();
-        String title = generateChatRoomTitle(request.getFirstMessage());
+        String title = openAIService.generateTitle(request.getFirstMessage());
         
-        // 1. 채팅방을 먼저 저장 (이미지 없이)
+        // 채팅방을 먼저 저장 (이미지 없이) : chatRoomId를 반환 받기 위해서 먼저 저장, 이미지는 chatRoomId에 매핑되는 구조기에
         ChatRoom chatRoom = buildChatRoomWithoutImage(userId, title, request);
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
         
-        // 2. 채팅방 ID로 이미지 업로드
+        // 채팅방 ID로 이미지 업로드
         String imageUrl = null;
         if (request.getImage() != null && !request.getImage().isEmpty()) {
             ImageResponse imageResponse = imageService.uploadImageByType(
@@ -52,13 +52,14 @@ public class ChatRoomService {
             );
             imageUrl = imageResponse.getFileUrl();
             
-            // 3. 채팅방에 이미지 정보 업데이트
+            // 채팅방에 이미지 정보 업데이트
             updateChatRoomWithImage(savedChatRoom, imageUrl, request.getImage());
         }
         
-        OpenAIResponse aiResponse = processMessageWithAI(request.getFirstMessage(), request.getImage());
+        // AI 응답 생성
+        OpenAIResponse aiResponse = openAIService.sendMessage(request.getFirstMessage(), request.getImage());
         
-        // 4. AI 응답을 채팅방에 추가
+        // AI 응답을 채팅방에 추가
         addAiResponseToMessages(savedChatRoom, aiResponse);
         
         return buildCreateResponse(savedChatRoom, request, aiResponse, imageUrl);
@@ -68,15 +69,19 @@ public class ChatRoomService {
     private void addAiResponseToMessages(ChatRoom chatRoom, OpenAIResponse aiResponse) {
         HashMap<String, Object> messages = chatRoom.getMessages();
         HashMap<String, Object> assistantMessage = messageFactory.createAssistantMessageData(aiResponse);
-        messages.put("msg_002", assistantMessage);
+        
+        // 다음 메시지 ID 생성
+        String nextMessageId = messageFactory.generateNextMessageId(messages);
+        messages.put(nextMessageId, assistantMessage);
         
         // 메타데이터 업데이트
-        ChatRoomMetadata metadata = metadataService.createMetadata(aiResponse);
+        ChatRoomMetadata metadata = metadataService.createMetadata(aiResponse, nextMessageId, messages.size());
         HashMap<String, Object> metadataMap = metadataService.convertToMap(metadata);
         
         chatRoom.updateMessages(messages);
         chatRoom.updateMetadata(metadataMap);
     }
+    
 
     // 현재 사용자 ID 가져오기
     private Long getCurrentUserId() {
@@ -84,26 +89,17 @@ public class ChatRoomService {
         return 1L;
     }
 
-    // 채팅방 제목 생성
-    private String generateChatRoomTitle(String firstMessage) {
-        return openAIService.generateTitle(firstMessage);
-    }
-
-    // AI로 메시지 처리
-    private OpenAIResponse processMessageWithAI(String message, org.springframework.web.multipart.MultipartFile image) {
-        return openAIService.sendMessage(message, image);
-    }
-
     // ChatRoom 엔티티 생성 (이미지 없이) 
     private ChatRoom buildChatRoomWithoutImage(Long userId, String title, ChatRoomCreateRequest request) {
         // 이미지 없이 초기 메시지만 생성
         HashMap<String, Object> initialMessages = messageFactory.createUserMessageData(request.getFirstMessage(), null);
         HashMap<String, Object> messages = new HashMap<>();
-        messages.put("msg_001", initialMessages);
+        String firstMessageId = messageFactory.generateNextMessageId(messages);
+        messages.put(firstMessageId, initialMessages);
         
         // 임시 메타데이터 (AI 응답 전)
         HashMap<String, Object> metadataMap = new HashMap<>();
-        metadataMap.put("lastMessageId", "msg_001");
+        metadataMap.put("lastMessageId", firstMessageId);
         metadataMap.put("messageCount", 1);
         
         return ChatRoom.builder()
@@ -117,8 +113,11 @@ public class ChatRoomService {
     // 채팅방에 이미지 정보 업데이트
     private void updateChatRoomWithImage(ChatRoom chatRoom, String imageUrl, org.springframework.web.multipart.MultipartFile image) {
         HashMap<String, Object> messages = chatRoom.getMessages();
+        HashMap<String, Object> metadata = chatRoom.getMetadata();
+        String firstMessageId = (String) metadata.get("lastMessageId");
+        
         @SuppressWarnings("unchecked")
-        HashMap<String, Object> userMessage = (HashMap<String, Object>) messages.get("msg_001");
+        HashMap<String, Object> userMessage = (HashMap<String, Object>) messages.get(firstMessageId);
         
         // 이미지 정보 추가
         userMessage.put("hasImage", true);
@@ -126,7 +125,7 @@ public class ChatRoomService {
         userMessage.put("imageSize", image.getSize());
         userMessage.put("imageUrl", imageUrl);
         
-        messages.put("msg_001", userMessage);
+        messages.put(firstMessageId, userMessage);
         chatRoom.updateMessages(messages);
     }
 
@@ -134,29 +133,34 @@ public class ChatRoomService {
     private ChatRoomCreateResponse buildCreateResponse(ChatRoom savedChatRoom, ChatRoomCreateRequest request, OpenAIResponse aiResponse, String imageUrl) {
         ChatRoomResponse chatRoomResponse = ChatRoomResponse.from(savedChatRoom);
         
+        // 메타데이터에서 마지막 메시지 ID 가져오기
+        HashMap<String, Object> metadata = savedChatRoom.getMetadata();
+        String lastMessageId = (String) metadata.get("lastMessageId");
+        
         // 이미지가 있는 경우와 없는 경우를 구분하여 메시지 생성
+        String firstMessageId = messageFactory.generateNextMessageId(new HashMap<>());
         Message userMessage;
         if (request.getImage() != null && !request.getImage().isEmpty() && imageUrl != null) {
             userMessage = messageFactory.createUserMessageDtoWithAttachment(
-                    "msg_001", 
+                    firstMessageId, 
                     request.getFirstMessage(), 
                     1L, 
                     imageUrl, 
                     request.getImage().getOriginalFilename()
             );
         } else {
-            userMessage = messageFactory.createUserMessageDto("msg_001", request.getFirstMessage());
+            userMessage = messageFactory.createUserMessageDto(firstMessageId, request.getFirstMessage());
         }
         
-        Message assistantMessage = messageFactory.createAssistantMessageDto("msg_002", aiResponse);
+        Message assistantMessage = messageFactory.createAssistantMessageDto(lastMessageId, aiResponse);
         
-        ChatRoomMetadata metadata = metadataService.createMetadata(aiResponse);
+        ChatRoomMetadata chatRoomMetadata = metadataService.createMetadata(aiResponse, lastMessageId, metadata.size());
         
         return ChatRoomCreateResponse.builder()
                 .chatRoom(chatRoomResponse)
                 .userMessage(userMessage)
                 .assistantMessage(assistantMessage)
-                .usage(metadata.getUsage())
+                .usage(chatRoomMetadata.getUsage())
                 .build();
     }
 
