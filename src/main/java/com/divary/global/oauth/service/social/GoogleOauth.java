@@ -5,6 +5,8 @@ import com.divary.domain.Member.entity.Member;
 import com.divary.domain.Member.enums.Role;
 import com.divary.domain.Member.service.MemberService;
 import com.divary.global.config.security.jwt.JwtTokenProvider;
+import com.divary.global.exception.BusinessException;
+import com.divary.global.exception.ErrorCode;
 import com.divary.global.oauth.dto.LoginResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -51,7 +53,7 @@ public class GoogleOauth implements SocialOauth {
             return userInfo;
         }
 
-        throw new RuntimeException("사용자 정보 조회 실패");
+        throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
     }
 
     @Override
@@ -69,15 +71,14 @@ public class GoogleOauth implements SocialOauth {
             member = memberService.saveMember(Member.builder()
                     .email(email)
                     .socialType(SocialType.GOOGLE)
-                    .role(Role.User)
+                    .role(Role.USER)
                     .build());
         }
 
-        //todo JWT 토큰 관리 추가
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 email, null,
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + Role.User.name()))  // 권한을 설정 일시적으로 일반 유저 권한만
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + Role.USER.name()))  // 권한을 설정 일시적으로 일반 유저 권한만
         );
 
         // JWT 토큰 발급

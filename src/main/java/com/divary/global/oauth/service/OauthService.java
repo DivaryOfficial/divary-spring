@@ -1,6 +1,8 @@
 package com.divary.global.oauth.service;
 
 import com.divary.common.enums.SocialType;
+import com.divary.global.exception.BusinessException;
+import com.divary.global.exception.ErrorCode;
 import com.divary.global.oauth.dto.LoginResponseDTO;
 import com.divary.global.oauth.service.social.SocialOauth;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,13 +22,13 @@ public class OauthService {
         return socialOauthList.stream()
                 .filter(x -> x.type() == socialLoginType)
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("알 수 없는 SocialLoginType 입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
     }
 
     public LoginResponseDTO authenticateWithAccessToken(SocialType socialLoginType, String accessToken) {
         SocialOauth socialOauth = this.findSocialOauthByType(socialLoginType);
         if (socialOauth == null) {
-            throw new IllegalArgumentException("지원하지 않는 소셜 로그인입니다.");
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
         return socialOauth.verifyAndLogin(accessToken);

@@ -2,6 +2,8 @@ package com.divary.domain.Member.service;
 
 import com.divary.domain.Member.entity.Member;
 import com.divary.domain.Member.repository.MemberRepository;
+import com.divary.global.exception.BusinessException;
+import com.divary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,12 +15,12 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     @Override
     public Member findMemberByEmail(String email) {
-        return memberRepository.findByEmail(email).orElseThrow(()-> new IllegalArgumentException("Email not found"));
+        return memberRepository.findByEmail(email).orElseThrow(()-> new BusinessException(ErrorCode.EMAIL_NOT_FOUND));
     }
 
     @Override
     public Member findById(Long id) {
-        return  memberRepository.findById(id).orElseThrow(()-> new IllegalArgumentException("Member id not found"));
+        return  memberRepository.findById(id).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
     @Override
