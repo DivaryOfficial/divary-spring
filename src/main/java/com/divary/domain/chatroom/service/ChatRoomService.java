@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,107 +23,82 @@ import java.util.stream.Collectors;
 public class ChatRoomService {
 
     private final ChatRoomRepository chatRoomRepository;
-    private final OpenAIService openAIService;  
+    private final OpenAIService openAIService;
+    private final MessageFactory messageFactory;
+    private final ChatRoomMetadataService metadataService;  
 
     // 채팅방 생성 (첫 메시지로)
-    @Transactional // TODO : 추후 메서드 분리 예정
-    public ChatRoomCreateResponse createChatRoom(ChatRoomCreateRequest request) {
-        // 임시로 사용자 ID 하드코딩
+    @Transactional
+    public ChatRoomCreateResponse createChatRoom(ChatRoomCreateRequest request, String imageUrl) {
+        Long userId = getCurrentUserId();
+        String title = generateChatRoomTitle(request.getFirstMessage());
+        OpenAIResponse aiResponse = processMessageWithAI(request.getFirstMessage(), request.getImage());
+        
+        ChatRoom chatRoom = buildChatRoom(userId, title, request, aiResponse);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+        
+        return buildCreateResponse(savedChatRoom, request, aiResponse, imageUrl);
+    }
+
+    // 현재 사용자 ID 가져오기
+    private Long getCurrentUserId() {
         // TODO: 사용자 ID를 Authorization 헤더에서 가져오도록 수정
-        Long userId = 1L;
+        return 1L;
+    }
+
+    // 채팅방 제목 생성
+    private String generateChatRoomTitle(String firstMessage) {
+        return openAIService.generateTitle(firstMessage);
+    }
+
+    // AI로 메시지 처리
+    private OpenAIResponse processMessageWithAI(String message, org.springframework.web.multipart.MultipartFile image) {
+        return openAIService.sendMessage(message, image);
+    }
+
+    // ChatRoom 엔티티 생성
+    private ChatRoom buildChatRoom(Long userId, String title, ChatRoomCreateRequest request, OpenAIResponse aiResponse) {
+        HashMap<String, Object> initialMessages = messageFactory.createInitialMessages(
+                request.getFirstMessage(), request.getImage(), aiResponse);
         
-        String title = openAIService.generateTitle(request.getFirstMessage());
+        ChatRoomMetadata metadata = metadataService.createMetadata(aiResponse);
+        HashMap<String, Object> metadataMap = metadataService.convertToMap(metadata);
         
-        // 첫 메시지 저장
-        HashMap<String, Object> initialMessages = new HashMap<>();
-        HashMap<String, Object> firstMessageData = new HashMap<>();
-        firstMessageData.put("content", request.getFirstMessage());
-        firstMessageData.put("timestamp", System.currentTimeMillis());
-        firstMessageData.put("type", "user");
-        
-        // 이미지 처리
-        if (request.getImage() != null && !request.getImage().isEmpty()) {
-            firstMessageData.put("hasImage", true);
-            firstMessageData.put("imageName", request.getImage().getOriginalFilename());
-            firstMessageData.put("imageSize", request.getImage().getSize());
-        }
-        
-        // OpenAI API 호출 (이미지 파일 직접 전달)
-        OpenAIResponse aiResponse = openAIService.sendMessage(request.getFirstMessage(), request.getImage());
-        
-        // AI 응답 메시지 저장
-        HashMap<String, Object> assistantMessageData = new HashMap<>();
-        assistantMessageData.put("content", aiResponse.getContent());
-        assistantMessageData.put("timestamp", System.currentTimeMillis());
-        assistantMessageData.put("type", "assistant");
-        
-        // 첫 메시지와 AI 응답 메시지는 순번이 정해져 있음. 후에 대화 메세지 추가 시 순번 자동 증가
-        initialMessages.put("msg_001", firstMessageData); 
-        initialMessages.put("msg_002", assistantMessageData);
-        
-        // 메타데이터 설정
-        ChatRoomMetadata.Usage usage = ChatRoomMetadata.Usage.builder()
-                .promptTokens(aiResponse.getPromptTokens())
-                .completionTokens(aiResponse.getCompletionTokens())
-                .totalTokens(aiResponse.getTotalTokens())
-                .model(aiResponse.getModel())
-                .cost(aiResponse.getCost())
-                .build();
-        
-        ChatRoomMetadata metadata = ChatRoomMetadata.builder()
-                .lastMessageId("msg_002")
-                .messageCount(2)
-                .usage(usage)
-                .build();
-        
-        HashMap<String, Object> metadataMap = new HashMap<>();
-        metadataMap.put("lastMessageId", metadata.getLastMessageId());
-        metadataMap.put("messageCount", metadata.getMessageCount());
-        metadataMap.put("usage", metadata.getUsage());
-        
-        ChatRoom chatRoom = ChatRoom.builder()
+        return ChatRoom.builder()
                 .userId(userId)
                 .title(title)
                 .messages(initialMessages)
                 .metadata(metadataMap)
                 .build();
+    }
 
-        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
-        
-        // 응답 DTO 생성
+    // 응답 DTO 생성
+    private ChatRoomCreateResponse buildCreateResponse(ChatRoom savedChatRoom, ChatRoomCreateRequest request, OpenAIResponse aiResponse, String imageUrl) {
         ChatRoomResponse chatRoomResponse = ChatRoomResponse.from(savedChatRoom);
         
-        // 사용자 메시지 DTO 생성
-        Message userMessage = Message.builder()
-                .id("msg_001")
-                .role("user")
-                .content(request.getFirstMessage())
-                .timestamp(LocalDateTime.now())
-                .build();
-        
-        // 이미지 첨부파일이 있는 경우 추가
-        if (request.getImage() != null && !request.getImage().isEmpty()) {
-            Message.AttachmentDto attachment = Message.AttachmentDto.builder()
-                    .id(1L)
-                    .fileUrl("https://example_url_image.com") // TODO: s3 이미지 업로드 후 이미지 URL 설정
-                    .originalFilename(request.getImage().getOriginalFilename())
-                    .build();
-            userMessage.setAttachments(List.of(attachment));
+        // 이미지가 있는 경우와 없는 경우를 구분하여 메시지 생성
+        Message userMessage;
+        if (request.getImage() != null && !request.getImage().isEmpty() && imageUrl != null) {
+            userMessage = messageFactory.createUserMessageDtoWithAttachment(
+                    "msg_001", 
+                    request.getFirstMessage(), 
+                    1L, 
+                    imageUrl, 
+                    request.getImage().getOriginalFilename()
+            );
+        } else {
+            userMessage = messageFactory.createUserMessageDto("msg_001", request.getFirstMessage());
         }
         
-        // AI 어시스턴트 메시지 DTO 생성
-        Message assistantMessage = Message.builder()
-                .id("msg_002")
-                .role("assistant")
-                .content(aiResponse.getContent())
-                .timestamp(LocalDateTime.now().plusSeconds(15))
-                .build();
+        Message assistantMessage = messageFactory.createAssistantMessageDto("msg_002", aiResponse);
+        
+        ChatRoomMetadata metadata = metadataService.createMetadata(aiResponse);
         
         return ChatRoomCreateResponse.builder()
                 .chatRoom(chatRoomResponse)
                 .userMessage(userMessage)
                 .assistantMessage(assistantMessage)
-                .usage(usage)
+                .usage(metadata.getUsage())
                 .build();
     }
 

@@ -1,0 +1,93 @@
+package com.divary.domain.chatroom.service;
+
+import com.divary.domain.chatroom.dto.Message;
+import com.divary.domain.chatroom.dto.response.OpenAIResponse;
+import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+
+@Component
+public class MessageFactory {
+
+    // 사용자 메시지 데이터 생성
+    public HashMap<String, Object> createUserMessageData(String content, MultipartFile image) {
+        HashMap<String, Object> messageData = new HashMap<>();
+        messageData.put("content", content);
+        messageData.put("timestamp", System.currentTimeMillis());
+        messageData.put("type", "user");
+        
+        // 이미지 처리
+        if (image != null && !image.isEmpty()) {
+            messageData.put("hasImage", true);
+            messageData.put("imageName", image.getOriginalFilename());
+            messageData.put("imageSize", image.getSize());
+        }
+        
+        return messageData;
+    }
+
+    // AI 어시스턴트 메시지 데이터 생성
+    public HashMap<String, Object> createAssistantMessageData(OpenAIResponse aiResponse) {
+        HashMap<String, Object> messageData = new HashMap<>();
+        messageData.put("content", aiResponse.getContent());
+        messageData.put("timestamp", System.currentTimeMillis());
+        messageData.put("type", "assistant");
+        
+        return messageData;
+    }
+
+    // 초기 메시지 목록 생성 (사용자 메시지 + AI 응답)
+    public HashMap<String, Object> createInitialMessages(String userMessage, MultipartFile image, OpenAIResponse aiResponse) {
+        HashMap<String, Object> messages = new HashMap<>();
+        
+        HashMap<String, Object> userMessageData = createUserMessageData(userMessage, image);
+        HashMap<String, Object> assistantMessageData = createAssistantMessageData(aiResponse);
+        
+        messages.put("msg_001", userMessageData);
+        messages.put("msg_002", assistantMessageData);
+        
+        return messages;
+    }
+
+    // 사용자 메시지 DTO 생성 (이미지 첨부파일 없음)
+    public Message createUserMessageDto(String messageId, String content) {
+        return Message.builder()
+                .id(messageId)
+                .role("user")
+                .content(content)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    // 사용자 메시지 DTO 생성 (이미지 첨부파일 포함)
+    public Message createUserMessageDtoWithAttachment(String messageId, String content, Long attachmentId, String fileUrl, String originalFilename) {
+        Message userMessage = Message.builder()
+                .id(messageId)
+                .role("user")
+                .content(content)
+                .timestamp(LocalDateTime.now())
+                .build();
+        
+        Message.AttachmentDto attachment = Message.AttachmentDto.builder()
+                .id(attachmentId)
+                .fileUrl(fileUrl)
+                .originalFilename(originalFilename)
+                .build();
+        
+        userMessage.setAttachments(List.of(attachment));
+        return userMessage;
+    }
+
+    // AI 어시스턴트 메시지 DTO 생성
+    public Message createAssistantMessageDto(String messageId, OpenAIResponse aiResponse) {
+        return Message.builder()
+                .id(messageId)
+                .role("assistant")
+                .content(aiResponse.getContent())
+                .timestamp(LocalDateTime.now().plusSeconds(15))
+                .build();
+    }
+}
