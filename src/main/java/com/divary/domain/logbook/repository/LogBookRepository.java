@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface LogBookRepository extends JpaRepository<LogBook,Long> {
 
-    @Query("SELECT l FROM LogBook l WHERE YEAR(l.date) = :year AND l.saveStatus = :status")
+    @Query("SELECT l FROM LogBook l WHERE YEAR(l.date) = :year AND l.saveStatus = :status ORDER BY l.date DESC")
     List<LogBook> findByYearAndStatus(@Param("year") int year, @Param("status") saveStatus status);
 
     int countByMember(Member member);
