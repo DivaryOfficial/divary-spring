@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.Map;
+import java.util.HashMap;
 
 @Entity
 @Table(name = "chat_rooms")
@@ -30,15 +30,15 @@ public class ChatRoom extends BaseEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "messages", columnDefinition = "JSON")
     @Schema(description = "채팅 메시지들 (JSON 형태)")
-    private Map<String, Object> messages;
+    private HashMap<String, Object> messages;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "metadata", columnDefinition = "JSON")
     @Schema(description = "채팅방 메타데이터 (JSON 형태)")
-    private Map<String, Object> metadata;
+    private HashMap<String, Object> metadata;
 
     @Builder
-    public ChatRoom(Long userId, String title, Map<String, Object> messages, Map<String, Object> metadata) {
+    public ChatRoom(Long userId, String title, HashMap<String, Object> messages, HashMap<String, Object> metadata) {
         this.userId = userId;
         this.title = title;
         this.messages = messages;
@@ -49,11 +49,11 @@ public class ChatRoom extends BaseEntity {
         this.title = title;
     }
 
-    public void updateMessages(Map<String, Object> messages) {
+    public void updateMessages(HashMap<String, Object> messages) {
         this.messages = messages;
     }
 
-    public void updateMetadata(Map<String, Object> metadata) {
+    public void updateMetadata(HashMap<String, Object> metadata) {
         this.metadata = metadata;
     }
 }

@@ -8,6 +8,9 @@ import com.divary.domain.chatroom.dto.response.ChatRoomResponse;
 import com.divary.domain.chatroom.dto.response.OpenAIResponse;
 import com.divary.domain.chatroom.entity.ChatRoom;
 import com.divary.domain.chatroom.repository.ChatRoomRepository;
+import com.divary.domain.image.dto.response.ImageResponse;
+import com.divary.domain.image.entity.ImageType;
+import com.divary.domain.image.service.ImageService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,19 +28,54 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final OpenAIService openAIService;
     private final MessageFactory messageFactory;
-    private final ChatRoomMetadataService metadataService;  
+    private final ChatRoomMetadataService metadataService;
+    private final ImageService imageService;  
 
     // 채팅방 생성 (첫 메시지로)
     @Transactional
-    public ChatRoomCreateResponse createChatRoom(ChatRoomCreateRequest request, String imageUrl) {
+    public ChatRoomCreateResponse createChatRoom(ChatRoomCreateRequest request) {
         Long userId = getCurrentUserId();
         String title = generateChatRoomTitle(request.getFirstMessage());
-        OpenAIResponse aiResponse = processMessageWithAI(request.getFirstMessage(), request.getImage());
         
-        ChatRoom chatRoom = buildChatRoom(userId, title, request, aiResponse);
+        // 1. 채팅방을 먼저 저장 (이미지 없이)
+        ChatRoom chatRoom = buildChatRoomWithoutImage(userId, title, request);
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
         
+        // 2. 채팅방 ID로 이미지 업로드
+        String imageUrl = null;
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            ImageResponse imageResponse = imageService.uploadImageByType(
+                ImageType.USER_CHAT,
+                request.getImage(),
+                userId,
+                savedChatRoom.getId().toString()
+            );
+            imageUrl = imageResponse.getFileUrl();
+            
+            // 3. 채팅방에 이미지 정보 업데이트
+            updateChatRoomWithImage(savedChatRoom, imageUrl, request.getImage());
+        }
+        
+        OpenAIResponse aiResponse = processMessageWithAI(request.getFirstMessage(), request.getImage());
+        
+        // 4. AI 응답을 채팅방에 추가
+        addAiResponseToMessages(savedChatRoom, aiResponse);
+        
         return buildCreateResponse(savedChatRoom, request, aiResponse, imageUrl);
+    }
+
+    // AI 응답을 채팅방 메시지에 추가
+    private void addAiResponseToMessages(ChatRoom chatRoom, OpenAIResponse aiResponse) {
+        HashMap<String, Object> messages = chatRoom.getMessages();
+        HashMap<String, Object> assistantMessage = messageFactory.createAssistantMessageData(aiResponse);
+        messages.put("msg_002", assistantMessage);
+        
+        // 메타데이터 업데이트
+        ChatRoomMetadata metadata = metadataService.createMetadata(aiResponse);
+        HashMap<String, Object> metadataMap = metadataService.convertToMap(metadata);
+        
+        chatRoom.updateMessages(messages);
+        chatRoom.updateMetadata(metadataMap);
     }
 
     // 현재 사용자 ID 가져오기
@@ -56,20 +94,40 @@ public class ChatRoomService {
         return openAIService.sendMessage(message, image);
     }
 
-    // ChatRoom 엔티티 생성
-    private ChatRoom buildChatRoom(Long userId, String title, ChatRoomCreateRequest request, OpenAIResponse aiResponse) {
-        HashMap<String, Object> initialMessages = messageFactory.createInitialMessages(
-                request.getFirstMessage(), request.getImage(), aiResponse);
+    // ChatRoom 엔티티 생성 (이미지 없이) 
+    private ChatRoom buildChatRoomWithoutImage(Long userId, String title, ChatRoomCreateRequest request) {
+        // 이미지 없이 초기 메시지만 생성
+        HashMap<String, Object> initialMessages = messageFactory.createUserMessageData(request.getFirstMessage(), null);
+        HashMap<String, Object> messages = new HashMap<>();
+        messages.put("msg_001", initialMessages);
         
-        ChatRoomMetadata metadata = metadataService.createMetadata(aiResponse);
-        HashMap<String, Object> metadataMap = metadataService.convertToMap(metadata);
+        // 임시 메타데이터 (AI 응답 전)
+        HashMap<String, Object> metadataMap = new HashMap<>();
+        metadataMap.put("lastMessageId", "msg_001");
+        metadataMap.put("messageCount", 1);
         
         return ChatRoom.builder()
                 .userId(userId)
                 .title(title)
-                .messages(initialMessages)
+                .messages(messages)
                 .metadata(metadataMap)
                 .build();
+    }
+
+    // 채팅방에 이미지 정보 업데이트
+    private void updateChatRoomWithImage(ChatRoom chatRoom, String imageUrl, org.springframework.web.multipart.MultipartFile image) {
+        HashMap<String, Object> messages = chatRoom.getMessages();
+        @SuppressWarnings("unchecked")
+        HashMap<String, Object> userMessage = (HashMap<String, Object>) messages.get("msg_001");
+        
+        // 이미지 정보 추가
+        userMessage.put("hasImage", true);
+        userMessage.put("imageName", image.getOriginalFilename());
+        userMessage.put("imageSize", image.getSize());
+        userMessage.put("imageUrl", imageUrl);
+        
+        messages.put("msg_001", userMessage);
+        chatRoom.updateMessages(messages);
     }
 
     // 응답 DTO 생성
