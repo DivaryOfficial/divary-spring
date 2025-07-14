@@ -33,7 +33,7 @@ public class ImagePathService {
         String typeWithoutPrefix = extractTypeWithoutPrefix(imageType.name(), "SYSTEM_");
         
         StringBuilder path = new StringBuilder("system/")
-                .append(typeWithoutPrefix);
+                .append(typeWithoutPrefix); // system/dogam
         
         if (additionalPath != null && !additionalPath.trim().isEmpty()) {
             appendPath(path, additionalPath);

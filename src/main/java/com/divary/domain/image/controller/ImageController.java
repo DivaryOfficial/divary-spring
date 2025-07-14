@@ -40,15 +40,10 @@ public class ImageController {
             @RequestPart("file") MultipartFile file,
             
             @Parameter(description = "S3 업로드 경로", required = true, example = "users/1/chat/10/")
-            @RequestParam("uploadPath") String uploadPath,
-            
-            @Parameter(description = "원본 파일명 (선택사항)", example = "diving_photo.jpg")
-            @RequestParam(value = "originalFilename", required = false) String originalFilename
-    ) {
+            @RequestParam("uploadPath") String uploadPath) {
         ImageUploadRequest request = ImageUploadRequest.builder()
                 .file(file)
                 .uploadPath(uploadPath)
-                .originalFilename(originalFilename)
                 .build();
 
         ImageResponse response = imageService.uploadImage(request);
@@ -99,12 +94,9 @@ public class ImageController {
             @RequestParam(required = false) Long userId,
             
             @Parameter(description = "추가 경로 (선택사항)", example = "additional/path")
-            @RequestParam(required = false) String additionalPath,
-            
-            @Parameter(description = "원본 파일명 (선택사항)", example = "diving_photo.jpg")
-            @RequestParam(value = "originalFilename", required = false) String originalFilename
+            @RequestParam(required = false) String additionalPath
     ) {
-        ImageResponse response = imageService.uploadImageByType(imageType, file, userId, additionalPath, originalFilename);
+        ImageResponse response = imageService.uploadImageByType(imageType, file, userId, additionalPath);
         return ApiResponse.success("타입별 이미지 업로드가 완료되었습니다.", response);
     }
 

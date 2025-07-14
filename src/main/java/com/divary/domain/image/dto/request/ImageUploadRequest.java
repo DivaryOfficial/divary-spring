@@ -23,7 +23,4 @@ public class ImageUploadRequest {
     @NotNull(message = "업로드 경로는 필수입니다")
     @Schema(description = "S3 업로드 경로", example = "users/1/chat/10/")
     private String uploadPath;
-    
-    @Schema(description = "원본 파일명", example = "diving_photo.jpg")
-    private String originalFilename;
 }

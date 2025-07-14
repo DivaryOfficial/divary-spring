@@ -35,10 +35,14 @@ public class ImageService {
         validateUploadRequest(request);
         
         try {
-            // 이미지 크기 추출
+            // 이미지 크기 추출 (바이트 배열로 변환하여 스트림 재사용 가능하게 함)
+            // byte[] fileBytes = request.getFile().getBytes();
+            // BufferedImage bufferedImage = ImageIO.read(new java.io.ByteArrayInputStream(fileBytes));
             BufferedImage bufferedImage = ImageIO.read(request.getFile().getInputStream());
             Long width = bufferedImage != null ? (long) bufferedImage.getWidth() : null;
             Long height = bufferedImage != null ? (long) bufferedImage.getHeight() : null;
+            
+            log.debug("이미지 크기 - width: {}, height: {}, bufferedImage: {}", width, height, bufferedImage != null);
             
             // 파일명 생성
             String fileName = imageStorageService.generateUniqueFileName(request.getFile().getOriginalFilename());
@@ -53,8 +57,7 @@ public class ImageService {
             Image image = Image.builder()
                     .s3Key(s3Key)
                     .type(null)
-                    .originalFilename(request.getOriginalFilename() != null ? 
-                                    request.getOriginalFilename() : request.getFile().getOriginalFilename())
+                    .originalFilename(request.getFile().getOriginalFilename())
                     .width(width)
                     .height(height)
                     .userId(imagePathService.extractUserIdFromPath(request.getUploadPath()))
@@ -131,7 +134,7 @@ public class ImageService {
 
     // 타입별 이미지 업로드
     @Transactional
-    public ImageResponse uploadImageByType(ImageType imageType, org.springframework.web.multipart.MultipartFile file, Long userId, String additionalPath, String originalFilename) {
+    public ImageResponse uploadImageByType(ImageType imageType, org.springframework.web.multipart.MultipartFile file, Long userId, String additionalPath) {
         // 업로드 경로 생성
         String uploadPath;
         if (imageType.name().startsWith("USER_")) {
@@ -143,7 +146,6 @@ public class ImageService {
         ImageUploadRequest request = ImageUploadRequest.builder()
                 .file(file)
                 .uploadPath(uploadPath)
-                .originalFilename(originalFilename)
                 .build();
         
         ImageResponse response = uploadImage(request);
