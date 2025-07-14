@@ -159,7 +159,14 @@ public class ImageService {
     }
 
     public List<ImageResponse> getImagesByType(ImageType imageType, Long userId, String additionalPath) {
-        String uploadPath = imagePathService.generateUserUploadPath(imageType, userId, additionalPath);
+        // 타입에 따라 적절한 경로 생성
+        String uploadPath;
+        if (imageType.name().startsWith("USER_")) {
+            uploadPath = imagePathService.generateUserUploadPath(imageType, userId, additionalPath);
+        } else {
+            uploadPath = imagePathService.generateSystemUploadPath(imageType, additionalPath);
+        }
+        
         List<Image> images = imageRepository.findByS3KeyStartingWith(uploadPath);
         return images.stream()
                 .map(image -> ImageResponse.from(image, imageStorageService.generatePublicUrl(image.getS3Key())))

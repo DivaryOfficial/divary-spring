@@ -1,6 +1,5 @@
 package com.divary.domain.image.dto.request;
 
-import com.divary.domain.image.entity.ImageType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
