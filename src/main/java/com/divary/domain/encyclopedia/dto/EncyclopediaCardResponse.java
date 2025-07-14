@@ -58,7 +58,7 @@ public class EncyclopediaCardResponse {
                 .place(card.getPlace())
                 .imageUrls(
                         card.getImages().stream()
-                                .filter(img -> img.getType() == ImageType.DOGAM)
+                                .filter(img -> img.getType() == ImageType.SYSTEM_DOGAM)
                                 .map(Image::getS3Key)
                                 .toList()
                 )
