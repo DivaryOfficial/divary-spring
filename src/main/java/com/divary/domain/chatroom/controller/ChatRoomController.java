@@ -10,10 +10,8 @@ import com.divary.global.config.SwaggerConfig.ApiSuccessResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
@@ -25,33 +23,10 @@ public class ChatRoomController {
     private final ChatRoomService chatRoomService;
 
     @PostMapping(consumes = "multipart/form-data")
-    @Operation(summary = "새 채팅방 생성", description = "첫 메시지로 새로운 채팅방을 생성합니다.")
+    @Operation(summary = "채팅방 메시지 전송", description = "새 채팅방 생성 또는 기존 채팅방에 메시지 전송\n chatRoomId 없으면 새 채팅방 생성")
     @ApiSuccessResponse(dataType = ChatRoomDetailResponse.class)
-    public ApiResponse<ChatRoomDetailResponse> createChatRoom(
-            @RequestParam("message") @NotBlank String message,
-            @RequestParam(value = "image", required = false) MultipartFile image) {
-        
-        ChatRoomMessageRequest request = new ChatRoomMessageRequest();
-        request.setChatRoomId(null); // 새 채팅방
-        request.setMessage(message);
-        request.setImage(image);
-        
-        ChatRoomDetailResponse response = chatRoomService.sendChatRoomMessage(request);
-        return ApiResponse.success(response);
-    }
-
-    @PostMapping(value = "/{chatRoomId}/messages", consumes = "multipart/form-data")
-    @Operation(summary = "메시지 전송", description = "기존 채팅방에 새 메시지를 전송합니다.")
-    @ApiSuccessResponse(dataType = ChatRoomDetailResponse.class)
-    public ApiResponse<ChatRoomDetailResponse> sendMessage(
-            @PathVariable Long chatRoomId,
-            @RequestParam("message") @NotBlank String message,
-            @RequestParam(value = "image", required = false) MultipartFile image) {
-        
-        ChatRoomMessageRequest request = new ChatRoomMessageRequest();
-        request.setChatRoomId(chatRoomId);
-        request.setMessage(message);
-        request.setImage(image);
+    public ApiResponse<ChatRoomDetailResponse> sendChatRoomMessage(
+            @Valid @ModelAttribute ChatRoomMessageRequest request) {
         
         ChatRoomDetailResponse response = chatRoomService.sendChatRoomMessage(request);
         return ApiResponse.success(response);

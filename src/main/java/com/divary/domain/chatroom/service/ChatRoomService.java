@@ -31,7 +31,6 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final OpenAIService openAIService;
     private final MessageFactory messageFactory;
-    private final ChatRoomMetadataService metadataService;
     private final ImageService imageService;  
 
     // 채팅방 메시지 전송 (새 채팅방 생성 또는 기존 채팅방에 메시지 추가)
