@@ -23,7 +23,6 @@ public class MessageFactory {
         if (image != null && !image.isEmpty()) {
             messageData.put("hasImage", true);
             messageData.put("imageName", image.getOriginalFilename());
-            messageData.put("imageSize", image.getSize());
         }
         
         return messageData;
@@ -105,5 +104,45 @@ public class MessageFactory {
             }
         }
         return String.format("msg_%03d", maxNumber + 1);
+    }
+
+    // 저장된 메시지들을 Message DTO 리스트로 변환
+    public List<Message> convertToMessageList(HashMap<String, Object> messages) {
+        return messages.entrySet().stream()
+                .sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey())) // msg_001, msg_002... 순서
+                .map(entry -> {
+                    String messageId = entry.getKey();
+                    HashMap<String, Object> messageData = (HashMap<String, Object>) entry.getValue();
+                    
+                    String content = (String) messageData.get("content");
+                    String type = (String) messageData.get("type");
+                    Long timestamp = (Long) messageData.get("timestamp");
+                    
+                    Message.MessageBuilder builder = Message.builder()
+                            .id(messageId)
+                            .role(type)
+                            .content(content)
+                            .timestamp(java.time.LocalDateTime.ofInstant(
+                                    java.time.Instant.ofEpochMilli(timestamp != null ? timestamp : System.currentTimeMillis()),
+                                    java.time.ZoneId.systemDefault()));
+                    
+                    // 이미지 첨부파일이 있는 경우
+                    Boolean hasImage = (Boolean) messageData.get("hasImage");
+                    if (Boolean.TRUE.equals(hasImage)) {
+                        String imageUrl = (String) messageData.get("imageUrl");
+                        String imageName = (String) messageData.get("imageName");
+                        
+                        Message.AttachmentDto attachment = Message.AttachmentDto.builder()
+                                .id(1L)
+                                .fileUrl(imageUrl)
+                                .originalFilename(imageName)
+                                .build();
+                        
+                        builder.attachments(List.of(attachment));
+                    }
+                    
+                    return builder.build();
+                })
+                .collect(java.util.stream.Collectors.toList());
     }
 }

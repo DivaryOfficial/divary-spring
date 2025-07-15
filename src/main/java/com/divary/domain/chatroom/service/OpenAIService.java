@@ -102,8 +102,13 @@ public class OpenAIService {
             return "새 채팅방";
         }
     }
-    // 메세지 전송
+    // 메세지 전송 (히스토리 없음 - 첫 메시지)
     public OpenAIResponse sendMessage(String message, MultipartFile imageFile) {
+        return sendMessageWithHistory(message, imageFile, null);
+    }
+    
+    // 메세지 전송 (히스토리 포함)
+    public OpenAIResponse sendMessageWithHistory(String message, MultipartFile imageFile, List<Map<String, Object>> messageHistory) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -114,7 +119,15 @@ public class OpenAIService {
             requestBody.put("max_tokens", 1000);
             requestBody.put("temperature", 0.7);
 
-            // 메시지 구성
+            // 메시지 리스트 구성
+            List<Map<String, Object>> messages = new java.util.ArrayList<>();
+            
+            // 히스토리가 있으면 추가
+            if (messageHistory != null && !messageHistory.isEmpty()) {
+                messages.addAll(messageHistory);
+            }
+            
+            // 현재 사용자 메시지 추가
             Map<String, Object> userMessage = new HashMap<>();
             userMessage.put("role", "user");
             
@@ -133,8 +146,9 @@ public class OpenAIService {
                 // 텍스트만 있는 경우
                 userMessage.put("content", message);
             }
-
-            requestBody.put("messages", List.of(userMessage));
+            
+            messages.add(userMessage);
+            requestBody.put("messages", messages);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
             

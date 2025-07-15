@@ -2,8 +2,8 @@ package com.divary.domain.chatroom.service;
 
 import com.divary.domain.chatroom.dto.ChatRoomMetadata;
 import com.divary.domain.chatroom.dto.Message;
-import com.divary.domain.chatroom.dto.request.ChatRoomCreateRequest;
-import com.divary.domain.chatroom.dto.response.ChatRoomCreateResponse;
+import com.divary.domain.chatroom.dto.request.ChatRoomMessageRequest;
+import com.divary.domain.chatroom.dto.response.ChatRoomDetailResponse;
 import com.divary.domain.chatroom.dto.response.ChatRoomResponse;
 import com.divary.domain.chatroom.dto.response.OpenAIResponse;
 import com.divary.domain.chatroom.entity.ChatRoom;
@@ -11,6 +11,8 @@ import com.divary.domain.chatroom.repository.ChatRoomRepository;
 import com.divary.domain.image.dto.response.ImageResponse;
 import com.divary.domain.image.entity.ImageType;
 import com.divary.domain.image.service.ImageService;
+import com.divary.global.exception.BusinessException;
+import com.divary.global.exception.ErrorCode;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,38 +34,35 @@ public class ChatRoomService {
     private final ChatRoomMetadataService metadataService;
     private final ImageService imageService;  
 
-    // 채팅방 생성 (첫 메시지로)
+    // 채팅방 메시지 전송 (새 채팅방 생성 또는 기존 채팅방에 메시지 추가)
     @Transactional
-    public ChatRoomCreateResponse createChatRoom(ChatRoomCreateRequest request) {
+    public ChatRoomDetailResponse sendChatRoomMessage(ChatRoomMessageRequest request) {
         Long userId = getCurrentUserId();
-        String title = openAIService.generateTitle(request.getFirstMessage());
+        ChatRoom chatRoom;
         
-        // 채팅방을 먼저 저장 (이미지 없이) : chatRoomId를 반환 받기 위해서 먼저 저장, 이미지는 chatRoomId에 매핑되는 구조기에
-        ChatRoom chatRoom = buildChatRoomWithoutImage(userId, title, request);
-        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
-        
-        // 채팅방 ID로 이미지 업로드
-        String imageUrl = null;
-        if (request.getImage() != null && !request.getImage().isEmpty()) {
-            ImageResponse imageResponse = imageService.uploadImageByType(
-                ImageType.USER_CHAT,
-                request.getImage(),
-                userId,
-                savedChatRoom.getId().toString()
-            );
-            imageUrl = imageResponse.getFileUrl();
-            
-            // 채팅방에 이미지 정보 업데이트
-            updateChatRoomWithImage(savedChatRoom, imageUrl, request.getImage());
+        if (request.getChatRoomId() == null) {
+            // 새 채팅방 생성
+            chatRoom = createNewChatRoom(userId, request);
+        } else {
+            // 기존 채팅방에 메시지 추가
+            chatRoom = addMessageToExistingChatRoom(request.getChatRoomId(), userId, request);
         }
         
         // AI 응답 생성
-        OpenAIResponse aiResponse = openAIService.sendMessage(request.getFirstMessage(), request.getImage());
+        OpenAIResponse aiResponse;
+        if (request.getChatRoomId() == null) {
+            // 새 채팅방 - 히스토리 없음
+            aiResponse = openAIService.sendMessage(request.getMessage(), request.getImage());
+        } else {
+            // 기존 채팅방 - 히스토리 포함
+            List<Map<String, Object>> messageHistory = buildMessageHistoryForOpenAI(chatRoom);
+            aiResponse = openAIService.sendMessageWithHistory(request.getMessage(), request.getImage(), messageHistory);
+        }
         
         // AI 응답을 채팅방에 추가
-        addAiResponseToMessages(savedChatRoom, aiResponse);
+        addAiResponseToMessages(chatRoom, aiResponse);
         
-        return buildCreateResponse(savedChatRoom, request, aiResponse, imageUrl);
+        return buildDetailResponse(chatRoom);
     }
 
     // AI 응답을 채팅방 메시지에 추가
@@ -74,12 +74,23 @@ public class ChatRoomService {
         String nextMessageId = messageFactory.generateNextMessageId(messages);
         messages.put(nextMessageId, assistantMessage);
         
-        // 메타데이터 업데이트
-        ChatRoomMetadata metadata = metadataService.createMetadata(aiResponse, nextMessageId, messages.size());
-        HashMap<String, Object> metadataMap = metadataService.convertToMap(metadata);
+        // 기존 메타데이터 가져와서 업데이트
+        HashMap<String, Object> metadata = chatRoom.getMetadata();
+        metadata.put("lastMessageId", nextMessageId);
+        metadata.put("messageCount", messages.size());
+        
+        // Usage 정보 업데이트
+        ChatRoomMetadata.Usage usage = ChatRoomMetadata.Usage.builder()
+                .promptTokens(aiResponse.getPromptTokens())
+                .completionTokens(aiResponse.getCompletionTokens())
+                .totalTokens(aiResponse.getTotalTokens())
+                .model(aiResponse.getModel())
+                .cost(aiResponse.getCost())
+                .build();
+        metadata.put("usage", usage);
         
         chatRoom.updateMessages(messages);
-        chatRoom.updateMetadata(metadataMap);
+        chatRoom.updateMetadata(metadata);
     }
     
 
@@ -90,9 +101,9 @@ public class ChatRoomService {
     }
 
     // ChatRoom 엔티티 생성 (이미지 없이) 
-    private ChatRoom buildChatRoomWithoutImage(Long userId, String title, ChatRoomCreateRequest request) {
+    private ChatRoom buildChatRoomWithoutImage(Long userId, String title, ChatRoomMessageRequest request) {
         // 이미지 없이 초기 메시지만 생성
-        HashMap<String, Object> initialMessages = messageFactory.createUserMessageData(request.getFirstMessage(), null);
+        HashMap<String, Object> initialMessages = messageFactory.createUserMessageData(request.getMessage(), null);
         HashMap<String, Object> messages = new HashMap<>();
         String firstMessageId = messageFactory.generateNextMessageId(messages);
         messages.put(firstMessageId, initialMessages);
@@ -116,13 +127,11 @@ public class ChatRoomService {
         HashMap<String, Object> metadata = chatRoom.getMetadata();
         String firstMessageId = (String) metadata.get("lastMessageId");
         
-        @SuppressWarnings("unchecked")
         HashMap<String, Object> userMessage = (HashMap<String, Object>) messages.get(firstMessageId);
         
         // 이미지 정보 추가
         userMessage.put("hasImage", true);
         userMessage.put("imageName", image.getOriginalFilename());
-        userMessage.put("imageSize", image.getSize());
         userMessage.put("imageUrl", imageUrl);
         
         messages.put(firstMessageId, userMessage);
@@ -130,46 +139,158 @@ public class ChatRoomService {
     }
 
     // 응답 DTO 생성
-    private ChatRoomCreateResponse buildCreateResponse(ChatRoom savedChatRoom, ChatRoomCreateRequest request, OpenAIResponse aiResponse, String imageUrl) {
+    private ChatRoomDetailResponse buildDetailResponse(ChatRoom savedChatRoom) {
         ChatRoomResponse chatRoomResponse = ChatRoomResponse.from(savedChatRoom);
         
-        // 메타데이터에서 마지막 메시지 ID 가져오기
-        HashMap<String, Object> metadata = savedChatRoom.getMetadata();
-        String lastMessageId = (String) metadata.get("lastMessageId");
+        // 전체 메시지 변환
+        List<Message> messages = messageFactory.convertToMessageList(savedChatRoom.getMessages());
         
-        // 이미지가 있는 경우와 없는 경우를 구분하여 메시지 생성
-        String firstMessageId = messageFactory.generateNextMessageId(new HashMap<>());
-        Message userMessage;
-        if (request.getImage() != null && !request.getImage().isEmpty() && imageUrl != null) {
-            userMessage = messageFactory.createUserMessageDtoWithAttachment(
-                    firstMessageId, 
-                    request.getFirstMessage(), 
-                    1L, 
-                    imageUrl, 
-                    request.getImage().getOriginalFilename()
-            );
-        } else {
-            userMessage = messageFactory.createUserMessageDto(firstMessageId, request.getFirstMessage());
+        // 메타데이터에서 사용량 정보 가져오기
+        HashMap<String, Object> metadata = savedChatRoom.getMetadata();
+        ChatRoomMetadata.Usage usage = null;
+        Object usageObj = metadata.get("usage");
+        if (usageObj instanceof ChatRoomMetadata.Usage) {
+            usage = (ChatRoomMetadata.Usage) usageObj;
+        } else if (usageObj instanceof HashMap) {
+            @SuppressWarnings("unchecked")
+            HashMap<String, Object> usageMap = (HashMap<String, Object>) usageObj;
+            usage = ChatRoomMetadata.Usage.builder()
+                    .promptTokens((Integer) usageMap.get("promptTokens"))
+                    .completionTokens((Integer) usageMap.get("completionTokens"))
+                    .totalTokens((Integer) usageMap.get("totalTokens"))
+                    .model((String) usageMap.get("model"))
+                    .cost((Double) usageMap.get("cost"))
+                    .build();
         }
         
-        Message assistantMessage = messageFactory.createAssistantMessageDto(lastMessageId, aiResponse);
-        
-        ChatRoomMetadata chatRoomMetadata = metadataService.createMetadata(aiResponse, lastMessageId, metadata.size());
-        
-        return ChatRoomCreateResponse.builder()
+        return ChatRoomDetailResponse.builder()
                 .chatRoom(chatRoomResponse)
-                .userMessage(userMessage)
-                .assistantMessage(assistantMessage)
-                .usage(chatRoomMetadata.getUsage())
+                .messages(messages)
+                .usage(usage)
                 .build();
     }
 
     // 사용자별 채팅방 목록 조회
     public List<ChatRoomResponse> getChatRoomsByUserId(Long userId) {
-        List<ChatRoom> chatRooms = chatRoomRepository.findByUserIdOrderByCreatedAtDesc(userId);
+            List<ChatRoom> chatRooms = chatRoomRepository.findByUserIdOrderByCreatedAtDesc(userId);
+
+            return chatRooms.stream()
+                            .map(ChatRoomResponse::from)
+                            .collect(Collectors.toList());
+    }
+    
+    // 새 채팅방 생성
+    private ChatRoom createNewChatRoom(Long userId, ChatRoomMessageRequest request) {
+        String title = openAIService.generateTitle(request.getMessage());
         
-        return chatRooms.stream()
-                .map(ChatRoomResponse::from)
-                .collect(Collectors.toList());
+        // 채팅방을 먼저 저장 (이미지 없이)
+        ChatRoom chatRoom = buildChatRoomWithoutImage(userId, title, request);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+        
+        // 이미지가 있으면 업로드 후 메시지에 추가
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            ImageResponse imageResponse = imageService.uploadImageByType(
+                ImageType.USER_CHAT,
+                request.getImage(),
+                userId,
+                savedChatRoom.getId().toString()
+            );
+            String imageUrl = imageResponse.getFileUrl();
+            updateChatRoomWithImage(savedChatRoom, imageUrl, request.getImage());
+        }
+        
+        return savedChatRoom;
+    }
+    
+    // 기존 채팅방에 메시지 추가
+    private ChatRoom addMessageToExistingChatRoom(Long chatRoomId, Long userId, ChatRoomMessageRequest request) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+        
+        // TODO: 채팅방 소유자 확인 로직 - 현재는 하드코딩으로 처리
+        // if (!chatRoom.getUserId().equals(userId)) {
+        //     throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        // }
+        
+        // 새 메시지 추가
+        addUserMessageToChatRoom(chatRoom, request);
+        
+        return chatRoom;
+    }
+    
+    // 사용자 메시지를 채팅방에 추가
+    private void addUserMessageToChatRoom(ChatRoom chatRoom, ChatRoomMessageRequest request) {
+        HashMap<String, Object> messages = chatRoom.getMessages();
+        String newMessageId = messageFactory.generateNextMessageId(messages);
+        
+        // 메시지 데이터 생성
+        HashMap<String, Object> messageData = messageFactory.createUserMessageData(request.getMessage(), null);
+        
+        // 이미지가 있으면 업로드
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            ImageResponse imageResponse = imageService.uploadImageByType(
+                ImageType.USER_CHAT,
+                request.getImage(),
+                getCurrentUserId(),
+                chatRoom.getId().toString()
+            );
+            String imageUrl = imageResponse.getFileUrl();
+            
+            // 이미지 정보 추가
+            messageData.put("hasImage", true);
+            messageData.put("imageName", request.getImage().getOriginalFilename());
+            messageData.put("imageUrl", imageUrl);
+        }
+        
+        messages.put(newMessageId, messageData);
+        
+        // 메타데이터 업데이트
+        HashMap<String, Object> metadata = chatRoom.getMetadata();
+        metadata.put("lastMessageId", newMessageId);
+        metadata.put("messageCount", messages.size());
+        
+        chatRoom.updateMessages(messages);
+        chatRoom.updateMetadata(metadata);
+    }
+    
+    public ChatRoomDetailResponse getChatRoomDetail(Long chatRoomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+
+        return buildDetailResponse(chatRoom);
+    }
+    
+    // OpenAI API용 메시지 히스토리 구성 (최대 20개 메시지)
+    private List<Map<String, Object>> buildMessageHistoryForOpenAI(ChatRoom chatRoom) {
+        HashMap<String, Object> messages = chatRoom.getMessages();
+        
+        // 메시지 ID로 정렬 (msg_001, msg_002, ...)
+        List<String> sortedMessageIds = messages.keySet().stream()
+                .filter(key -> key.startsWith("msg_"))
+                .sorted()
+                .collect(java.util.stream.Collectors.toList());
+        
+        // 최근 20개 메시지만 선택 (현재 사용자 메시지 제외)
+        int maxMessages = 20;
+        int startIndex = Math.max(0, sortedMessageIds.size() - maxMessages);
+        List<String> recentMessageIds = sortedMessageIds.subList(startIndex, sortedMessageIds.size());
+        
+        List<Map<String, Object>> messageHistory = new java.util.ArrayList<>();
+        
+        for (String messageId : recentMessageIds) {
+            @SuppressWarnings("unchecked")
+            HashMap<String, Object> messageData = (HashMap<String, Object>) messages.get(messageId);
+            
+            String type = (String) messageData.get("type");
+            String content = (String) messageData.get("content");
+            
+            Map<String, Object> openAIMessage = new HashMap<>();
+            openAIMessage.put("role", "user".equals(type) ? "user" : "assistant");
+            openAIMessage.put("content", content);
+            
+            messageHistory.add(openAIMessage);
+        }
+        
+        return messageHistory;
     }
 } 

@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -27,7 +29,7 @@ public class ChatRoomMetadata {
     @NoArgsConstructor
     @AllArgsConstructor
     @Schema(description = "API 사용량 정보")
-    public static class Usage {
+    public static class Usage implements Serializable {
         
         @Schema(description = "프롬프트 토큰 수", example = "45")
         private Integer promptTokens;
