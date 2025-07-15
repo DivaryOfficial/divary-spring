@@ -3,6 +3,7 @@ package com.divary.domain.chatroom.controller;
 import com.divary.common.response.ApiResponse;
 import com.divary.domain.chatroom.dto.request.ChatRoomMessageRequest;
 import com.divary.domain.chatroom.dto.response.ChatRoomDetailResponse;
+import com.divary.domain.chatroom.dto.response.ChatRoomMessageResponse;
 import com.divary.domain.chatroom.dto.response.ChatRoomResponse;
 import com.divary.domain.chatroom.service.ChatRoomService;
 import com.divary.global.config.SwaggerConfig.ApiSuccessResponse;
@@ -23,12 +24,12 @@ public class ChatRoomController {
     private final ChatRoomService chatRoomService;
 
     @PostMapping(consumes = "multipart/form-data")
-    @Operation(summary = "채팅방 메시지 전송", description = "새 채팅방 생성 또는 기존 채팅방에 메시지 전송\n chatRoomId 없으면 새 채팅방 생성")
-    @ApiSuccessResponse(dataType = ChatRoomDetailResponse.class)
-    public ApiResponse<ChatRoomDetailResponse> sendChatRoomMessage(
+    @Operation(summary = "채팅방 메시지 전송", description = "새 채팅방 생성 또는 기존 채팅방에 메시지 전송\n chatRoomId 없으면 새 채팅방 생성\n 보낸 메시지와 AI 응답만 반환")
+    @ApiSuccessResponse(dataType = ChatRoomMessageResponse.class)
+    public ApiResponse<ChatRoomMessageResponse> sendChatRoomMessage(
             @Valid @ModelAttribute ChatRoomMessageRequest request) {
         
-        ChatRoomDetailResponse response = chatRoomService.sendChatRoomMessage(request);
+        ChatRoomMessageResponse response = chatRoomService.sendChatRoomMessage(request);
         return ApiResponse.success(response);
     }
 

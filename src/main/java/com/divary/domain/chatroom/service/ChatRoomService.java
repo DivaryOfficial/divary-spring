@@ -4,6 +4,7 @@ import com.divary.domain.chatroom.dto.ChatRoomMetadata;
 import com.divary.domain.chatroom.dto.Message;
 import com.divary.domain.chatroom.dto.request.ChatRoomMessageRequest;
 import com.divary.domain.chatroom.dto.response.ChatRoomDetailResponse;
+import com.divary.domain.chatroom.dto.response.ChatRoomMessageResponse;
 import com.divary.domain.chatroom.dto.response.ChatRoomResponse;
 import com.divary.domain.chatroom.dto.response.OpenAIResponse;
 import com.divary.domain.chatroom.entity.ChatRoom;
@@ -36,16 +37,23 @@ public class ChatRoomService {
 
     // 채팅방 메시지 전송 (새 채팅방 생성 또는 기존 채팅방에 메시지 추가)
     @Transactional
-    public ChatRoomDetailResponse sendChatRoomMessage(ChatRoomMessageRequest request) {
+    public ChatRoomMessageResponse sendChatRoomMessage(ChatRoomMessageRequest request) {
         Long userId = getCurrentUserId();
         ChatRoom chatRoom;
+        List<String> newMessageIds = new java.util.ArrayList<>();
         
         if (request.getChatRoomId() == null) {
             // 새 채팅방 생성
             chatRoom = createNewChatRoom(userId, request);
+            // 새 채팅방의 경우 첫 번째 메시지 ID를 추가
+            HashMap<String, Object> metadata = chatRoom.getMetadata();
+            newMessageIds.add((String) metadata.get("lastMessageId"));
         } else {
             // 기존 채팅방에 메시지 추가
             chatRoom = addMessageToExistingChatRoom(request.getChatRoomId(), userId, request);
+            // 방금 추가한 사용자 메시지 ID를 추가
+            HashMap<String, Object> metadata = chatRoom.getMetadata();
+            newMessageIds.add((String) metadata.get("lastMessageId"));
         }
         
         // AI 응답 생성
@@ -60,13 +68,14 @@ public class ChatRoomService {
         }
         
         // AI 응답을 채팅방에 추가
-        addAiResponseToMessages(chatRoom, aiResponse);
+        String aiMessageId = addAiResponseToMessages(chatRoom, aiResponse);
+        newMessageIds.add(aiMessageId);
         
-        return buildDetailResponse(chatRoom);
+        return buildMessageResponse(chatRoom, newMessageIds);
     }
 
     // AI 응답을 채팅방 메시지에 추가
-    private void addAiResponseToMessages(ChatRoom chatRoom, OpenAIResponse aiResponse) {
+    private String addAiResponseToMessages(ChatRoom chatRoom, OpenAIResponse aiResponse) {
         HashMap<String, Object> messages = chatRoom.getMessages();
         HashMap<String, Object> assistantMessage = messageFactory.createAssistantMessageData(aiResponse);
         
@@ -91,6 +100,8 @@ public class ChatRoomService {
         
         chatRoom.updateMessages(messages);
         chatRoom.updateMetadata(metadata);
+        
+        return nextMessageId;
     }
     
 
@@ -289,6 +300,43 @@ public class ChatRoomService {
         }
         
         return messageHistory;
+    }
+    
+    // 새 메시지만 포함한 응답 생성
+    private ChatRoomMessageResponse buildMessageResponse(ChatRoom chatRoom, List<String> newMessageIds) {
+        // 새 메시지들만 변환
+        HashMap<String, Object> allMessages = chatRoom.getMessages();
+        HashMap<String, Object> newMessagesMap = new HashMap<>();
+        
+        for (String messageId : newMessageIds) {
+            newMessagesMap.put(messageId, allMessages.get(messageId));
+        }
+        
+        List<Message> newMessages = messageFactory.convertToMessageList(newMessagesMap);
+        
+        // 메타데이터에서 사용량 정보 가져오기
+        HashMap<String, Object> metadata = chatRoom.getMetadata();
+        ChatRoomMetadata.Usage usage = null;
+        Object usageObj = metadata.get("usage");
+        if (usageObj instanceof ChatRoomMetadata.Usage) {
+            usage = (ChatRoomMetadata.Usage) usageObj;
+        } else if (usageObj instanceof HashMap) {
+            HashMap<String, Object> usageMap = TypeConverter.castToHashMap(usageObj);
+            usage = ChatRoomMetadata.Usage.builder()
+                    .promptTokens((Integer) usageMap.get("promptTokens"))
+                    .completionTokens((Integer) usageMap.get("completionTokens"))
+                    .totalTokens((Integer) usageMap.get("totalTokens"))
+                    .model((String) usageMap.get("model"))
+                    .cost((Double) usageMap.get("cost"))
+                    .build();
+        }
+        
+        return ChatRoomMessageResponse.builder()
+                .chatRoomId(chatRoom.getId())
+                .title(chatRoom.getTitle())
+                .newMessages(newMessages)
+                .usage(usage)
+                .build();
     }
     
     // HashMapConverter 사용으로 변경
