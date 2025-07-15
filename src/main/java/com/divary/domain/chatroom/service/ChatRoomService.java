@@ -353,4 +353,19 @@ public class ChatRoomService {
         
         chatRoomRepository.delete(chatRoom);
     }
+    
+    // 채팅방 제목 변경
+    @Transactional
+    public void updateChatRoomTitle(Long chatRoomId, Long userId, String title) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+        
+        // 채팅방 소유자 확인
+        // TODO: 채팅방 소유자 확인 로직 - 현재는 하드코딩으로 처리
+        if (!chatRoom.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+        
+        chatRoom.updateTitle(title);
+    }
 } 

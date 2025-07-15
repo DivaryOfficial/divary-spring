@@ -2,6 +2,7 @@ package com.divary.domain.chatroom.controller;
 
 import com.divary.common.response.ApiResponse;
 import com.divary.domain.chatroom.dto.request.ChatRoomMessageRequest;
+import com.divary.domain.chatroom.dto.request.ChatRoomTitleUpdateRequest;
 import com.divary.domain.chatroom.dto.response.ChatRoomDetailResponse;
 import com.divary.domain.chatroom.dto.response.ChatRoomMessageResponse;
 import com.divary.domain.chatroom.dto.response.ChatRoomResponse;
@@ -62,6 +63,19 @@ public class ChatRoomController {
         Long userId = 1L;
         
         chatRoomService.deleteChatRoom(chatRoomId, userId);
+        return ApiResponse.success(null);
+    }
+
+    @PatchMapping("/{chatRoomId}/title")
+    @Operation(summary = "채팅방 제목 변경", description = "채팅방의 제목을 변경합니다.")
+    @ApiSuccessResponse(dataType = Void.class)
+    public ApiResponse<Void> updateChatRoomTitle(@PathVariable Long chatRoomId,
+                                                @Valid @RequestBody ChatRoomTitleUpdateRequest request) {
+        // 임시로 사용자 ID 하드코딩
+        // TODO: 사용자 ID를 Authorization 헤더에서 가져오도록 수정
+        Long userId = 1L;
+        
+        chatRoomService.updateChatRoomTitle(chatRoomId, userId, request.getTitle());
         return ApiResponse.success(null);
     }
 } 
