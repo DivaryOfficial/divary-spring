@@ -2,6 +2,7 @@ package com.divary.domain.chatroom.service;
 
 import com.divary.domain.chatroom.dto.Message;
 import com.divary.domain.chatroom.dto.response.OpenAIResponse;
+import com.divary.common.converter.TypeConverter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -112,7 +113,8 @@ public class MessageFactory {
                 .sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey())) // msg_001, msg_002... 순서
                 .map(entry -> {
                     String messageId = entry.getKey();
-                    HashMap<String, Object> messageData = (HashMap<String, Object>) entry.getValue();
+                    
+                    HashMap<String, Object> messageData = TypeConverter.castToHashMap(entry.getValue());
                     
                     String content = (String) messageData.get("content");
                     String type = (String) messageData.get("type");

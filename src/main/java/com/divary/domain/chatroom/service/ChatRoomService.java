@@ -13,6 +13,7 @@ import com.divary.domain.image.entity.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
+import com.divary.common.converter.TypeConverter;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -125,8 +126,7 @@ public class ChatRoomService {
         HashMap<String, Object> messages = chatRoom.getMessages();
         HashMap<String, Object> metadata = chatRoom.getMetadata();
         String firstMessageId = (String) metadata.get("lastMessageId");
-        
-        HashMap<String, Object> userMessage = (HashMap<String, Object>) messages.get(firstMessageId);
+        HashMap<String, Object> userMessage = TypeConverter.castToHashMap(messages.get(firstMessageId));
         
         // 이미지 정보 추가
         userMessage.put("hasImage", true);
@@ -151,8 +151,7 @@ public class ChatRoomService {
         if (usageObj instanceof ChatRoomMetadata.Usage) {
             usage = (ChatRoomMetadata.Usage) usageObj;
         } else if (usageObj instanceof HashMap) {
-            @SuppressWarnings("unchecked")
-            HashMap<String, Object> usageMap = (HashMap<String, Object>) usageObj;
+            HashMap<String, Object> usageMap = TypeConverter.castToHashMap(usageObj);
             usage = ChatRoomMetadata.Usage.builder()
                     .promptTokens((Integer) usageMap.get("promptTokens"))
                     .completionTokens((Integer) usageMap.get("completionTokens"))
@@ -277,8 +276,7 @@ public class ChatRoomService {
         List<Map<String, Object>> messageHistory = new java.util.ArrayList<>();
         
         for (String messageId : recentMessageIds) {
-            @SuppressWarnings("unchecked")
-            HashMap<String, Object> messageData = (HashMap<String, Object>) messages.get(messageId);
+            HashMap<String, Object> messageData = TypeConverter.castToHashMap(messages.get(messageId));
             
             String type = (String) messageData.get("type");
             String content = (String) messageData.get("content");
@@ -292,4 +290,6 @@ public class ChatRoomService {
         
         return messageHistory;
     }
+    
+    // HashMapConverter 사용으로 변경
 } 
