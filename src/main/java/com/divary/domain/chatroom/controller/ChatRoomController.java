@@ -52,4 +52,16 @@ public class ChatRoomController {
         List<ChatRoomResponse> responses = chatRoomService.getChatRoomsByUserId(userId);
         return ApiResponse.success(responses);
     }
+
+    @DeleteMapping("/{chatRoomId}")
+    @Operation(summary = "채팅방 삭제", description = "채팅방을 삭제합니다.")
+    @ApiSuccessResponse(dataType = Void.class)
+    public ApiResponse<Void> deleteChatRoom(@PathVariable Long chatRoomId) {
+        // 임시로 사용자 ID 하드코딩
+        // TODO: 사용자 ID를 Authorization 헤더에서 가져오도록 수정
+        Long userId = 1L;
+        
+        chatRoomService.deleteChatRoom(chatRoomId, userId);
+        return ApiResponse.success(null);
+    }
 } 

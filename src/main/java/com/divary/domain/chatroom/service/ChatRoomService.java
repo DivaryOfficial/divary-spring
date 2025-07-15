@@ -339,5 +339,18 @@ public class ChatRoomService {
                 .build();
     }
     
-    // HashMapConverter 사용으로 변경
+    // 채팅방 삭제
+    @Transactional
+    public void deleteChatRoom(Long chatRoomId, Long userId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+        
+        // 채팅방 소유자 확인
+        // TODO: 채팅방 소유자 확인 로직 - 현재는 하드코딩으로 처리
+        if (!chatRoom.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+        
+        chatRoomRepository.delete(chatRoom);
+    }
 } 

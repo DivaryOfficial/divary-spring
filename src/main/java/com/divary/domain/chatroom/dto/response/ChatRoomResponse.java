@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "채팅방 응답")
+// 채팅방 목록 조회 시 사용하는 응답 (채팅방 정보, 메시지 개수)
 public class ChatRoomResponse {
 
     @Schema(description = "채팅방 ID", example = "1")

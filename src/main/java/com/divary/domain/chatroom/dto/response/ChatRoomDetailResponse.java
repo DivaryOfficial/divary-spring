@@ -15,6 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "채팅방 상세 정보 응답")
+// 채팅방 정보, 전체 메시지 목록, API 사용량 정보 
 public class ChatRoomDetailResponse {
     
     @Schema(description = "채팅방 정보")

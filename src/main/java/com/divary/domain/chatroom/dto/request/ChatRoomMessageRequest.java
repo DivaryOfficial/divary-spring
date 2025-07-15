@@ -21,7 +21,7 @@ public class ChatRoomMessageRequest {
     private Long chatRoomId;
 
     @NotBlank(message = "메시지는 필수입니다.")
-    @Size(max = 1000, message = "메시지는 1000자 이하여야 합니다.")
+    @Size(max = 150, message = "메시지는 150자 이하여야 합니다.")
     @Schema(description = "메시지 내용", example = "이 물고기가 뭔지 알 수 있을까요?")
     private String message;
 

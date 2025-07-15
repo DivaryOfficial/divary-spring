@@ -15,6 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "채팅방 메시지 전송 응답")
+// 메세지를 보낼 때 사용하는 응답 (채팅방 정보, 새로 추가된 메시지만, API 사용량 정보)
 public class ChatRoomMessageResponse {
     
     @Schema(description = "채팅방 ID")
