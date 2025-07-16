@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class ChatRoomTitleUpdateRequest {
 
     @NotBlank(message = "제목은 필수입니다.")
-    @Size(max = 100, message = "제목은 30자 이하여야 합니다.")
+    @Size(max = 30, message = "제목은 30자 이하여야 합니다.")
     @Schema(description = "채팅방 제목", example = "복어탕 끼리는 방법")
     private String title;
 }
