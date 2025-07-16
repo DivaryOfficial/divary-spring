@@ -102,12 +102,12 @@ public class OpenAIService {
             return "새 채팅방";
         }
     }
-    // 메세지 전송 (히스토리 없음 - 첫 메시지)
+    // 메세지 전송 (히스토리 없음 첫 메시지인 경우)
     public OpenAIResponse sendMessage(String message, MultipartFile imageFile) {
         return sendMessageWithHistory(message, imageFile, null);
     }
     
-    // 메세지 전송 (히스토리 포함)
+    // 메세지 전송 (히스토리 포함 기존 채팅방인 경우)
     public OpenAIResponse sendMessageWithHistory(String message, MultipartFile imageFile, List<Map<String, Object>> messageHistory) {
         try {
             HttpHeaders headers = new HttpHeaders();

@@ -37,7 +37,7 @@ public class ChatRoomMetadataService {
         return metadataMap;
     }
 
-    // 메타데이터에서 Usage 정보 추출 (중복 로직 통합)
+    // 메타데이터에서 Usage 정보 추출
     public ChatRoomMetadata.Usage extractUsageFromMetadata(HashMap<String, Object> metadata) {
         Object usageObj = metadata.get("usage");
         if (usageObj instanceof ChatRoomMetadata.Usage) {
