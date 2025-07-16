@@ -233,7 +233,7 @@ public class ChatRoomService {
 
     // 사용자별 채팅방 목록 조회
     public List<ChatRoomResponse> getChatRoomsByUserId(Long userId) {
-            List<ChatRoom> chatRooms = chatRoomRepository.findByUserIdOrderByCreatedAtDesc(userId);
+            List<ChatRoom> chatRooms = chatRoomRepository.findByUserIdOrderByUpdatedAtDesc(userId);
 
             return chatRooms.stream()
                             .map(ChatRoomResponse::from)
