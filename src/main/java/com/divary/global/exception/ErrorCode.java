@@ -22,6 +22,11 @@ public enum ErrorCode {
     CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_001", "해당 카드에 대한 정보를 찾을 수 없습니다."),
     TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_002", "존재하지 않는 종류입니다."),
 
+    AVATAR_NOT_FOUND(HttpStatus.NOT_FOUND, "AVATAR_001", "해당 유저의 아바타를 찾을 수 업습니다."),
+
+    // 채팅방 관련 에러코드
+    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_ROOM_001", "채팅방을 찾을 수 없습니다."),
+
     //로그북 관련 에러코드
     LOG_BASE_NOT_FOUND(HttpStatus.NOT_FOUND, "LOGBOOK_001", "해당 날짜에는 로그북을 찾을 수 없습니다."),
     LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "LOGBOOK_002", "해당 로그북의 세부 정보를 찾을 수 없습니다."),
@@ -36,9 +41,6 @@ public enum ErrorCode {
 
     //알림 관련
     NOTIFICAITION_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_003", "해당 ID를 가진 사용자의 알림이 존재하지 않습니다"),
-
-    // 채팅방 관련 에러코드
-    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_ROOM_001", "채팅방을 찾을 수 없습니다."),
     
     // 다이어리 관련 에러코드
     DIARY_NOT_FOUND(HttpStatus.NOT_FOUND, "DIARY_001", "해당 로그의 다이어리를 찾을 수 없습니다."),
