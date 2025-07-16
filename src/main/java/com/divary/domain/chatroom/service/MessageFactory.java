@@ -106,6 +106,13 @@ public class MessageFactory {
         }
         return String.format("msg_%03d", maxNumber + 1);
     }
+    
+    // 메시지에 이미지 정보 추가 
+    public void addImageToMessage(HashMap<String, Object> messageData, String imageUrl, String fileName) {
+        messageData.put("hasImage", true);
+        messageData.put("imageName", fileName);
+        messageData.put("imageUrl", imageUrl);
+    }
 
     // 저장된 메시지들을 Message DTO 리스트로 변환
     public List<Message> convertToMessageList(HashMap<String, Object> messages) {

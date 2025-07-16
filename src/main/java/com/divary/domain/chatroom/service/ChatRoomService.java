@@ -33,7 +33,8 @@ public class ChatRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final OpenAIService openAIService;
     private final MessageFactory messageFactory;
-    private final ImageService imageService;  
+    private final ImageService imageService;
+    private final ChatRoomMetadataService metadataService;  
 
     // 채팅방 메시지 전송 (새 채팅방 생성 또는 기존 채팅방에 메시지 추가)
     @Transactional
@@ -42,27 +43,26 @@ public class ChatRoomService {
         ChatRoom chatRoom;
         List<String> newMessageIds = new java.util.ArrayList<>();
         
+        // 기존 채팅방 ID가 오지 않은 경우 
         if (request.getChatRoomId() == null) {
             // 새 채팅방 생성
             chatRoom = createNewChatRoom(userId, request);
-            // 새 채팅방의 경우 첫 번째 메시지 ID를 추가
-            HashMap<String, Object> metadata = chatRoom.getMetadata();
-            newMessageIds.add((String) metadata.get("lastMessageId"));
         } else {
             // 기존 채팅방에 메시지 추가
             chatRoom = addMessageToExistingChatRoom(request.getChatRoomId(), userId, request);
-            // 방금 추가한 사용자 메시지 ID를 추가
-            HashMap<String, Object> metadata = chatRoom.getMetadata();
-            newMessageIds.add((String) metadata.get("lastMessageId"));
         }
+        // 채팅방 메시지 ID 추가
+        HashMap<String, Object> metadata = chatRoom.getMetadata();
+        newMessageIds.add((String) metadata.get("lastMessageId"));
+
         
         // AI 응답 생성
         OpenAIResponse aiResponse;
         if (request.getChatRoomId() == null) {
-            // 새 채팅방 - 히스토리 없음
+            // 새 채팅방 - 새 메세지만 전달
             aiResponse = openAIService.sendMessage(request.getMessage(), request.getImage());
         } else {
-            // 기존 채팅방 - 히스토리 포함
+            // 기존 채팅방 - 기존 메세지 최대 20개 포함해서 전달
             List<Map<String, Object>> messageHistory = buildMessageHistoryForOpenAI(chatRoom);
             aiResponse = openAIService.sendMessageWithHistory(request.getMessage(), request.getImage(), messageHistory);
         }
@@ -74,6 +74,65 @@ public class ChatRoomService {
         return buildMessageResponse(chatRoom, newMessageIds);
     }
 
+    // 새 채팅방 생성
+    private ChatRoom createNewChatRoom(Long userId, ChatRoomMessageRequest request) {
+        String title = openAIService.generateTitle(request.getMessage());
+
+        // 채팅방을 먼저 저장 (이미지 없이)
+        ChatRoom chatRoom = buildChatRoomWithoutImage(userId, title, request);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+
+        // 이미지가 있으면 채팅방 첫 메시지에 이미지 정보 추가
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            HashMap<String, Object> messages = savedChatRoom.getMessages();
+            HashMap<String, Object> metadata = savedChatRoom.getMetadata();
+            String firstMessageId = (String) metadata.get("lastMessageId");
+            HashMap<String, Object> userMessage = TypeConverter.castToHashMap(messages.get(firstMessageId));
+
+            processImageUpload(userMessage, request.getImage(), userId, savedChatRoom.getId().toString());
+
+            messages.put(firstMessageId, userMessage);
+            savedChatRoom.updateMessages(messages);
+        }
+
+        return savedChatRoom;
+    }
+
+    // 기존 채팅방에 메시지 추가
+    private ChatRoom addMessageToExistingChatRoom(Long chatRoomId, Long userId, ChatRoomMessageRequest request) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+        
+        validateChatRoomOwnership(chatRoom, userId);
+        
+        // 새 메시지 추가
+        addUserMessageToChatRoom(chatRoom, request);
+        
+        return chatRoom;
+    }
+    
+    // 사용자 메시지를 채팅방에 추가
+    private void addUserMessageToChatRoom(ChatRoom chatRoom, ChatRoomMessageRequest request) {
+        HashMap<String, Object> messages = chatRoom.getMessages();
+        String newMessageId = messageFactory.generateNextMessageId(messages);
+
+        // 메시지 데이터 생성
+        HashMap<String, Object> messageData = messageFactory.createUserMessageData(request.getMessage(), null);
+
+        // 이미지 처리
+        processImageUpload(messageData, request.getImage(), getCurrentUserId(), chatRoom.getId().toString());
+
+        messages.put(newMessageId, messageData);
+
+        // 메타데이터 업데이트
+        HashMap<String, Object> metadata = chatRoom.getMetadata();
+        metadata.put("lastMessageId", newMessageId);
+        metadata.put("messageCount", messages.size());
+
+        chatRoom.updateMessages(messages);
+        chatRoom.updateMetadata(metadata);
+    }
+    
     // AI 응답을 채팅방 메시지에 추가
     private String addAiResponseToMessages(ChatRoom chatRoom, OpenAIResponse aiResponse) {
         HashMap<String, Object> messages = chatRoom.getMessages();
@@ -88,30 +147,52 @@ public class ChatRoomService {
         metadata.put("lastMessageId", nextMessageId);
         metadata.put("messageCount", messages.size());
         
-        // Usage 정보 업데이트
-        ChatRoomMetadata.Usage usage = ChatRoomMetadata.Usage.builder()
-                .promptTokens(aiResponse.getPromptTokens())
-                .completionTokens(aiResponse.getCompletionTokens())
-                .totalTokens(aiResponse.getTotalTokens())
-                .model(aiResponse.getModel())
-                .cost(aiResponse.getCost())
-                .build();
-        metadata.put("usage", usage);
+        // 메타데이터 업데이트
+        ChatRoomMetadata chatRoomMetadata = metadataService.createMetadata(aiResponse, nextMessageId, messages.size());
+        HashMap<String, Object> updatedMetadata = metadataService.convertToMap(chatRoomMetadata);
+        metadata.putAll(updatedMetadata);
         
         chatRoom.updateMessages(messages);
         chatRoom.updateMetadata(metadata);
         
         return nextMessageId;
     }
-    
 
     // 현재 사용자 ID 가져오기
     private Long getCurrentUserId() {
         // TODO: 사용자 ID를 Authorization 헤더에서 가져오도록 수정
         return 1L;
     }
+    
+    // 채팅방 소유자 권한 확인
+    private void validateChatRoomOwnership(ChatRoom chatRoom, Long userId) {
+        // TODO: 채팅방 소유자 확인 로직 - 현재는 하드코딩으로 처리
+        if (!chatRoom.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    
+    // 이미지 업로드 처리
+    private void processImageUpload(HashMap<String, Object> messageData, org.springframework.web.multipart.MultipartFile image, Long userId, String chatRoomId) {
+        if (image != null && !image.isEmpty()) {
+            ImageResponse imageResponse = imageService.uploadImageByType(
+                ImageType.USER_CHAT,
+                image,
+                userId,
+                chatRoomId
+            );
+            String imageUrl = imageResponse.getFileUrl();
+            String fileName = image.getOriginalFilename();
+            
+            messageFactory.addImageToMessage(messageData, imageUrl, fileName);
+        }
+    }
 
-    // ChatRoom 엔티티 생성 (이미지 없이) 
+    /**
+     * ChatRoom 엔티티 생성 (이미지 없이)
+    * 첫 생성때는 chatRoomId가 없기 때문 (이미지 업로드 시 chatRoomId 필요)
+     */
     private ChatRoom buildChatRoomWithoutImage(Long userId, String title, ChatRoomMessageRequest request) {
         // 이미지 없이 초기 메시지만 생성
         HashMap<String, Object> initialMessages = messageFactory.createUserMessageData(request.getMessage(), null);
@@ -132,21 +213,6 @@ public class ChatRoomService {
                 .build();
     }
 
-    // 채팅방에 이미지 정보 업데이트
-    private void updateChatRoomWithImage(ChatRoom chatRoom, String imageUrl, org.springframework.web.multipart.MultipartFile image) {
-        HashMap<String, Object> messages = chatRoom.getMessages();
-        HashMap<String, Object> metadata = chatRoom.getMetadata();
-        String firstMessageId = (String) metadata.get("lastMessageId");
-        HashMap<String, Object> userMessage = TypeConverter.castToHashMap(messages.get(firstMessageId));
-        
-        // 이미지 정보 추가
-        userMessage.put("hasImage", true);
-        userMessage.put("imageName", image.getOriginalFilename());
-        userMessage.put("imageUrl", imageUrl);
-        
-        messages.put(firstMessageId, userMessage);
-        chatRoom.updateMessages(messages);
-    }
 
     // 응답 DTO 생성
     private ChatRoomDetailResponse buildDetailResponse(ChatRoom savedChatRoom) {
@@ -156,21 +222,7 @@ public class ChatRoomService {
         List<Message> messages = messageFactory.convertToMessageList(savedChatRoom.getMessages());
         
         // 메타데이터에서 사용량 정보 가져오기
-        HashMap<String, Object> metadata = savedChatRoom.getMetadata();
-        ChatRoomMetadata.Usage usage = null;
-        Object usageObj = metadata.get("usage");
-        if (usageObj instanceof ChatRoomMetadata.Usage) {
-            usage = (ChatRoomMetadata.Usage) usageObj;
-        } else if (usageObj instanceof HashMap) {
-            HashMap<String, Object> usageMap = TypeConverter.castToHashMap(usageObj);
-            usage = ChatRoomMetadata.Usage.builder()
-                    .promptTokens((Integer) usageMap.get("promptTokens"))
-                    .completionTokens((Integer) usageMap.get("completionTokens"))
-                    .totalTokens((Integer) usageMap.get("totalTokens"))
-                    .model((String) usageMap.get("model"))
-                    .cost((Double) usageMap.get("cost"))
-                    .build();
-        }
+        ChatRoomMetadata.Usage usage = metadataService.extractUsageFromMetadata(savedChatRoom.getMetadata());
         
         return ChatRoomDetailResponse.builder()
                 .chatRoom(chatRoomResponse)
@@ -186,80 +238,6 @@ public class ChatRoomService {
             return chatRooms.stream()
                             .map(ChatRoomResponse::from)
                             .collect(Collectors.toList());
-    }
-    
-    // 새 채팅방 생성
-    private ChatRoom createNewChatRoom(Long userId, ChatRoomMessageRequest request) {
-        String title = openAIService.generateTitle(request.getMessage());
-        
-        // 채팅방을 먼저 저장 (이미지 없이)
-        ChatRoom chatRoom = buildChatRoomWithoutImage(userId, title, request);
-        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
-        
-        // 이미지가 있으면 업로드 후 메시지에 추가
-        if (request.getImage() != null && !request.getImage().isEmpty()) {
-            ImageResponse imageResponse = imageService.uploadImageByType(
-                ImageType.USER_CHAT,
-                request.getImage(),
-                userId,
-                savedChatRoom.getId().toString()
-            );
-            String imageUrl = imageResponse.getFileUrl();
-            updateChatRoomWithImage(savedChatRoom, imageUrl, request.getImage());
-        }
-        
-        return savedChatRoom;
-    }
-    
-    // 기존 채팅방에 메시지 추가
-    private ChatRoom addMessageToExistingChatRoom(Long chatRoomId, Long userId, ChatRoomMessageRequest request) {
-        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
-        
-        // TODO: 채팅방 소유자 확인 로직 - 현재는 하드코딩으로 처리
-        // if (!chatRoom.getUserId().equals(userId)) {
-        //     throw new BusinessException(ErrorCode.ACCESS_DENIED);
-        // }
-        
-        // 새 메시지 추가
-        addUserMessageToChatRoom(chatRoom, request);
-        
-        return chatRoom;
-    }
-    
-    // 사용자 메시지를 채팅방에 추가
-    private void addUserMessageToChatRoom(ChatRoom chatRoom, ChatRoomMessageRequest request) {
-        HashMap<String, Object> messages = chatRoom.getMessages();
-        String newMessageId = messageFactory.generateNextMessageId(messages);
-        
-        // 메시지 데이터 생성
-        HashMap<String, Object> messageData = messageFactory.createUserMessageData(request.getMessage(), null);
-        
-        // 이미지가 있으면 업로드
-        if (request.getImage() != null && !request.getImage().isEmpty()) {
-            ImageResponse imageResponse = imageService.uploadImageByType(
-                ImageType.USER_CHAT,
-                request.getImage(),
-                getCurrentUserId(),
-                chatRoom.getId().toString()
-            );
-            String imageUrl = imageResponse.getFileUrl();
-            
-            // 이미지 정보 추가
-            messageData.put("hasImage", true);
-            messageData.put("imageName", request.getImage().getOriginalFilename());
-            messageData.put("imageUrl", imageUrl);
-        }
-        
-        messages.put(newMessageId, messageData);
-        
-        // 메타데이터 업데이트
-        HashMap<String, Object> metadata = chatRoom.getMetadata();
-        metadata.put("lastMessageId", newMessageId);
-        metadata.put("messageCount", messages.size());
-        
-        chatRoom.updateMessages(messages);
-        chatRoom.updateMetadata(metadata);
     }
     
     public ChatRoomDetailResponse getChatRoomDetail(Long chatRoomId) {
@@ -315,21 +293,7 @@ public class ChatRoomService {
         List<Message> newMessages = messageFactory.convertToMessageList(newMessagesMap);
         
         // 메타데이터에서 사용량 정보 가져오기
-        HashMap<String, Object> metadata = chatRoom.getMetadata();
-        ChatRoomMetadata.Usage usage = null;
-        Object usageObj = metadata.get("usage");
-        if (usageObj instanceof ChatRoomMetadata.Usage) {
-            usage = (ChatRoomMetadata.Usage) usageObj;
-        } else if (usageObj instanceof HashMap) {
-            HashMap<String, Object> usageMap = TypeConverter.castToHashMap(usageObj);
-            usage = ChatRoomMetadata.Usage.builder()
-                    .promptTokens((Integer) usageMap.get("promptTokens"))
-                    .completionTokens((Integer) usageMap.get("completionTokens"))
-                    .totalTokens((Integer) usageMap.get("totalTokens"))
-                    .model((String) usageMap.get("model"))
-                    .cost((Double) usageMap.get("cost"))
-                    .build();
-        }
+        ChatRoomMetadata.Usage usage = metadataService.extractUsageFromMetadata(chatRoom.getMetadata());
         
         return ChatRoomMessageResponse.builder()
                 .chatRoomId(chatRoom.getId())
@@ -345,11 +309,7 @@ public class ChatRoomService {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
         
-        // 채팅방 소유자 확인
-        // TODO: 채팅방 소유자 확인 로직 - 현재는 하드코딩으로 처리
-        if (!chatRoom.getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
-        }
+        validateChatRoomOwnership(chatRoom, userId);
         
         chatRoomRepository.delete(chatRoom);
     }
@@ -360,11 +320,7 @@ public class ChatRoomService {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
         
-        // 채팅방 소유자 확인
-        // TODO: 채팅방 소유자 확인 로직 - 현재는 하드코딩으로 처리
-        if (!chatRoom.getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
-        }
+        validateChatRoomOwnership(chatRoom, userId);
         
         chatRoom.updateTitle(title);
     }

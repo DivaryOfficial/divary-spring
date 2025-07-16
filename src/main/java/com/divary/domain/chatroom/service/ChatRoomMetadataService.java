@@ -2,6 +2,7 @@ package com.divary.domain.chatroom.service;
 
 import com.divary.domain.chatroom.dto.ChatRoomMetadata;
 import com.divary.domain.chatroom.dto.response.OpenAIResponse;
+import com.divary.common.converter.TypeConverter;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -34,5 +35,23 @@ public class ChatRoomMetadataService {
         metadataMap.put("usage", metadata.getUsage());
         
         return metadataMap;
+    }
+
+    // 메타데이터에서 Usage 정보 추출 (중복 로직 통합)
+    public ChatRoomMetadata.Usage extractUsageFromMetadata(HashMap<String, Object> metadata) {
+        Object usageObj = metadata.get("usage");
+        if (usageObj instanceof ChatRoomMetadata.Usage) {
+            return (ChatRoomMetadata.Usage) usageObj;
+        } else if (usageObj instanceof HashMap) {
+            HashMap<String, Object> usageMap = TypeConverter.castToHashMap(usageObj);
+            return ChatRoomMetadata.Usage.builder()
+                    .promptTokens((Integer) usageMap.get("promptTokens"))
+                    .completionTokens((Integer) usageMap.get("completionTokens"))
+                    .totalTokens((Integer) usageMap.get("totalTokens"))
+                    .model((String) usageMap.get("model"))
+                    .cost((Double) usageMap.get("cost"))
+                    .build();
+        }
+        return null;
     }
 }
