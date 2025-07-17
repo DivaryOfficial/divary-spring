@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.divary.global.intercepter.LoggingInterceptor;
@@ -22,5 +23,11 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**")
                 // 인터셉터가 실행되지 않을 경로를 설정하는 필터
                 .excludePathPatterns("/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**");
+    }
+    
+    @Override
+    public void configurePathMatch(@NonNull PathMatchConfigurer configurer) {
+        // 모든 API 경로에 /api/v1 접두사 추가
+        configurer.addPathPrefix("/api/v1", c -> c.isAnnotationPresent(org.springframework.web.bind.annotation.RestController.class));
     }
 } 

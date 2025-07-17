@@ -22,7 +22,7 @@ import java.util.List;
 @Tag(name = "Image", description = "이미지 업로드 및 관리")
 @Slf4j
 @RestController
-@RequestMapping("/api/images")
+@RequestMapping("images")
 @RequiredArgsConstructor
 public class ImageController {
 
