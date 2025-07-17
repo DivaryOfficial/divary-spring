@@ -1,10 +1,10 @@
 package com.divary.domain.Member.enums;
 
 public enum Level {
-    Level_1,
-    Level_2,
-    Level_3,
-    Level_4,
-    Level_5,
-    Level_6
+    LEVEL_1,
+    LEVEL_2,
+    LEVEL_3,
+    LEVEL_4,
+    LEVEL_5,
+    LEVEL_6
 }
