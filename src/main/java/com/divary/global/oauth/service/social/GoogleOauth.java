@@ -27,11 +27,11 @@ public class GoogleOauth implements SocialOauth {
 
     private final MemberService memberService;
     private final JwtTokenProvider jwtTokenProvider;
-
+    private static final String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
+    private final RestTemplate restTemplate;
 
     private Map<String, Object> requestUserInfo(String accessToken) {
-        RestTemplate restTemplate = new RestTemplate();
-        String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
+
 
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
@@ -53,7 +53,7 @@ public class GoogleOauth implements SocialOauth {
             return userInfo;
         }
 
-        throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
+        throw new BusinessException(ErrorCode.GOOGLE_BAD_GATEWAY);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class GoogleOauth implements SocialOauth {
 
         try {
             member = memberService.findMemberByEmail(email);
-        } catch (IllegalArgumentException e) {
+        } catch (BusinessException e) {
             member = memberService.saveMember(Member.builder()
                     .email(email)
                     .socialType(SocialType.GOOGLE)

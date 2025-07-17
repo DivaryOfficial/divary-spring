@@ -23,7 +23,8 @@ public enum ErrorCode {
     TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_002", "존재하지 않는 종류입니다."),
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_001", "이메일을 찾을 수 없습니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_002", "유저를 찾을 수 없습니다."),
-    NOTIFICAITION_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_003", "해당 ID를 가진 사용자의 알림이 존재하지 않습니다"),
+    GOOGLE_BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "GOOGLE_001", "구글 유저를 찾을 수 없습니다"),
+    NOTIFICAITION_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_003", "해당 ID를 가진 사용자의 알림이 존재하지 않습니다");
 
     // 채팅방 관련 에러코드
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_ROOM_001", "채팅방을 찾을 수 없습니다.");
