@@ -1,26 +1,13 @@
 spring:
+
+  config:
+    name: application
+
   application:
     name: divary-spring
 
   profiles:
     active: dev
-
-  # 데이터베이스 설정 (H2 인메모리)
-  datasource:
-    url: jdbc:h2:mem:divary
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
-
-  # JPA/Hibernate 설정
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
 
   # H2 콘솔 설정 (개발용)
   h2:
@@ -41,10 +28,3 @@ server:
 logging:
   level:
     com.divary: DEBUG
-
-# 애플리케이션 커스텀 설정
-jwt:
-  secretKey: divarySecretKeyForJWTTokenGenerationAndValidation2024
-  expiration:
-    access: 14400000 #4시간
-    refresh: 604800000
