@@ -18,7 +18,7 @@ public enum ErrorCode {
     REQUIRED_FIELD_MISSING(HttpStatus.BAD_REQUEST, "VALIDATION_002", "필수 필드가 누락되었습니다."),
     INVALID_TOKEN(HttpStatus.BAD_REQUEST, "VALIDATION_003", "토큰이 잘못되었습니다."),
 
-    // TODO: 비즈니스 로직 개발하면서 필요한 에러코드들 추가
+
     CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_001", "해당 카드에 대한 정보를 찾을 수 없습니다."),
     TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_002", "존재하지 않는 종류입니다."),
 
@@ -26,10 +26,16 @@ public enum ErrorCode {
     LOG_BASE_NOT_FOUND(HttpStatus.NOT_FOUND, "LOGBOOK_001", "해당 날짜에는 로그북을 찾을 수 없습니다."),
     LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "LOGBOOK_002", "해당 로그북의 세부 정보를 찾을 수 없습니다."),
     LOG_LIMIT_EXCEEDED(HttpStatus.NOT_FOUND, "LOGBOOK_003", "로그북은 하루에 최대 3개까지만 생성할 수 있습니다."),
+    
+    //맴버 관련
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_001", "이메일을 찾을 수 없습니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_002", "유저를 찾을 수 없습니다."),
+
+    //소셜 로그인 관련
     GOOGLE_BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "GOOGLE_001", "구글 유저를 찾을 수 없습니다"),
-    NOTIFICAITION_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_003", "해당 ID를 가진 사용자의 알림이 존재하지 않습니다");
+
+    //알림 관련
+    NOTIFICAITION_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_003", "해당 ID를 가진 사용자의 알림이 존재하지 않습니다"),
 
     // 채팅방 관련 에러코드
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_ROOM_001", "채팅방을 찾을 수 없습니다."),
@@ -39,6 +45,7 @@ public enum ErrorCode {
     DIARY_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "DIARY_002", "해당 로그는 이미 다이어리가 존재합니다."),
     INVALID_JSON_FORMAT(HttpStatus.BAD_REQUEST, "DIARY_003", "일기 콘텐츠의 JSON 구조가 잘못되었습니다.");
 
+    // TODO: 비즈니스 로직 개발하면서 필요한 에러코드들 추가
     private final HttpStatus status;
     private final String code;
     private final String message;
