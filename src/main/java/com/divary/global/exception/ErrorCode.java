@@ -22,7 +22,8 @@ public enum ErrorCode {
     TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_002", "존재하지 않는 종류입니다."),
 
     //로그북 관련 에러코드
-    LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "LOGBOOK_001", "해당 로그북에 대한 정보를 찾을 수 없습니다."),
+    LOG_BASE_NOT_FOUND(HttpStatus.NOT_FOUND, "LOGBOOK_001", "해당 날짜에는 로그북을 찾을 수 없습니다."),
+    LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "LOGBOOK_002", "해당 로그북의 세부 정보를 찾을 수 없습니다."),
 
     // 채팅방 관련 에러코드
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_ROOM_001", "채팅방을 찾을 수 없습니다."),

@@ -2,6 +2,8 @@ package com.divary.domain.logbook.dto.request;
 
 import com.divary.domain.logbook.enums.IconType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -18,14 +20,12 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class LogBookCreateRequestDTO {
 
-    @NotNull
-    @Schema(description = "멤버 id", example = "123")
-    private Long memberId;
 
     @NotNull
-    @Schema(description = "아이콘 타입", example = "FISH")
+    @Schema(description = "아이콘 타입", example = "CLOWNFISH")
     private IconType iconType;
 
+    //size 제한은 추후에 정해지면 진행
     @NotBlank
     @Schema(description = "로그북 이름", example = "해양일지")
     private String name;
