@@ -25,6 +25,11 @@ import lombok.NoArgsConstructor;
 @Schema(description = "다이어리 엔티티")
 public class Diary extends BaseEntity {
 
+    public Diary(LogBook logBook, String content) {
+        this.logBook = logBook;
+        this.content = content;
+    }
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "log_id", nullable = false, unique = true)
     private LogBook logBook;
@@ -40,4 +45,7 @@ public class Diary extends BaseEntity {
 
     // TODO: 프론트에서 스펙 전달해주면 필드 추가 예정 (ex. 폰트, 크기, 손글씨 위치 등)
 
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }
