@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 
 @Getter
-@Schema(description = "다이빙 로그")
+@Schema(description = "다이빙 로그 세부정보")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -18,28 +18,13 @@ import java.time.LocalDate;
 public class LogBook extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "member_id")
-    private Member member;
-
-    @Column(name = "name", nullable = false, length = 40)
-    @Schema(description = "로그 제목", example = "고래 원정")
-    private String name;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "icon_type", nullable = false)
-    @Schema(description = "아이콘 타입", example = "WHALE")
-    private IconType iconType;
+    @JoinColumn(name = "log_base_info_id")
+    @Schema(description = "로그북의 기본정보 외래키", example = "1")
+    private LogBaseInfo logBaseInfo;
 
     @Column(name = "accumulation",nullable = false)
     @Schema(description = "누적 횟수", example = "3")
     private int accumulation;
-
-    @Column(name = "save_status",nullable = false)
-    private SaveStatus saveStatus = SaveStatus.TEMP;
-
-    @Column(name = "date", nullable = false)
-    @Schema(description = "다이빙 날짜", example = "2025-07-25")
-    private LocalDate date;
 
     @Column(name = "place",length = 50)
     @Schema(description = "다이빙 지역", example = "제주도 서귀포시")

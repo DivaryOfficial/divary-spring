@@ -14,10 +14,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LogBookDetailResultDTO {
+
     private String name;
     private String icon;
-    private int accumulation;
     private LocalDate date;
+
+    private int accumulation;
 
     private String place;
     private String divePoint;
@@ -51,10 +53,10 @@ public class LogBookDetailResultDTO {
 
     public static LogBookDetailResultDTO from(LogBook logBook, List<Companion> companions) {
         return LogBookDetailResultDTO.builder()
-                .name(logBook.getName())
-                .icon(logBook.getIconType().name())
+                .name(logBook.getLogBaseInfo().getName())
+                .icon(logBook.getLogBaseInfo().getIconType().name())
                 .accumulation(logBook.getAccumulation())
-                .date(logBook.getDate())
+                .date(logBook.getLogBaseInfo().getDate())
                 .place(logBook.getPlace())
                 .divePoint(logBook.getDivePoint())
                 .diveMethod(logBook.getDiveMethod().name())
