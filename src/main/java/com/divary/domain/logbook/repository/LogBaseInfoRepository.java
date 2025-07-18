@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface LogBaseInfoRepository extends JpaRepository<LogBaseInfo, Long> {
     @Query("SELECT l FROM LogBaseInfo l WHERE YEAR(l.date) = :year AND l.saveStatus = :status ORDER BY l.date DESC")
@@ -17,6 +18,6 @@ public interface LogBaseInfoRepository extends JpaRepository<LogBaseInfo, Long> 
     @Query("SELECT l FROM LogBaseInfo l WHERE YEAR(l.date) = :year ORDER BY l.date DESC")
     List<LogBaseInfo> findByYear(@Param("year") int year);
 
-    LogBaseInfo findByDate(LocalDate date);
+    Optional<LogBaseInfo> findByDate(LocalDate date);
 
 }

@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LogBookCreateResultDTO {
+public class LogBaseCreateResultDTO {
 
     @Schema(description = "로그 제목", example = "해양일지")
     private String name;
@@ -27,5 +27,8 @@ public class LogBookCreateResultDTO {
 
     @Schema(description = "누적 횟수")
     private int accumulation;
+
+    @Schema(description = "로그북베이스 id")
+    private Long LogBaseInfoId;
 
 }

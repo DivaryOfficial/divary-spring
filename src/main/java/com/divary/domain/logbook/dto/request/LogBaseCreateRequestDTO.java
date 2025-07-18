@@ -2,11 +2,8 @@ package com.divary.domain.logbook.dto.request;
 
 import com.divary.domain.logbook.enums.IconType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +15,7 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LogBookCreateRequestDTO {
+public class LogBaseCreateRequestDTO {
 
 
     @NotNull
