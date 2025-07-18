@@ -18,24 +18,44 @@ public class AvatarServiceImpl implements AvatarService {
     private final MemberService memberService;
 
     @Override
-    public void saveAvatar(AvatarRequestDTO avatarRequestDTO) {
+    public void patchAvatar(AvatarRequestDTO avatarRequestDTO) {
 
         Member user = memberService.findById(1L); //임시
+        Avatar avatar = avatarRepository.findByUser(user)
+                .orElseThrow(() -> new BusinessException(ErrorCode.AVATAR_NOT_FOUND));
 
-        Avatar avatar = Avatar.builder()
-                .name(avatarRequestDTO.getName())
-                .accessory(avatarRequestDTO.getAccessory())
-                .bodyColor(avatarRequestDTO.getBodyColor())
-                .budyPet(avatarRequestDTO.getBudyPet())
-                .cheekColor(avatarRequestDTO.getCheekColor())
-                .eyeColor(avatarRequestDTO.getEyeColor())
-                .eyelash(avatarRequestDTO.getEyelash())
-                .mask(avatarRequestDTO.getMask())
-                .pin(avatarRequestDTO.getPin())
-                .regulator(avatarRequestDTO.getRegulator())
-                .theme(avatarRequestDTO.getTheme())
-                .build();
-        avatarRepository.saveByMember(user, avatar);
+        if (avatarRequestDTO.getName() != null) {
+            avatar.setName(avatarRequestDTO.getName());
+        }
+        if (avatarRequestDTO.getTank() != null) {
+            avatar.setTank(avatarRequestDTO.getTank());
+        }
+        if (avatarRequestDTO.getBodyColor() != null) {
+            avatar.setBodyColor(avatarRequestDTO.getBodyColor());
+        }
+        if (avatarRequestDTO.getBudyPet() != null) {
+            avatar.setBudyPet(avatarRequestDTO.getBudyPet());
+        }
+        if (avatarRequestDTO.getCheekColor() != null) {
+            avatar.setCheekColor(avatarRequestDTO.getCheekColor());
+        }
+        if (avatarRequestDTO.getSpeechBubble() != null) {
+            avatar.setSpeechBubble(avatarRequestDTO.getSpeechBubble());
+        }
+        if (avatarRequestDTO.getMask() != null) {
+            avatar.setMask(avatarRequestDTO.getMask());
+        }
+        if (avatarRequestDTO.getPin() != null) {
+            avatar.setPin(avatarRequestDTO.getPin());
+        }
+        if (avatarRequestDTO.getRegulator() != null) {
+            avatar.setRegulator(avatarRequestDTO.getRegulator());
+        }
+        if (avatarRequestDTO.getTheme() != null) {
+            avatar.setTheme(avatarRequestDTO.getTheme());
+        }
+
+        avatarRepository.save(avatar);
 
     }
 
@@ -46,12 +66,11 @@ public class AvatarServiceImpl implements AvatarService {
         Avatar avatar = avatarRepository.findByUser(user).orElseThrow(()-> new BusinessException(ErrorCode.AVATAR_NOT_FOUND)); //로그인  merge되면 MemberNotFound로 변경
         return AvatarResponseDTO.builder()
                 .name(avatar.getName())
-                .accessory(avatar.getAccessory())
+                .tank(avatar.getTank())
                 .bodyColor(avatar.getBodyColor())
                 .budyPet(avatar.getBudyPet())
                 .cheekColor(avatar.getCheekColor())
-                .eyeColor(avatar.getEyeColor())
-                .eyelash(avatar.getEyelash())
+                .speechBubble(avatar.getSpeechBubble())
                 .mask(avatar.getMask())
                 .pin(avatar.getPin())
                 .regulator(avatar.getRegulator())

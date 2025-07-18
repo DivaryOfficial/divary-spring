@@ -1,8 +1,8 @@
 package com.divary.domain.avatar.enums;
 
-public enum Pin {
+public enum Tank {
     NONE,
-    WHITE,
+    BLACK,
     YELLOW,
     PINK
 }
