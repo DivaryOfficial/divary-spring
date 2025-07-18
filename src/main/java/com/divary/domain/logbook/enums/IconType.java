@@ -1,30 +1,54 @@
 package com.divary.domain.logbook.enums;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 public enum IconType {
-    CLOWNFISH("흰동가리"),
-    BUTTERFLYFISH("나비고기"),
-    OCTOPUS("문어"),
-    CLEANER_WRASSE("청줄놀래기"),
-    BLACK_ROCKFISH("쏨배기"),
-    SEA_HARE("군소"),
-    PUFFERFISH("복어"),
-    STRIPED_BEAKFISH("돌돔"),
-    NUDIBRANCH("갯민숭달팽이"),
-    MOON_JELLYFISH("보름달물해파리"),
-    YELLOWTAIL_SCAD("줄전갱이"),
-    MANTIS_SHRIMP("끄덕새우"),
-    SEA_TURTLE("바다거북"),
-    STARFISH("불가사리"),
-    RED_LIONFISH("쏠배감펭"),
-    SEA_URCHIN("성게");
+    @Schema(description = "흰동가리")
+    CLOWNFISH,
 
-    private final String description;
+    @Schema(description = "나비고기")
+    BUTTERFLYFISH,
 
-    IconType(String description) {
-        this.description = description;
-    }
+    @Schema(description = "문어")
+    OCTOPUS,
 
-    public String getDescription() {
-        return description;
-    }
+    @Schema(description = "청줄놀래기")
+    CLEANER_WRASSE,
+
+    @Schema(description = "쏨배기")
+    BLACK_ROCKFISH,
+
+    @Schema(description = "군소")
+    SEA_HARE,
+
+    @Schema(description = "복어")
+    PUFFERFISH,
+
+    @Schema(description = "돌돔")
+    STRIPED_BEAKFISH,
+
+    @Schema(description = "갯민숭달팽이")
+    NUDIBRANCH,
+
+    @Schema(description = "보름달물해파리")
+    MOON_JELLYFISH,
+
+    @Schema(description = "줄전갱이")
+    YELLOWTAIL_SCAD,
+
+    @Schema(description = "끄덕새우")
+    MANTIS_SHRIMP,
+
+    @Schema(description = "바다거북")
+    SEA_TURTLE,
+
+    @Schema(description = "불가사리")
+    STARFISH,
+
+    @Schema(description = "쏠배감펭")
+    RED_LIONFISH,
+
+    @Schema(description = "성게")
+    SEA_URCHIN
+
 }

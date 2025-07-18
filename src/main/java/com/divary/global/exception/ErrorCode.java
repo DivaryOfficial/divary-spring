@@ -24,6 +24,7 @@ public enum ErrorCode {
     //로그북 관련 에러코드
     LOG_BASE_NOT_FOUND(HttpStatus.NOT_FOUND, "LOGBOOK_001", "해당 날짜에는 로그북을 찾을 수 없습니다."),
     LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "LOGBOOK_002", "해당 로그북의 세부 정보를 찾을 수 없습니다."),
+    LOG_LIMIT_EXCEEDED(HttpStatus.NOT_FOUND, "LOGBOOK_003", "로그북은 하루에 최대 3개까지만 생성할 수 있습니다."),
 
     // 채팅방 관련 에러코드
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_ROOM_001", "채팅방을 찾을 수 없습니다.");

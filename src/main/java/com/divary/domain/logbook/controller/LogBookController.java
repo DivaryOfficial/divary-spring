@@ -1,10 +1,12 @@
 package com.divary.domain.logbook.controller;
 
 import com.divary.common.response.ApiResponse;
-import com.divary.domain.logbook.dto.request.LogBookCreateRequestDTO;
+import com.divary.domain.logbook.dto.request.LogBaseCreateRequestDTO;
+import com.divary.domain.logbook.dto.request.LogDetailCreateRequestDTO;
 import com.divary.domain.logbook.dto.response.LogBaseListResultDTO;
-import com.divary.domain.logbook.dto.response.LogBookCreateResultDTO;
+import com.divary.domain.logbook.dto.response.LogBaseCreateResultDTO;
 import com.divary.domain.logbook.dto.response.LogBookDetailResultDTO;
+import com.divary.domain.logbook.dto.response.LogDetailCreateResultDTO;
 import com.divary.domain.logbook.enums.SaveStatus;
 import com.divary.domain.logbook.service.LogBookService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,11 +30,11 @@ public class LogBookController {
     private final LogBookService logBookService;
 
     @PostMapping
-    @Operation(summary = "로그 생성", description = "다이빙 로그를 생성합니다.")
-    public ApiResponse<LogBookCreateResultDTO> createLog
-            (@RequestBody @Valid LogBookCreateRequestDTO createDTO)
+    @Operation(summary = "초기 로그 생성", description = "다이빙 로그를 생성합니다.")
+    public ApiResponse<LogBaseCreateResultDTO> createLog
+            (@RequestBody @Valid LogBaseCreateRequestDTO createDTO)
     {
-        LogBookCreateResultDTO responseDto = logBookService.createLog(createDTO);
+        LogBaseCreateResultDTO responseDto = logBookService.createLogBase(createDTO);
         return ApiResponse.success(responseDto);
     }
 
@@ -52,6 +54,15 @@ public class LogBookController {
             (@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         List<LogBookDetailResultDTO> resultDTOS = logBookService.getLogDetail(date);
         return ApiResponse.success(resultDTOS);
+    }
+
+    @PostMapping("/{logBaseInfoId}")
+    @Operation(summary = "세부 로그 생성", description = "특정 날짜에 해당하는 로그 세부 정보를 생성합니다.")
+    public ApiResponse<LogDetailCreateResultDTO> createLogBook
+            (@PathVariable Long logBaseInfoId,
+             @RequestBody @Valid LogDetailCreateRequestDTO dto) {
+        LogDetailCreateResultDTO result = logBookService.createLogDetail(dto, logBaseInfoId);
+        return ApiResponse.success(result);
     }
 
 }

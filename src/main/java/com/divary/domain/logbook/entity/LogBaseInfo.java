@@ -16,6 +16,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @Entity
+@Setter
 public class LogBaseInfo extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -38,6 +39,6 @@ public class LogBaseInfo extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "save_status",nullable = false)
-    @Schema(description = "저장 상태", example = "TEMP")
-    private SaveStatus saveStatus = SaveStatus.TEMP;
+    @Schema(description = "저장 상태", example = "COMPLETE")
+    private SaveStatus saveStatus = SaveStatus.COMPLETE;
 }
