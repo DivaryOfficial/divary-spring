@@ -20,7 +20,8 @@ public enum ErrorCode {
     // TODO: 비즈니스 로직 개발하면서 필요한 에러코드들 추가
     CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_001", "해당 카드에 대한 정보를 찾을 수 없습니다."),
     TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_002", "존재하지 않는 종류입니다."),
-    
+    AVATAR_NOT_FOUND(HttpStatus.NOT_FOUND, "AVATAR_001", "해당 유저의 아바타를 찾을 수 업습니다."),
+
     // 채팅방 관련 에러코드
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_ROOM_001", "채팅방을 찾을 수 없습니다.");
 
