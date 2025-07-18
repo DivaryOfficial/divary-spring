@@ -8,6 +8,7 @@ public enum ImageType {
     USER_DIVING_LOG,
     USER_CHAT,
     USER_LICENSE,
+    USER_DIARY,
     
     // 시스템 이미지 (모든 유저에게 공통인 것들을 처리하면 됩니다.)
     SYSTEM_DOGAM,           

@@ -41,7 +41,7 @@ public class EncyclopediaCard extends BaseEntity {
     // TODO: 연관관계 제거 예정, ImageType 기반 조회로 대체하겠습니다.
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "thumbnail_id")
-    @Schema(description = "도감 프로필 썸네일 이미지 (ImageType = DOGAM_PROFILE)")
+    @Schema(description = "도감 프로필 썸네일 이미지 (ImageType = SYSTEM_DOGAM_PROFILE)")
     private Image thumbnail;
 
     // TODO: 연관관계 제거 예정, ImageType 기반 조회로 대체
@@ -51,8 +51,7 @@ public class EncyclopediaCard extends BaseEntity {
             joinColumns = @JoinColumn(name = "card_id"),
             inverseJoinColumns = @JoinColumn(name = "image_id")
     )
-
-    @Schema(description = "도감 카드에 포함된 이미지들 (ImageType = DOGAM)")
+    @Schema(description = "도감 카드에 포함된 이미지들 (ImageType = SYSTEM_DOGAM)")
     private List<Image> images = new ArrayList<>();
 
     @Embedded

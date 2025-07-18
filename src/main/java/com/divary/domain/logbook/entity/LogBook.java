@@ -2,6 +2,7 @@ package com.divary.domain.logbook.entity;
 
 import com.divary.common.entity.BaseEntity;
 import com.divary.domain.Member.entity.Member;
+import com.divary.domain.diary.entity.Diary;
 import com.divary.domain.logbook.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,6 +17,9 @@ import java.time.LocalDate;
 @Builder
 @Entity
 public class LogBook extends BaseEntity {
+
+    @OneToOne(mappedBy = "logBook", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private Diary diary;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "member_id")
