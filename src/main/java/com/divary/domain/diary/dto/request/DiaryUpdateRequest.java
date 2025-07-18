@@ -19,7 +19,6 @@ public class DiaryUpdateRequest {
     @Schema(description = "새로 추가할 이미지 리스트 ( 선택 사항 )", type = "array", format = "binary")
     private final List<MultipartFile> newImages;
 
-
     // TODO: 프론트에서 스펙 전달해주면 필드 추가 예정 (ex. 폰트, 크기, 손글씨 위치 등)
 
     @Builder

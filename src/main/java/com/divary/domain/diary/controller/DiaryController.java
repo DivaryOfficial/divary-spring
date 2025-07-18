@@ -21,16 +21,15 @@ public class DiaryController {
 
     @PostMapping
     @Operation(summary = "일기 생성")
-    public ApiResponse<Void> createDiary(@PathVariable Long logId, @ModelAttribute DiaryRequest request) {
-        diaryService.createDiary(logId, request);
-        return ApiResponse.success(null);
+    public ApiResponse<DiaryResponse> createDiary(@PathVariable Long logId, @ModelAttribute DiaryRequest request) {
+        return ApiResponse.success(diaryService.createDiary(logId, request));
     }
 
     @PatchMapping
     @Operation(summary = "일기 수정")
-    public ApiResponse<Void> updateDiary(@PathVariable Long logId, @ModelAttribute DiaryUpdateRequest request) {
-        diaryService.updateDiary(logId, request);
-        return ApiResponse.success(null);
+    public ApiResponse<DiaryResponse> updateDiary(@PathVariable Long logId,
+                                                  @ModelAttribute DiaryUpdateRequest request) {
+        return ApiResponse.success(diaryService.updateDiary(logId, request));
     }
 
     @GetMapping
