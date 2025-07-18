@@ -8,6 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface AvatarRepository extends JpaRepository<Avatar, Long>, AvatarRepositoryCustom {
+public interface AvatarRepository extends JpaRepository<Avatar, Long> {
     Optional<Avatar> findByUser(Member user);
 }

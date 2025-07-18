@@ -8,12 +8,11 @@ import lombok.Getter;
 @Builder
 public class AvatarResponseDTO {
     private String name;
-    private Accessories accessory;
+    private Tank tank;
     private BodyColor bodyColor;
     private BudyPet budyPet;
     private CheekColor cheekColor;
-    private EyeColor eyeColor;
-    private Eyelash eyelash;
+    private SpeechBubble speechBubble;
     private Mask mask;
     private Pin pin;
     private Regulator regulator;

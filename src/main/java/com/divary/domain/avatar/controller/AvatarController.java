@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.*;
 public class AvatarController {
     private final AvatarService avatarService;
 
-    @PostMapping
+    @PatchMapping
     public ApiResponse<String> saveAvatar(@RequestBody AvatarRequestDTO avatarRequestDTO) {
-        avatarService.saveAvatar(avatarRequestDTO);
+        avatarService.patchAvatar(avatarRequestDTO);
         return ApiResponse.success("아바타 저장에 성공했습니다.", null);
     }
 
