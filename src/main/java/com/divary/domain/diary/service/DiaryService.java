@@ -54,7 +54,7 @@ public class DiaryService {
 
     @Transactional
     public void updateDiary(Long logId, DiaryUpdateRequest request) {
-        Long userId = getCurrentUserId(); // ⭐️ 누락돼 있던 userId 추가
+        Long userId = getCurrentUserId(); 
 
         Diary diary = diaryRepository.findByLogBookId(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
@@ -69,7 +69,7 @@ public class DiaryService {
 
         List<MultipartFile> newImageFiles = request.getNewImages();
         if (newImageFiles != null && !newImageFiles.isEmpty()) {
-          
+
         }
     }
 

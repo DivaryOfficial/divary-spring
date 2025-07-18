@@ -10,6 +10,7 @@ import com.divary.domain.encyclopedia.service.EncyclopediaCardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/cards")
 @RequiredArgsConstructor
+@Tag(name = "EncyclopediaCard", description = "해양도감 API")
 public class EncyclopediaCardController {
 
     private final EncyclopediaCardService encyclopediaCardService;
