@@ -38,8 +38,8 @@ public class LogBook extends BaseEntity {
     @Schema(description = "누적 횟수", example = "3")
     private int accumulation;
 
-    @Column(name = "save_status")
-    private saveStatus saveStatus;
+    @Column(name = "save_status",nullable = false)
+    private SaveStatus saveStatus = SaveStatus.TEMP;
 
     @Column(name = "date", nullable = false)
     @Schema(description = "다이빙 날짜", example = "2025-07-25")

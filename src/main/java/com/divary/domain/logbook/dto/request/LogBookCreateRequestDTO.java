@@ -1,8 +1,10 @@
 package com.divary.domain.logbook.dto.request;
 
 import com.divary.domain.logbook.enums.IconType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,14 +19,18 @@ import java.time.LocalDate;
 public class LogBookCreateRequestDTO {
 
     @NotNull
+    @Schema(description = "멤버 id", example = "123")
     private Long memberId;
 
     @NotNull
+    @Schema(description = "아이콘 타입", example = "FISH")
     private IconType iconType;
 
     @NotBlank
+    @Schema(description = "로그북 이름", example = "해양일지")
     private String name;
 
     @NotNull
+    @Schema(description = "날짜", example = "2025-12-23")
     private LocalDate date;
 }

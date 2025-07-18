@@ -5,7 +5,7 @@ import com.divary.domain.logbook.dto.request.LogBookCreateRequestDTO;
 import com.divary.domain.logbook.dto.response.LogBookCreateResultDTO;
 import com.divary.domain.logbook.dto.response.LogBookDetailResultDTO;
 import com.divary.domain.logbook.dto.response.LogBookListResultDTO;
-import com.divary.domain.logbook.enums.saveStatus;
+import com.divary.domain.logbook.enums.SaveStatus;
 import com.divary.domain.logbook.service.LogBookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,7 +38,7 @@ public class LogBookController {
     @Operation(summary = "로그 리스트 조회", description = "연도와 저장 상태에 따라 로그북 리스트를 조회합니다.")
     public ApiResponse<List<LogBookListResultDTO>> getLogsByYearAndStatus(
             @RequestParam int year,
-            @RequestParam(required = false) saveStatus saveStatus) {
+            @RequestParam(required = false) SaveStatus saveStatus) {
 
         List<LogBookListResultDTO> result = logBookService.getLogBooksByYearAndStatus(year, saveStatus);
         return ApiResponse.success(result);

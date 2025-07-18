@@ -8,7 +8,7 @@ import com.divary.domain.logbook.dto.response.LogBookDetailResultDTO;
 import com.divary.domain.logbook.dto.response.LogBookListResultDTO;
 import com.divary.domain.logbook.entity.Companion;
 import com.divary.domain.logbook.entity.LogBook;
-import com.divary.domain.logbook.enums.saveStatus;
+import com.divary.domain.logbook.enums.SaveStatus;
 import com.divary.domain.logbook.repository.CompanionRepository;
 import com.divary.domain.logbook.repository.LogBookRepository;
 import com.divary.global.exception.BusinessException;
@@ -42,6 +42,7 @@ public class LogBookService {
                 .date(request.getDate()) // 현재 날짜로 설정
                 .accumulation(count)
                 .member(member)
+                .saveStatus(SaveStatus.TEMP)
                 .build();
 
         LogBook saved = logBookRepository.save(logBook);
@@ -55,7 +56,7 @@ public class LogBookService {
     }
 
     @Transactional
-    public List<LogBookListResultDTO> getLogBooksByYearAndStatus(int year, saveStatus status) {
+    public List<LogBookListResultDTO> getLogBooksByYearAndStatus(int year, SaveStatus status) {
         List<LogBook> logBooks = logBookRepository.findByYearAndStatus(year,status);
 
         return logBooks.stream()
@@ -76,7 +77,5 @@ public class LogBookService {
 
         return LogBookDetailResultDTO.from(logBook, companions);
     }
-
-
 
 }
