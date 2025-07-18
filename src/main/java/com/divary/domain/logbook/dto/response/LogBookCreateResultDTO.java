@@ -16,8 +16,11 @@ import java.time.LocalDate;
 public class LogBookCreateResultDTO {
 
     private String name;
+
     private IconType iconType;
+
     private LocalDate date;
+
     private int accumulation;
 
 }

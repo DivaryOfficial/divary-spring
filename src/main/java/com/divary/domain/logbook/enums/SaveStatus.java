@@ -1,5 +1,5 @@
 package com.divary.domain.logbook.enums;
 
-public enum saveStatus {
+public enum SaveStatus {
     TEMP, COMPLETE
 }
