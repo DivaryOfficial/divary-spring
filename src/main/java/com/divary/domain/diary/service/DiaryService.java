@@ -5,7 +5,6 @@ import com.divary.domain.diary.dto.request.DiaryRequest;
 import com.divary.domain.diary.dto.response.DiaryResponse;
 import com.divary.domain.diary.entity.Diary;
 import com.divary.domain.diary.repository.DiaryRepository;
-import com.divary.domain.image.service.ImageService;
 import com.divary.domain.logbook.entity.LogBook;
 import com.divary.domain.logbook.repository.LogBookRepository;
 import com.divary.global.exception.BusinessException;
