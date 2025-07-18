@@ -48,18 +48,18 @@ public enum ErrorCode {
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_ROOM_001", "채팅방을 찾을 수 없습니다."),
     CHAT_ROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CHAT_ROOM_002", "채팅방에 접근 권한이 없습니다."),
     CHAT_ROOM_MESSAGE_TOO_LONG(HttpStatus.BAD_REQUEST, "CHAT_ROOM_003", "메시지가 너무 깁니다."),
-    
+
     // OpenAI API 관련 에러코드
     OPENAI_API_ERROR(HttpStatus.BAD_GATEWAY, "OPENAI_001", "AI 서비스에 일시적인 문제가 발생했습니다."),
     OPENAI_QUOTA_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "OPENAI_002", "AI 서비스 사용량이 초과되었습니다."),
     OPENAI_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "OPENAI_003", "AI 서비스 요청이 올바르지 않습니다."),
     OPENAI_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "OPENAI_004", "AI 서비스 응답 시간이 초과되었습니다."),
-    
+
     // 이미지 처리 관련 에러코드
     IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "IMAGE_001", "이미지 업로드에 실패했습니다."),
     IMAGE_SIZE_TOO_LARGE(HttpStatus.BAD_REQUEST, "IMAGE_002", "이미지 크기와 용량이 너무 큽니다."),
     IMAGE_FORMAT_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "IMAGE_003", "지원하지 않는 이미지 형식입니다."),
-    
+
     // 인증 관련 에러코드 강화
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_001", "토큰이 유효하지 않습니다."),
     ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH_002", "액세스 토큰이 만료되었습니다."), // TODO: 토큰 만료 시 401 에러 처리 필요

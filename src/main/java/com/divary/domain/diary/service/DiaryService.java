@@ -1,6 +1,7 @@
 package com.divary.domain.diary.service;
 
 import com.divary.domain.diary.dto.request.DiaryRequest;
+
 import com.divary.domain.diary.dto.response.DiaryResponse;
 import com.divary.domain.diary.entity.Diary;
 import com.divary.domain.diary.repository.DiaryRepository;
@@ -20,11 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+
 public class DiaryService {
 
     private final DiaryRepository diaryRepository;
     private final LogBookRepository logBookRepository;
-    private final ImageService imageService;
 
     // 사용자 ID 가져오기
     private Long getUserId() {
@@ -33,6 +34,7 @@ public class DiaryService {
     }
 
     @Transactional
+
     public DiaryResponse createDiary(Long logId, DiaryRequest request) {
         if (diaryRepository.existsByLogBookId(logId)) {
             throw new BusinessException(ErrorCode.DIARY_ALREADY_EXISTS);
@@ -78,8 +80,7 @@ public class DiaryService {
     public DiaryResponse getDiary(Long logId) {
         Diary diary = diaryRepository.findByLogBookId(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
-
         return DiaryResponse.from(diary);
     }
-    
+
 }

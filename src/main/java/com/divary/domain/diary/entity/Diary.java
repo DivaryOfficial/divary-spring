@@ -39,5 +39,4 @@ public class Diary extends BaseEntity {
     public void updateContent(String contentJson) {
         this.contentJson = contentJson;
     }
-
 }
