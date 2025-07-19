@@ -2,7 +2,6 @@ package com.divary.domain.diary.dto.response;
 
 import com.divary.domain.diary.entity.Diary;
 import com.divary.domain.image.dto.response.ImageResponse;
-import com.divary.domain.image.entity.ImageType;
 import com.divary.domain.image.service.ImageService;
 import java.util.List;
 import lombok.Builder;
@@ -20,21 +19,18 @@ public class DiaryResponse {
 
     public static DiaryResponse from(Diary diary, ImageService imageService) {
         Long userId = 1L; // TODO: 유저 인증 붙이면 수정할 것
-        String path = String.valueOf(diary.getLogBook().getId());
+        Long logId=diary.getLogBook().getId();
 
-        List<ImageResponse> images = imageService.getImagesByType(
-                ImageType.USER_DIARY,
-                userId,
-                path
-        );
+        String pathPrefix = String.format("users/%d/diary/%d/", userId, logId);
+
+        List<ImageResponse> images = imageService.getImagesByPath(pathPrefix);
 
         return DiaryResponse.builder()
                 .diaryId(diary.getId())
-                .logId(diary.getLogBook().getId())
+                .logId(logId)
                 .content(diary.getContent())
                 .images(images)
                 .build();
     }
-
 
 }

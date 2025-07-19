@@ -33,7 +33,7 @@ public class DiaryController {
     ✅ 요청 예시:
     - 텍스트만 입력하는 경우: Send empty value 체크 박스는 누르지 말아주세요. 
     - 사진만 첨부하는 경우: 텍스트가 없으면 Send empty value 체크 박스가 자동으로 선택됩니다. 
-    - 둘 다 없는 경우도 허용
+    - 둘 다 없는 경우도 허용해두긴 했어요.
     """
     )
     public ApiResponse<DiaryResponse> createDiary(@PathVariable Long logId, @ModelAttribute DiaryRequest request) {
