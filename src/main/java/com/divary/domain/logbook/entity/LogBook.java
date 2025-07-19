@@ -18,7 +18,7 @@ import java.time.LocalDate;
 @Entity
 public class LogBook extends BaseEntity {
 
-    @OneToOne(mappedBy = "logBook", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+   @OneToOne(mappedBy = "logBook", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private Diary diary;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)

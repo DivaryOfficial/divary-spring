@@ -6,6 +6,7 @@ import com.divary.domain.diary.dto.response.DiaryResponse;
 import com.divary.domain.diary.entity.Diary;
 import com.divary.domain.diary.repository.DiaryRepository;
 import com.divary.domain.image.dto.response.ImageResponse;
+import com.divary.domain.image.entity.Image;
 import com.divary.domain.image.entity.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.domain.image.service.ImageStorageService;
@@ -29,9 +30,9 @@ import java.util.ArrayList;
 public class DiaryService {
 
     private final DiaryRepository diaryRepository;
+    private final ImageStorageService imageStorageService;
     private final LogBookRepository logBookRepository;
     private final ImageService imageService;
-    private final ImageStorageService imageStorageService;
 
     // 사용자 ID 가져오기
     private Long getUserId() {
@@ -41,76 +42,67 @@ public class DiaryService {
 
     @Transactional
     public DiaryResponse createDiary(Long logId, DiaryRequest request) {
-        Long userId = getUserId();
+        if (diaryRepository.existsByLogBookId(logId)) {
+            throw new BusinessException(ErrorCode.DIARY_ALREADY_EXISTS);
+        }
 
-        LogBook logBook = logBookRepository.findById(logId)
+        LogBook logbook = logBookRepository.findById(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_NOT_FOUND));
 
-        Diary diary = new Diary(logBook, request.getContent());
+        // Diary 엔티티 생성 content가 null이어도 허용
+        Diary diary = Diary.builder()
+                .logBook(logbook)
+                .content(request.getContent())
+                .build();
         diaryRepository.save(diary);
 
-        List<MultipartFile> imageFiles = request.getImages();
-        if (imageFiles != null && !imageFiles.isEmpty()) {
-            for (MultipartFile imageFile : imageFiles) {
-                // 다이어리 이미지 업로드 (USER_DIARY 타입으로)
-                ImageResponse imageResponse = imageService.uploadImageByType(
+        // 이미지 업로드 (경로 패턴: users/{userId}/diary/{logId})
+        Long userId = getUserId();
+        List<MultipartFile> images = request.getImages();
+        if (images != null) {
+            for (MultipartFile image : images) {
+                imageService.uploadImageByType(
                         ImageType.USER_DIARY,
-                        imageFile,
+                        image,
                         userId,
-                        "diary/" + diary.getId());
-
-                log.debug("Uploaded diary image: {}", imageResponse.getFileUrl());
+                        String.valueOf(logId)
+                );
             }
         }
 
-        return getDiary(logId);
+        return DiaryResponse.from(diary, imageService);
     }
 
     @Transactional
     public DiaryResponse updateDiary(Long logId, DiaryUpdateRequest request) {
-        Long userId = getUserId();
-
         Diary diary = diaryRepository.findByLogBookId(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
 
-        if (request.getContent() != null) {
-            diary.updateContent(request.getContent());
+        diary.update(request.getContent());
+
+        // 기존 이미지 모두 삭제
+        List<ImageResponse> existingImages = imageService.getImagesByType(
+                ImageType.USER_DIARY,
+                getUserId(),
+                String.valueOf(logId)
+        );
+
+        for (ImageResponse image : existingImages) {
+            imageService.deleteImage(image.getId());
         }
 
-        // 이미지 삭제 처리
-        if (request.getDeleteImageIds() != null && !request.getDeleteImageIds().isEmpty()) {
-            List<Long> deleteImageIds = request.getDeleteImageIds();
-
-            // 이미지 서비스를 통해 S3에서 이미지 삭제
-            for (Long imageId : deleteImageIds) {
-                try {
-                    imageService.deleteImage(imageId);
-                    log.debug("Deleted image with ID: {}", imageId);
-                } catch (Exception e) {
-                    log.error("Failed to delete image with ID: {}", imageId, e);
-                }
-            }
-
-            // 엔티티에서 이미지 참조 제거
-            diary.getImages().removeIf(image -> deleteImageIds.contains(image.getId()));
+        // 새 이미지 업로드
+        for (MultipartFile file : request.getNewImages()) {
+            imageService.uploadImageByType(
+                    ImageType.USER_DIARY,
+                    file,
+                    getUserId(),
+                    String.valueOf(logId)
+            );
         }
 
-        // 새 이미지 추가 처리
-        List<MultipartFile> newImageFiles = request.getNewImages();
-        if (newImageFiles != null && !newImageFiles.isEmpty()) {
-            for (MultipartFile imageFile : newImageFiles) {
-                // 다이어리 이미지 업로드 (USER_DIARY 타입으로)
-                ImageResponse imageResponse = imageService.uploadImageByType(
-                        ImageType.USER_DIARY,
-                        imageFile,
-                        userId,
-                        "diary/" + diary.getId());
+        return DiaryResponse.from(diary, imageService);
 
-                log.debug("Added new diary image: {}", imageResponse.getFileUrl());
-            }
-        }
-
-        return getDiary(logId);
     }
 
     @Transactional
@@ -118,6 +110,6 @@ public class DiaryService {
         Diary diary = diaryRepository.findByLogBookId(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
 
-        return DiaryResponse.from(diary, imageStorageService);
+        return DiaryResponse.from(diary, imageService);
     }
 }

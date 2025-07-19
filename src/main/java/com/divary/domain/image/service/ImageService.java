@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @Slf4j
@@ -142,18 +143,18 @@ public class ImageService {
         } else {
             uploadPath = imagePathService.generateSystemUploadPath(imageType, additionalPath);
         }
-        
+
         ImageUploadRequest request = ImageUploadRequest.builder()
                 .file(file)
                 .uploadPath(uploadPath)
                 .build();
-        
+
         ImageResponse response = uploadImage(request);
-        
+
         Image savedImage = imageRepository.findById(response.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR));
         savedImage.updateType(imageType);
-        
+
         // 업데이트된 이미지로 응답 생성
         return ImageResponse.from(savedImage, response.getFileUrl());
     }

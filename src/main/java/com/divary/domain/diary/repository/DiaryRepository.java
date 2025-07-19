@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
     Optional<Diary> findByLogBookId(Long logId);
+    boolean existsByLogBookId(Long logId);
 }
