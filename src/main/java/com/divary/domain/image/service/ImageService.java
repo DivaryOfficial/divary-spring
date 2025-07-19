@@ -7,17 +7,15 @@ import com.divary.domain.image.entity.ImageType;
 import com.divary.domain.image.repository.ImageRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.web.multipart.MultipartFile;
+import javax.imageio.ImageIO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Slf4j

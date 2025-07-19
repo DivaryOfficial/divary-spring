@@ -6,6 +6,7 @@ import com.divary.domain.diary.dto.request.DiaryUpdateRequest;
 import com.divary.domain.diary.dto.response.DiaryResponse;
 import com.divary.domain.diary.service.DiaryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -30,10 +31,9 @@ public class DiaryController {
     @Operation(
             summary = "일기 생성 (텍스트 또는 이미지)",
             description = """
-    ✅ 요청 예시:
-    - 텍스트만 입력하는 경우: Send empty value 체크 박스는 누르지 말아주세요. 
-    - 사진만 첨부하는 경우: 텍스트가 없으면 Send empty value 체크 박스가 자동으로 선택됩니다. 
-    - 둘 다 없는 경우도 허용해두긴 했어요.
+    1.텍스트만 입력하는 경우: images의 Send empty value 체크 박스는 누르지 말아주세요.\n 
+    2.사진만 첨부하는 경우: content의 Send empty value 체크 박스를 눌러주세요.\n  
+    둘 다 없는 경우도 허용해두긴 했어요.
     """
     )
     public ApiResponse<DiaryResponse> createDiary(@PathVariable Long logId, @ModelAttribute DiaryRequest request) {
@@ -49,7 +49,7 @@ public class DiaryController {
 
     @GetMapping
     @Operation(summary = "일기 조회")
-    public ApiResponse<DiaryResponse> getDiary(@PathVariable Long logId) {
+    public ApiResponse<DiaryResponse> getDiary( @Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. 조회시 logId를 보내주세요.", example = "1") @PathVariable Long logId) {
         return ApiResponse.success(diaryService.getDiary(logId));
     }
 }
