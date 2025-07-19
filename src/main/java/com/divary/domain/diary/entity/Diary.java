@@ -1,19 +1,14 @@
 package com.divary.domain.diary.entity;
 
 import com.divary.common.entity.BaseEntity;
-import com.divary.domain.image.entity.Image;
 import com.divary.domain.logbook.entity.LogBook;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

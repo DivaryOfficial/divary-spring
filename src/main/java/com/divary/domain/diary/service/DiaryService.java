@@ -6,7 +6,6 @@ import com.divary.domain.diary.dto.response.DiaryResponse;
 import com.divary.domain.diary.entity.Diary;
 import com.divary.domain.diary.repository.DiaryRepository;
 import com.divary.domain.image.dto.response.ImageResponse;
-import com.divary.domain.image.entity.Image;
 import com.divary.domain.image.entity.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.domain.image.service.ImageStorageService;
@@ -14,14 +13,12 @@ import com.divary.domain.logbook.entity.LogBook;
 import com.divary.domain.logbook.repository.LogBookRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
-import java.util.ArrayList;
 
 @Slf4j
 @Service
@@ -58,7 +55,7 @@ public class DiaryService {
 
         // 이미지 업로드 (경로 패턴: users/{userId}/diary/{logId})
         Long userId = getUserId();
-        List<MultipartFile> images = request.getImages();
+        List<MultipartFile> images = request.getImagesSafe();
         if (images != null) {
             for (MultipartFile image : images) {
                 imageService.uploadImageByType(
