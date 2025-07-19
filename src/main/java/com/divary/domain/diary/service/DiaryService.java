@@ -1,7 +1,6 @@
 package com.divary.domain.diary.service;
 
 import com.divary.domain.diary.dto.request.DiaryRequest;
-
 import com.divary.domain.diary.dto.response.DiaryResponse;
 import com.divary.domain.diary.entity.Diary;
 import com.divary.domain.diary.repository.DiaryRepository;
@@ -70,7 +69,6 @@ public class DiaryService {
         } catch (JsonProcessingException e) {
             throw new BusinessException(ErrorCode.INVALID_JSON_FORMAT);
         }
-
         diary.updateContent(contentJson);
         return DiaryResponse.from(diary);
     }

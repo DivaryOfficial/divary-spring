@@ -34,5 +34,6 @@ public class DiaryRequest {
                     ]
                     """)
     private List<Map<String, Object>> contents;
+
 }
 

@@ -31,7 +31,6 @@ public class Diary extends BaseEntity {
     @JoinColumn(name = "log_id", nullable = false, unique = true)
     private LogBook logBook;
 
-
     @Column(name = "content_json", columnDefinition = "LONGTEXT")
     @Schema(description = "일기 콘텐츠")
     private String contentJson;
@@ -39,4 +38,5 @@ public class Diary extends BaseEntity {
     public void updateContent(String contentJson) {
         this.contentJson = contentJson;
     }
+
 }
