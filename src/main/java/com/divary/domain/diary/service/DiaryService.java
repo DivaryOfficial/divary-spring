@@ -43,7 +43,6 @@ public class DiaryService {
         LogBook logbook = logBookRepository.findById(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_NOT_FOUND));
 
-
         Diary.DiaryBuilder builder = Diary.builder()
                 .logBook(logbook)
                 .content(request.getContent());
@@ -78,11 +77,12 @@ public class DiaryService {
         return DiaryResponse.from(diary, imageService);
     }
 
+    // TODO
     @Transactional
     public DiaryResponse updateDiary(Long logId, DiaryUpdateRequest request) {
         Diary diary = diaryRepository.findByLogBookId(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
-
+        
         diary.update(request.getContent());
 
         return DiaryResponse.from(diary, imageService);
