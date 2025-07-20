@@ -5,10 +5,8 @@ import com.divary.domain.diary.dto.request.DiaryUpdateRequest;
 import com.divary.domain.diary.dto.response.DiaryResponse;
 import com.divary.domain.diary.entity.Diary;
 import com.divary.domain.diary.repository.DiaryRepository;
-import com.divary.domain.image.dto.response.ImageResponse;
 import com.divary.domain.image.entity.ImageType;
 import com.divary.domain.image.service.ImageService;
-import com.divary.domain.image.service.ImageStorageService;
 import com.divary.domain.logbook.entity.LogBook;
 import com.divary.domain.logbook.repository.LogBookRepository;
 import com.divary.global.exception.BusinessException;
@@ -27,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class DiaryService {
 
     private final DiaryRepository diaryRepository;
-    private final ImageStorageService imageStorageService;
     private final LogBookRepository logBookRepository;
     private final ImageService imageService;
 
@@ -46,11 +43,22 @@ public class DiaryService {
         LogBook logbook = logBookRepository.findById(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_NOT_FOUND));
 
-        // Diary 엔티티 생성 content가 null이어도 허용
-        Diary diary = Diary.builder()
+
+        Diary.DiaryBuilder builder = Diary.builder()
                 .logBook(logbook)
-                .content(request.getContent())
-                .build();
+                .content(request.getContent());
+
+        if (request.getContent() != null && !request.getContent().isBlank()) {
+            builder
+                    .fontType(request.getFontType())
+                    .fontSize(request.getFontSize())
+                    .italic(request.getItalic())
+                    .underline(request.getUnderline())
+                    .strikethrough(request.getStrikethrough())
+                    .textAlign(request.getTextAlign());
+        }
+
+        Diary diary = builder.build();
         diaryRepository.save(diary);
 
         // 이미지 업로드 (경로 패턴: users/{userId}/diary/{logId})
@@ -76,27 +84,6 @@ public class DiaryService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
 
         diary.update(request.getContent());
-
-        // 기존 이미지 모두 삭제
-        List<ImageResponse> existingImages = imageService.getImagesByType(
-                ImageType.USER_DIARY,
-                getUserId(),
-                String.valueOf(logId)
-        );
-
-        for (ImageResponse image : existingImages) {
-            imageService.deleteImage(image.getId());
-        }
-
-        // 새 이미지 업로드
-        for (MultipartFile file : request.getNewImages()) {
-            imageService.uploadImageByType(
-                    ImageType.USER_DIARY,
-                    file,
-                    getUserId(),
-                    String.valueOf(logId)
-            );
-        }
 
         return DiaryResponse.from(diary, imageService);
 

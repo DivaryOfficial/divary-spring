@@ -29,27 +29,22 @@ public class DiaryController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
-            summary = "일기 생성 (텍스트 또는 이미지)",
-            description = """
-    1.텍스트만 입력하는 경우: images의 Send empty value 체크 박스는 누르지 말아주세요.\n 
-    2.사진만 첨부하는 경우: content의 Send empty value 체크 박스를 눌러주세요.\n  
-    둘 다 없는 경우도 허용해두긴 했어요.
-    """
+            summary = "일기 생성 (텍스트 + 이미지)"
     )
-    public ApiResponse<DiaryResponse> createDiary(@PathVariable Long logId, @ModelAttribute DiaryRequest request) {
+    public ApiResponse<DiaryResponse> createDiary(@Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. diary 생성시 logId를 보내주세요.") @PathVariable Long logId, @ModelAttribute DiaryRequest request) {
         return ApiResponse.success(diaryService.createDiary(logId, request));
     }
 
     @PatchMapping
     @Operation(summary = "일기 수정")
-    public ApiResponse<DiaryResponse> updateDiary(@PathVariable Long logId,
+    public ApiResponse<DiaryResponse> updateDiary(@Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. diary 수정시 logId를 보내주세요.") @PathVariable Long logId,
                                                   @ModelAttribute DiaryUpdateRequest request) {
         return ApiResponse.success(diaryService.updateDiary(logId, request));
     }
 
     @GetMapping
     @Operation(summary = "일기 조회")
-    public ApiResponse<DiaryResponse> getDiary( @Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. 조회시 logId를 보내주세요.", example = "1") @PathVariable Long logId) {
+    public ApiResponse<DiaryResponse> getDiary( @Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. diary 조회시 logId를 보내주세요.", example = "1") @PathVariable Long logId) {
         return ApiResponse.success(diaryService.getDiary(logId));
     }
 }
