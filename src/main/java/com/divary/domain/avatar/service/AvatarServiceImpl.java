@@ -10,6 +10,15 @@ import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.divary.domain.avatar.enums.BodyColor;
+import com.divary.domain.avatar.enums.SpeechBubble;
+import com.divary.domain.avatar.enums.CheekColor;
+import com.divary.domain.avatar.enums.Mask;
+import com.divary.domain.avatar.enums.Regulator;
+import com.divary.domain.avatar.enums.Pin;
+import com.divary.domain.avatar.enums.Tank;
+import com.divary.domain.avatar.enums.BudyPet;
+import com.divary.domain.avatar.enums.Theme;
 
 @Service
 @RequiredArgsConstructor
@@ -76,5 +85,14 @@ public class AvatarServiceImpl implements AvatarService {
                 .regulator(avatar.getRegulator())
                 .theme(avatar.getTheme())
                 .build();
+    }
+
+    public void createDefaultAvatarForMember(Member member) {
+        Avatar avatar = Avatar.builder()
+                .user(member)
+                .name("")
+                .build();
+
+        avatarRepository.save(avatar);
     }
 }
