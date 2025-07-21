@@ -1,6 +1,8 @@
 package com.divary.global.config;
 
 import com.divary.global.exception.ErrorCode;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.examples.Example;
@@ -28,6 +30,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
+@SecurityScheme(
+        name = "JWT", // 아래에서 사용할 이름
+        type = SecuritySchemeType.HTTP,
+        scheme = "bearer",
+        bearerFormat = "JWT"
+)
 public class SwaggerConfig {
 
     @Bean
