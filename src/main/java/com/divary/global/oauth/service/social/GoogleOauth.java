@@ -4,6 +4,8 @@ import com.divary.common.enums.SocialType;
 import com.divary.domain.Member.entity.Member;
 import com.divary.domain.Member.enums.Role;
 import com.divary.domain.Member.service.MemberService;
+import com.divary.domain.avatar.entity.Avatar;
+import com.divary.domain.avatar.service.AvatarService;
 import com.divary.global.config.security.jwt.JwtTokenProvider;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
@@ -26,6 +28,7 @@ import java.util.Map;
 public class GoogleOauth implements SocialOauth {
 
     private final MemberService memberService;
+    private final AvatarService avatarService;
     private final JwtTokenProvider jwtTokenProvider;
     private static final String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
     private final RestTemplate restTemplate;
@@ -67,12 +70,15 @@ public class GoogleOauth implements SocialOauth {
 
         try {
             member = memberService.findMemberByEmail(email);
+
+
         } catch (BusinessException e) {
             member = memberService.saveMember(Member.builder()
                     .email(email)
                     .socialType(SocialType.GOOGLE)
                     .role(Role.USER)
                     .build());
+            avatarService.createDefaultAvatarForMember(member); // 추후 upsert로 바꿔볼 예정
         }
 
 
