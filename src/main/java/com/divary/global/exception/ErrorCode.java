@@ -42,7 +42,6 @@ public enum ErrorCode {
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_ROOM_001", "채팅방을 찾을 수 없습니다."),
     CHAT_ROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CHAT_ROOM_002", "채팅방에 접근 권한이 없습니다."),
     CHAT_ROOM_MESSAGE_TOO_LONG(HttpStatus.BAD_REQUEST, "CHAT_ROOM_003", "메시지가 너무 깁니다."),
-    CHAT_ROOM_TITLE_INVALID(HttpStatus.BAD_REQUEST, "CHAT_ROOM_004", "채팅방 제목이 유효하지 않습니다."),
     
     // OpenAI API 관련 에러코드
     OPENAI_API_ERROR(HttpStatus.BAD_GATEWAY, "OPENAI_001", "AI 서비스에 일시적인 문제가 발생했습니다."),
@@ -52,7 +51,7 @@ public enum ErrorCode {
     
     // 이미지 처리 관련 에러코드
     IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "IMAGE_001", "이미지 업로드에 실패했습니다."),
-    IMAGE_SIZE_TOO_LARGE(HttpStatus.BAD_REQUEST, "IMAGE_002", "이미지 크기가 너무 큽니다."),
+    IMAGE_SIZE_TOO_LARGE(HttpStatus.BAD_REQUEST, "IMAGE_002", "이미지 크기와 용량이 너무 큽니다."),
     IMAGE_FORMAT_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "IMAGE_003", "지원하지 않는 이미지 형식입니다."),
     
     // 인증 관련 에러코드 강화
