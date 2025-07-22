@@ -1,14 +1,14 @@
 package com.divary.domain.encyclopedia.dto;
 
 import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
-import com.divary.domain.image.entity.Image;
+import com.divary.domain.image.dto.response.ImageResponse;
 import com.divary.domain.image.entity.ImageType;
+import com.divary.domain.image.service.ImageService;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 import java.util.Optional;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.util.List;
 
 @Getter
 @Builder
@@ -48,20 +48,25 @@ public class EncyclopediaCardResponse {
     @Schema(description = "특이사항 정보")
     private SignificantResponse significant;
 
-    public static EncyclopediaCardResponse from(EncyclopediaCard card) {
+    public static EncyclopediaCardResponse from(EncyclopediaCard card, ImageService imageService) {
+        Long cardId = card.getId();
+
+        List<String> imageUrls = imageService.getImagesByType(
+                        ImageType.SYSTEM_DOGAM,
+                        null, // 시스템용이라 userId 없음
+                        "cards/" + cardId
+                ).stream()
+                .map(ImageResponse::getFileUrl)
+                .toList();
+
         return EncyclopediaCardResponse.builder()
-                .id(card.getId())
+                .id(cardId)
                 .name(card.getName())
                 .type(card.getType().getDescription())
                 .size(card.getSize())
                 .appearPeriod(card.getAppearPeriod())
                 .place(card.getPlace())
-                .imageUrls(
-                        card.getImages().stream()
-                                .filter(img -> img.getType() == ImageType.SYSTEM_DOGAM)
-                                .map(Image::getS3Key)
-                                .toList()
-                )
+                .imageUrls(imageUrls)
                 .appearance(Optional.ofNullable(card.getAppearance())
                         .map(AppearanceResponse::from)
                         .orElse(null))
@@ -73,6 +78,4 @@ public class EncyclopediaCardResponse {
                         .orElse(null))
                 .build();
     }
-
-
 }

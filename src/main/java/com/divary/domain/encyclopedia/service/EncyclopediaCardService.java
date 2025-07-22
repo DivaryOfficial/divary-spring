@@ -5,6 +5,7 @@ import com.divary.domain.encyclopedia.dto.EncyclopediaCardSummaryResponse;
 import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
 import com.divary.domain.encyclopedia.enums.Type;
 import com.divary.domain.encyclopedia.repository.EncyclopediaCardRepository;
+import com.divary.domain.image.service.ImageService;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import java.util.Arrays;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class EncyclopediaCardService {
 
     private final EncyclopediaCardRepository encyclopediaCardRepository;
+    private final ImageService imageService;
 
     private static Type convertDescriptionToEnum(String description) {
         return Arrays.stream(Type.values())
@@ -32,10 +34,10 @@ public class EncyclopediaCardService {
     }
 
     @Transactional(readOnly = true)
-    public List<EncyclopediaCardSummaryResponse > getCards(String description) {
+    public List<EncyclopediaCardSummaryResponse> getCards(String description) {
         if (description == null) {
             return encyclopediaCardRepository.findAll().stream()
-                    .map(EncyclopediaCardSummaryResponse::from)
+                    .map(card -> EncyclopediaCardSummaryResponse.from(card, imageService))
                     .toList();
         }
 
@@ -45,7 +47,7 @@ public class EncyclopediaCardService {
 
         Type typeEnum = convertDescriptionToEnum(description);
         return encyclopediaCardRepository.findAllByType(typeEnum).stream()
-                .map(EncyclopediaCardSummaryResponse::from)
+                .map(card -> EncyclopediaCardSummaryResponse.from(card, imageService))
                 .toList();
     }
 
@@ -53,7 +55,7 @@ public class EncyclopediaCardService {
     public EncyclopediaCardResponse getDetail(Long id) {
         EncyclopediaCard card = encyclopediaCardRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
-        return EncyclopediaCardResponse.from(card);
+        return EncyclopediaCardResponse.from(card, imageService);
     }
 
 }
