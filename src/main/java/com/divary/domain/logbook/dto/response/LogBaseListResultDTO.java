@@ -24,4 +24,7 @@ public class LogBaseListResultDTO {
     @Schema(description = "아이콘 타입", example = "CLOWNFISH")
     private IconType iconType;
 
+    @Schema(description = "베이스로그 id")
+    private Long LogBaseInfoId;
+
 }
