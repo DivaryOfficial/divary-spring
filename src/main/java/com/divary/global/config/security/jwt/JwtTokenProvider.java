@@ -2,6 +2,7 @@ package com.divary.global.config.security.jwt;
 
 import com.divary.global.config.properties.Constants;
 import com.divary.global.config.properties.JwtProperties;
+import com.divary.global.config.security.CustomUserDetailsService;
 import com.divary.global.exception.InvalidTokenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.jwt.JwtException;
@@ -26,6 +28,7 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private final JwtProperties jwtProperties;
+    private final CustomUserDetailsService userDetailsService;
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtProperties.getSecretKey().getBytes());
@@ -63,10 +66,10 @@ public class JwtTokenProvider {
                 .getBody();
 
         String email = claims.getSubject();
-        String role = claims.get("role", String.class);
-
-        User principal = new User(email, "", Collections.singleton(() -> role));
-        return new UsernamePasswordAuthenticationToken(principal, token, principal.getAuthorities());
+        
+        // CustomUserPrincipal을 통해 사용자 정보 로드
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
     }
 
     public static String resolveToken(HttpServletRequest request) {
