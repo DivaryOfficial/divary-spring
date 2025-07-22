@@ -11,6 +11,7 @@ import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import lombok.Builder;
 import lombok.Getter;
 import org.springdoc.core.customizers.OperationCustomizer;
@@ -44,7 +45,8 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("Divary API")
                         .description("다이빙 서포트 앱 Divary의 REST API 문서")
-                        .version("v1.0.0"));
+                        .version("v1.0.0"))
+                .addSecurityItem(new SecurityRequirement().addList("JWT"));
     }
 
     @Bean
