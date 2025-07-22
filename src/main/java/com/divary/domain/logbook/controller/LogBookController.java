@@ -48,11 +48,11 @@ public class LogBookController {
         return ApiResponse.success(result);
     }
 
-    @GetMapping("/date/{date}")
+    @GetMapping("/{logBaseInfoId}")
     @Operation(summary = "로그 상세조회", description = "특정 로그북의 상세 정보를 조회합니다.")
     public ApiResponse<List<LogBookDetailResultDTO>> getLogDetail
-            (@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        List<LogBookDetailResultDTO> resultDTOS = logBookService.getLogDetail(date);
+            (@PathVariable Long logBaseInfoId) {
+        List<LogBookDetailResultDTO> resultDTOS = logBookService.getLogDetail(logBaseInfoId);
         return ApiResponse.success(resultDTOS);
     }
 

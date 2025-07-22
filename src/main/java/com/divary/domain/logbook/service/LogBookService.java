@@ -20,7 +20,6 @@ import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,7 +70,7 @@ public class LogBookService {
 
         if (status == null) {
             // 쿼리스트링 없을 경우 전체 조회
-            logBaseInfoList = logBaseInfoRepository.findByYear(year); // 또는 전체 조건 없이 조회
+            logBaseInfoList = logBaseInfoRepository.findByYear(year);
         } else {
             logBaseInfoList = logBaseInfoRepository.findByYearAndStatus(year,status);
         }
@@ -81,15 +80,16 @@ public class LogBookService {
                         .name(logBaseInfo.getName())
                         .date(logBaseInfo.getDate())
                         .iconType(logBaseInfo.getIconType())
+                        .LogBaseInfoId(logBaseInfo.getId())
                         .build())
                 .collect(Collectors.toList());
 
     }//연도에 따라, 저장 상태(임시저장,완전저장)에 따라 로그북베이스정보 조회
 
     @Transactional
-    public List<LogBookDetailResultDTO> getLogDetail(LocalDate date) {
+    public List<LogBookDetailResultDTO> getLogDetail(Long logBaseInfoId) {
 
-        LogBaseInfo logBaseInfo = logBaseInfoRepository.findByDate(date)
+        LogBaseInfo logBaseInfo = logBaseInfoRepository.findById(logBaseInfoId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
 
         List<LogBook> logBooks = logBookRepository.findByLogBaseInfo(logBaseInfo);
@@ -128,8 +128,13 @@ public class LogBookService {
             logBaseInfoRepository.save(base);
         }//처음 로그북 추가할 때의 날짜를 다시 변경하는 경우, 로그베이스의 날짜까지 다시 수정
 
+        Member member = memberService.findById(1L);//임시로 데이터 넣음
+        int accumulation = logBookRepository.countByLogBaseInfoMember(member)+1;
+        //누적횟수 계산
+
         LogBook logBook = LogBook.builder()
                 .logBaseInfo(base)
+                .accumulation(accumulation)
                 .place(dto.getPlace())
                 .divePoint(dto.getDivePoint())
                 .diveMethod(dto.getDiveMethod())
