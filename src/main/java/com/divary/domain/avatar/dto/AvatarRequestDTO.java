@@ -12,7 +12,7 @@ public class AvatarRequestDTO {
     @Schema(description = "아바타 이름", example = "아진봇", nullable = true)
     @Size(max = 20, message = "이름은 최대 20자까지 입력 가능합니다.")
     @Pattern(
-            regexp = "^[\\p{L}\\p{N}\\p{Zs}\\p{So}]{1,20}$",
+            regexp = "^(?!\\s*$)[\\p{L}\\p{N}\\p{Zs}\\p{So}]{1,20}$",
             message = "이름은 특수문자를 제외한 한글, 영문, 숫자, 공백, 이모지만 사용할 수 있습니다."
     )
     private String name;
