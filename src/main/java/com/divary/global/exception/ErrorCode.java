@@ -16,7 +16,6 @@ public enum ErrorCode {
     // 실제 사용되는 검증 에러들
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "VALIDATION_001", "입력값 검증에 실패했습니다."),
     REQUIRED_FIELD_MISSING(HttpStatus.BAD_REQUEST, "VALIDATION_002", "필수 필드가 누락되었습니다."),
-    INVALID_TOKEN(HttpStatus.BAD_REQUEST, "VALIDATION_003", "토큰이 잘못되었습니다."),
 
 
     CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_001", "해당 카드에 대한 정보를 찾을 수 없습니다."),
@@ -40,7 +39,26 @@ public enum ErrorCode {
     AVATAR_NOT_FOUND(HttpStatus.NOT_FOUND, "AVATAR_001", "해당 유저의 아바타를 찾을 수 업습니다."),
 
     // 채팅방 관련 에러코드
-    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_ROOM_001", "채팅방을 찾을 수 없습니다.");
+    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_ROOM_001", "채팅방을 찾을 수 없습니다."),
+    CHAT_ROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CHAT_ROOM_002", "채팅방에 접근 권한이 없습니다."),
+    CHAT_ROOM_MESSAGE_TOO_LONG(HttpStatus.BAD_REQUEST, "CHAT_ROOM_003", "메시지가 너무 깁니다."),
+    CHAT_ROOM_TITLE_INVALID(HttpStatus.BAD_REQUEST, "CHAT_ROOM_004", "채팅방 제목이 유효하지 않습니다."),
+    
+    // OpenAI API 관련 에러코드
+    OPENAI_API_ERROR(HttpStatus.BAD_GATEWAY, "OPENAI_001", "AI 서비스에 일시적인 문제가 발생했습니다."),
+    OPENAI_QUOTA_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "OPENAI_002", "AI 서비스 사용량이 초과되었습니다."),
+    OPENAI_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "OPENAI_003", "AI 서비스 요청이 올바르지 않습니다."),
+    OPENAI_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "OPENAI_004", "AI 서비스 응답 시간이 초과되었습니다."),
+    
+    // 이미지 처리 관련 에러코드
+    IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "IMAGE_001", "이미지 업로드에 실패했습니다."),
+    IMAGE_SIZE_TOO_LARGE(HttpStatus.BAD_REQUEST, "IMAGE_002", "이미지 크기가 너무 큽니다."),
+    IMAGE_FORMAT_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "IMAGE_003", "지원하지 않는 이미지 형식입니다."),
+    
+    // 인증 관련 에러코드 강화
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_001", "토큰이 유효하지 않습니다."),
+    ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH_002", "액세스 토큰이 만료되었습니다."), // TODO: 토큰 만료 시 401 에러 처리 필요
+    INVALID_USER_CONTEXT(HttpStatus.UNAUTHORIZED, "AUTH_003", "사용자 인증 정보가 유효하지 않습니다.");
 
     // TODO: 비즈니스 로직 개발하면서 필요한 에러코드들 추가
     private final HttpStatus status;
