@@ -3,7 +3,8 @@ package com.divary.global.config.security.jwt;
 import com.divary.global.config.properties.Constants;
 import com.divary.global.config.properties.JwtProperties;
 import com.divary.global.config.security.CustomUserDetailsService;
-import com.divary.global.exception.InvalidTokenException;
+import com.divary.global.exception.BusinessException;
+import com.divary.global.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -64,9 +65,14 @@ public class JwtTokenProvider {
 
         String email = claims.getSubject();
         
-        // CustomUserPrincipal을 통해 사용자 정보 로드
-        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-        return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
+        try {
+            // CustomUserPrincipal을 통해 사용자 정보 로드
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
+        } catch (BusinessException e) {
+            // 사용자 정보를 찾을 수 없는 경우
+            throw new BusinessException(ErrorCode.INVALID_USER_CONTEXT);
+        }
     }
 
     public static String resolveToken(HttpServletRequest request) {
@@ -80,7 +86,7 @@ public class JwtTokenProvider {
     public Authentication extractAuthentication(HttpServletRequest request){
         String accessToken = resolveToken(request);
         if(accessToken == null || !validateToken(accessToken)) {
-            throw new InvalidTokenException("토큰이 유효하지 않습니다.");
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
         return getAuthentication(accessToken);
     }

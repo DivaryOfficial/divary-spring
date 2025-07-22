@@ -22,10 +22,10 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**").disable())
 
-                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin())) // ← H2 iframe 허용
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin())) 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/notification").authenticated()
-                        .requestMatchers("/chatrooms/**").authenticated()
+                        .requestMatchers("/api/v1/chatrooms/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
