@@ -1,8 +1,5 @@
 package com.divary.domain.encyclopedia.dto;
 
-import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
-import com.divary.domain.image.entity.ImageType;
-import com.divary.domain.image.service.ImageService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,23 +21,4 @@ public class EncyclopediaCardSummaryResponse {
     @Schema(description = "썸네일 이미지 URL", example = "\"https://s3.example.com/card1-thumbnail.jpg\"")
     private String thumbnailUrl;
 
-    public static EncyclopediaCardSummaryResponse from(EncyclopediaCard card, ImageService imageService) {
-        Long cardId = card.getId();
-
-        String thumbnailUrl = imageService.getImagesByType(
-                        ImageType.SYSTEM_DOGAM_PROFILE,
-                        null, // 시스템용이라 userId 없음
-                        "cards/" + cardId
-                ).stream()
-                .findFirst()
-                .map(image -> image.getFileUrl())
-                .orElse("");
-
-        return EncyclopediaCardSummaryResponse.builder()
-                .id(cardId)
-                .name(card.getName())
-                .type(card.getType().getDescription())
-                .thumbnailUrl(thumbnailUrl)
-                .build();
-    }
 }
