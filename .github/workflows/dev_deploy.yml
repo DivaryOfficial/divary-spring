@@ -33,13 +33,13 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build -x test
+        run: ./gradlew build -x test --build-cache --parallel
 
       - name: Compress JAR with tar.gz # jar 파일 압축
         run: |
           mkdir -p package
           cp build/libs/*.jar package/
-          tar -czf divary-app.tar.gz -C package .
+          tar -czf divary-app.tar.gz -C package . --use-compress-program="gzip -1"
         shell: bash
 
       - name: Upload build artifact
@@ -73,8 +73,8 @@ jobs:
 
           tar_file=deploy-package/divary-app.tar.gz
 
-          # tar.gz 파일을 EC2로 전송
-          scp -i private_key.pem -o StrictHostKeyChecking=no "$tar_file" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/divary-app.tar.gz
+          # tar.gz 파일을 EC2로 전송 (압축 전송으로 속도 향상)
+          scp -i private_key.pem -o StrictHostKeyChecking=no -o Compression=yes -o CompressionLevel=1 "$tar_file" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/divary-app.tar.gz
 
           # EC2에서 압축 해제 후 실행
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST << EOF
@@ -84,12 +84,16 @@ jobs:
             # 이전 파일들 정리
             rm -rf divary-app divary-app.tar.gz.old
             
-            # 기존 파일 백업 후 새 파일 준비
+            # 기존 파일이 있으면 백업
             if [ -f divary-app.tar.gz ]; then
               mv divary-app.tar.gz divary-app.tar.gz.old
             fi
-            mv divary-app.tar.gz divary-app.tar.gz.new
-            mv divary-app.tar.gz.new divary-app.tar.gz
+
+            # 새 파일 확인 및 압축 해제
+            if [ ! -f divary-app.tar.gz ]; then
+              echo "Error: divary-app.tar.gz not found"
+              exit 1
+            fi
 
             mkdir -p divary-app
             tar -xzf divary-app.tar.gz -C divary-app
@@ -100,7 +104,7 @@ jobs:
             sudo systemctl is-active divary
 
             # 성공 시 임시 파일 정리
-            rm -f divary-app.tar.gz.old divary-app.tar.gz
+            rm -f divary-app.tar.gz.old
 
           EOF
 
