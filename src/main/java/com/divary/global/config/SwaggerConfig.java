@@ -1,6 +1,8 @@
 package com.divary.global.config;
 
 import com.divary.global.exception.ErrorCode;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.examples.Example;
@@ -28,6 +30,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
+@SecurityScheme(
+        name = "JWT", // 아래에서 사용할 이름
+        type = SecuritySchemeType.HTTP,
+        scheme = "bearer",
+        bearerFormat = "JWT"
+)
 public class SwaggerConfig {
 
     @Bean
@@ -42,6 +50,7 @@ public class SwaggerConfig {
     @Bean
     public OperationCustomizer operationCustomizer() {
         return (Operation operation, HandlerMethod handlerMethod) -> {
+            
             // 단일 에러 코드 어노테이션 처리
             ApiErrorExample apiErrorExample = handlerMethod.getMethodAnnotation(ApiErrorExample.class);
             if (apiErrorExample != null) {
@@ -58,9 +67,7 @@ public class SwaggerConfig {
         };
     }
 
-    /**
-     * 에러 코드들을 기반으로 Swagger 응답 예제를 생성
-     */
+    // 에러 코드들을 기반으로 Swagger 응답 예제를 생성
     private void generateErrorCodeResponseExample(Operation operation, ErrorCode[] errorCodes) {
         ApiResponses responses = operation.getResponses();
 
@@ -155,5 +162,15 @@ public class SwaggerConfig {
     @Retention(RetentionPolicy.RUNTIME)
     public @interface ApiErrorExamples {
         ErrorCode[] value();
+    }
+
+    // 성공 응답 예제를 위한 어노테이션
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface ApiSuccessResponse {
+        String message() default "요청이 성공적으로 처리되었습니다.";
+        Class<?> dataType() default Object.class;
+        String dataExample() default "";
+        boolean isArray() default false;
     }
 }
