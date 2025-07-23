@@ -1,8 +1,10 @@
 package com.divary.global.config.security.jwt;
 
+import com.divary.common.response.ApiResponse;
 import com.divary.global.config.properties.Constants;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +26,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -48,13 +51,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             
         } catch (BusinessException e) {
             log.error("JWT 인증 비즈니스 로직 오류: {}", e.getMessage());
-            throw e;
+            handleJwtException(request, response, e.getErrorCode());
+            return;
         } catch (Exception e) {
             log.error("JWT 인증 처리 중 예상치 못한 오류 발생: {}", e.getMessage());
-            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+            handleJwtException(request, response, ErrorCode.INVALID_TOKEN);
+            return;
         }
         
         filterChain.doFilter(request, response);
+    }
+
+    // 인증 예외 처리 정형화된 구조로 응답하도록 설정 (GlobalExceptionHandler로 처리 불가 해서 직접 처리)
+    private void handleJwtException(HttpServletRequest request, HttpServletResponse response, ErrorCode errorCode) {
+        try {
+            response.setStatus(errorCode.getStatus().value());
+            response.setContentType("application/json;charset=UTF-8");
+            
+            ApiResponse<Void> errorResponse = ApiResponse.error(errorCode, request.getRequestURI());
+            String jsonResponse = objectMapper.writeValueAsString(errorResponse);
+            response.getWriter().write(jsonResponse);
+            response.getWriter().flush();
+            
+        } catch (IOException e) {
+            log.error("JWT 예외 응답 작성 중 오류 발생: {}", e.getMessage());
+        }
     }
 
     private String resolveToken(HttpServletRequest request) {
