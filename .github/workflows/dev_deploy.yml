@@ -24,7 +24,9 @@ jobs:
       - name: Generate application-prod.yml
         run: |
           mkdir -p ./src/main/resources
-          echo "${{ secrets.APPLICATION_PROD_YML }}" > ./src/main/resources/application-prod.yml
+          cat << 'EOF' > ./src/main/resources/application-prod.yml
+          ${{ secrets.APPLICATION_PROD_YML }}
+          EOF
         shell: bash
 
       - name: Grant permission to gradlew
@@ -64,7 +66,9 @@ jobs:
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          echo "$EC2_SSH_KEY" > private_key.pem
+          cat << 'KEY_EOF' > private_key.pem
+          $EC2_SSH_KEY
+          KEY_EOF
           chmod 600 private_key.pem
 
           tar_file=deploy-package/divary-app.tar.gz
@@ -75,16 +79,28 @@ jobs:
           # EC2에서 압축 해제 후 실행
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST << EOF
             set -e
-            cd /home/ubuntu
+            cd /home/$EC2_USERNAME
 
-            rm -rf divary-app
+            # 이전 파일들 정리
+            rm -rf divary-app divary-app.tar.gz.old
+            
+            # 기존 파일 백업 후 새 파일 준비
+            if [ -f divary-app.tar.gz ]; then
+              mv divary-app.tar.gz divary-app.tar.gz.old
+            fi
+            mv divary-app.tar.gz divary-app.tar.gz.new
+            mv divary-app.tar.gz.new divary-app.tar.gz
+
             mkdir -p divary-app
             tar -xzf divary-app.tar.gz -C divary-app
 
-             # systemd 재시작
+            # systemd 재시작
             sudo systemctl daemon-reload
             sudo systemctl restart divary
             sudo systemctl is-active divary
+
+            # 성공 시 임시 파일 정리
+            rm -f divary-app.tar.gz.old divary-app.tar.gz
 
           EOF
 
