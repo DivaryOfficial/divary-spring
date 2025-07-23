@@ -47,7 +47,8 @@ public class SecurityConfig {
             response.setStatus(401);
             response.setContentType("application/json;charset=UTF-8");
             
-            ApiResponse<Void> errorResponse = ApiResponse.error(ErrorCode.AUTHENTICATION_REQUIRED);
+            String requestPath = request.getRequestURI();
+            ApiResponse<Void> errorResponse = ApiResponse.error(ErrorCode.AUTHENTICATION_REQUIRED, requestPath);
             String jsonResponse = objectMapper.writeValueAsString(errorResponse);
             response.getWriter().write(jsonResponse);
         };

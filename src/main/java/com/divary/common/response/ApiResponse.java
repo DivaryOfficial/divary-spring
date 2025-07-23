@@ -30,6 +30,9 @@ public class ApiResponse<T> {
     @Schema(description = "응답 메시지", example = "요청이 성공적으로 처리되었습니다.")
     private String message;
     
+    @Schema(description = "요청 경로", example = "/api/v1/example")
+    private String path;
+    
     @Schema(description = "응답 데이터")
     private T data;
 
@@ -62,12 +65,32 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    public static <T> ApiResponse<T> error(int status, String code, String message, String path) {
+        return ApiResponse.<T>builder()
+                .timestamp(LocalDateTime.now())
+                .status(status)
+                .code(code)
+                .message(message)
+                .path(path)
+                .build();
+    }
+
     public static <T> ApiResponse<T> error(ErrorCode errorCode) {
         return ApiResponse.<T>builder()
                 .timestamp(LocalDateTime.now())
                 .status(errorCode.getStatus().value())
                 .code(errorCode.getCode())
                 .message(errorCode.getMessage())
+                .build();
+    }
+
+    public static <T> ApiResponse<T> error(ErrorCode errorCode, String path) {
+        return ApiResponse.<T>builder()
+                .timestamp(LocalDateTime.now())
+                .status(errorCode.getStatus().value())
+                .code(errorCode.getCode())
+                .message(errorCode.getMessage())
+                .path(path)
                 .build();
     }
 } 
