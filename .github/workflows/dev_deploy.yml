@@ -74,7 +74,7 @@ jobs:
           tar_file=deploy-package/divary-app.tar.gz
 
           # tar.gz 파일을 EC2로 전송 (압축 전송으로 속도 향상)
-          scp -i private_key.pem -o StrictHostKeyChecking=no -o Compression=yes -o CompressionLevel=1 "$tar_file" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/divary-app.tar.gz
+          scp -i private_key.pem -o StrictHostKeyChecking=no -o Compression=yes "$tar_file" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/divary-app.tar.gz
 
           # EC2에서 압축 해제 후 실행
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST << EOF
