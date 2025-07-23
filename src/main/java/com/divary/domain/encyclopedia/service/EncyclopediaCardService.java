@@ -57,7 +57,7 @@ public class EncyclopediaCardService {
                     String thumbnailUrl = imageService.getImagesByType(
                                     ImageType.SYSTEM_DOGAM_PROFILE,
                                     null,
-                                    "cards/" + card.getId()
+                                    String.valueOf(card.getId())
                             ).stream()
                             .findFirst()
                             .map(ImageResponse::getFileUrl)
@@ -81,7 +81,7 @@ public class EncyclopediaCardService {
         List<String> imageUrls = imageService.getImagesByType(
                         ImageType.SYSTEM_DOGAM,
                         null,
-                        "cards/" + card.getId()
+                        String.valueOf(card.getId())
                 ).stream()
                 .map(ImageResponse::getFileUrl)
                 .toList();
