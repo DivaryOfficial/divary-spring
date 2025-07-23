@@ -66,7 +66,7 @@ jobs:
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          cat << 'KEY_EOF' > private_key.pem
+          cat << KEY_EOF > private_key.pem
           $EC2_SSH_KEY
           KEY_EOF
           chmod 600 private_key.pem
