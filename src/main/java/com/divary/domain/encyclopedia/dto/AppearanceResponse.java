@@ -3,10 +3,9 @@ package com.divary.domain.encyclopedia.dto;
 import com.divary.domain.encyclopedia.embedded.Appearance;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Arrays;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.util.List;
 
 @Getter
 @Builder

@@ -1,15 +1,21 @@
 package com.divary.domain.encyclopedia.service;
 
+import com.divary.domain.encyclopedia.dto.AppearanceResponse;
 import com.divary.domain.encyclopedia.dto.EncyclopediaCardResponse;
 import com.divary.domain.encyclopedia.dto.EncyclopediaCardSummaryResponse;
+import com.divary.domain.encyclopedia.dto.PersonalityResponse;
+import com.divary.domain.encyclopedia.dto.SignificantResponse;
 import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
 import com.divary.domain.encyclopedia.enums.Type;
 import com.divary.domain.encyclopedia.repository.EncyclopediaCardRepository;
+import com.divary.domain.image.dto.response.ImageResponse;
+import com.divary.domain.image.entity.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,19 +41,35 @@ public class EncyclopediaCardService {
 
     @Transactional(readOnly = true)
     public List<EncyclopediaCardSummaryResponse> getCards(String description) {
+        List<EncyclopediaCard> cards;
         if (description == null) {
-            return encyclopediaCardRepository.findAll().stream()
-                    .map(card -> EncyclopediaCardSummaryResponse.from(card, imageService))
-                    .toList();
+            cards = encyclopediaCardRepository.findAll();
+        } else {
+            if (!isValidDescription(description)) {
+                throw new BusinessException(ErrorCode.TYPE_NOT_FOUND);
+            }
+            Type typeEnum = convertDescriptionToEnum(description);
+            cards = encyclopediaCardRepository.findAllByType(typeEnum);
         }
 
-        if (!isValidDescription(description)) {
-            throw new BusinessException(ErrorCode.TYPE_NOT_FOUND);
-        }
+        return cards.stream()
+                .map(card -> {
+                    String thumbnailUrl = imageService.getImagesByType(
+                                    ImageType.SYSTEM_DOGAM_PROFILE,
+                                    null,
+                                    "cards/" + card.getId()
+                            ).stream()
+                            .findFirst()
+                            .map(ImageResponse::getFileUrl)
+                            .orElse("");
 
-        Type typeEnum = convertDescriptionToEnum(description);
-        return encyclopediaCardRepository.findAllByType(typeEnum).stream()
-                .map(card -> EncyclopediaCardSummaryResponse.from(card, imageService))
+                    return EncyclopediaCardSummaryResponse.builder()
+                            .id(card.getId())
+                            .name(card.getName())
+                            .type(card.getType().getDescription())
+                            .thumbnailUrl(thumbnailUrl)
+                            .build();
+                })
                 .toList();
     }
 
@@ -55,7 +77,28 @@ public class EncyclopediaCardService {
     public EncyclopediaCardResponse getDetail(Long id) {
         EncyclopediaCard card = encyclopediaCardRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
-        return EncyclopediaCardResponse.from(card, imageService);
+
+        List<String> imageUrls = imageService.getImagesByType(
+                        ImageType.SYSTEM_DOGAM,
+                        null,
+                        "cards/" + card.getId()
+                ).stream()
+                .map(ImageResponse::getFileUrl)
+                .toList();
+
+        return EncyclopediaCardResponse.builder()
+                .id(card.getId())
+                .name(card.getName())
+                .type(card.getType().getDescription())
+                .size(card.getSize())
+                .appearPeriod(card.getAppearPeriod())
+                .place(card.getPlace())
+                .imageUrls(imageUrls)
+                .appearance(Optional.ofNullable(card.getAppearance()).map(AppearanceResponse::from).orElse(null))
+                .personality(Optional.ofNullable(card.getPersonality()).map(PersonalityResponse::from).orElse(null))
+                .significant(Optional.ofNullable(card.getSignificant()).map(SignificantResponse::from).orElse(null))
+                .build();
     }
+
 
 }
