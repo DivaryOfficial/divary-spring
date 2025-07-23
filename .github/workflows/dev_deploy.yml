@@ -39,7 +39,7 @@ jobs:
         run: |
           mkdir -p package
           cp build/libs/*.jar package/
-          tar -czf divary-app.tar.gz -C package . --use-compress-program="gzip -1"
+          tar --use-compress-program="gzip -1" -cf divary-app.tar.gz -C package .
         shell: bash
 
       - name: Upload build artifact
@@ -82,12 +82,7 @@ jobs:
             cd /home/$EC2_USERNAME
 
             # 이전 파일들 정리
-            rm -rf divary-app divary-app.tar.gz.old
-            
-            # 기존 파일이 있으면 백업
-            if [ -f divary-app.tar.gz ]; then
-              mv divary-app.tar.gz divary-app.tar.gz.old
-            fi
+            rm -rf divary-app
 
             # 새 파일 확인 및 압축 해제
             if [ ! -f divary-app.tar.gz ]; then
@@ -102,9 +97,6 @@ jobs:
             sudo systemctl daemon-reload
             sudo systemctl restart divary
             sudo systemctl is-active divary
-
-            # 성공 시 임시 파일 정리
-            rm -f divary-app.tar.gz.old
 
           EOF
 
