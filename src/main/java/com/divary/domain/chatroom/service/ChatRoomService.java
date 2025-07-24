@@ -38,8 +38,7 @@ public class ChatRoomService {
 
     // 채팅방 메시지 전송 (새 채팅방 생성 또는 기존 채팅방에 메시지 추가)
     @Transactional
-    public ChatRoomMessageResponse sendChatRoomMessage(ChatRoomMessageRequest request) {
-        Long userId = getCurrentUserId();
+    public ChatRoomMessageResponse sendChatRoomMessage(ChatRoomMessageRequest request, Long userId) {
         ChatRoom chatRoom;
         List<String> newMessageIds = new java.util.ArrayList<>();
         
@@ -106,13 +105,13 @@ public class ChatRoomService {
         validateChatRoomOwnership(chatRoom, userId);
         
         // 새 메시지 추가
-        addUserMessageToChatRoom(chatRoom, request);
+        addUserMessageToChatRoom(chatRoom, request, userId);
         
         return chatRoom;
     }
     
     // 사용자 메시지를 채팅방에 추가
-    private void addUserMessageToChatRoom(ChatRoom chatRoom, ChatRoomMessageRequest request) {
+    private void addUserMessageToChatRoom(ChatRoom chatRoom, ChatRoomMessageRequest request, Long userId) {
         HashMap<String, Object> messages = chatRoom.getMessages();
         String newMessageId = messageFactory.generateNextMessageId(messages);
 
@@ -120,7 +119,7 @@ public class ChatRoomService {
         HashMap<String, Object> messageData = messageFactory.createUserMessageData(request.getMessage(), null);
 
         // 이미지 처리
-        processImageUpload(messageData, request.getImage(), getCurrentUserId(), chatRoom.getId().toString());
+        processImageUpload(messageData, request.getImage(), userId, chatRoom.getId().toString());
 
         messages.put(newMessageId, messageData);
 
@@ -157,18 +156,11 @@ public class ChatRoomService {
         
         return nextMessageId;
     }
-
-    // 현재 사용자 ID 가져오기
-    private Long getCurrentUserId() {
-        // TODO: 사용자 ID를 Authorization 헤더에서 가져오도록 수정
-        return 1L;
-    }
     
     // 채팅방 소유자 권한 확인
     private void validateChatRoomOwnership(ChatRoom chatRoom, Long userId) {
-        // TODO: 채팅방 소유자 확인 로직 - 현재는 하드코딩으로 처리
         if (!chatRoom.getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+            throw new BusinessException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
         }
     }
     

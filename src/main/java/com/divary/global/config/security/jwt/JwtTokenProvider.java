@@ -2,7 +2,9 @@ package com.divary.global.config.security.jwt;
 
 import com.divary.global.config.properties.Constants;
 import com.divary.global.config.properties.JwtProperties;
-import com.divary.global.exception.InvalidTokenException;
+import com.divary.global.config.security.CustomUserDetailsService;
+import com.divary.global.exception.BusinessException;
+import com.divary.global.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -11,14 +13,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.security.Key;
-import java.util.Collections;
 import java.util.Date;
 
 @Component
@@ -26,6 +26,7 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private final JwtProperties jwtProperties;
+    private final CustomUserDetailsService userDetailsService;
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtProperties.getSecretKey().getBytes());
@@ -63,10 +64,15 @@ public class JwtTokenProvider {
                 .getBody();
 
         String email = claims.getSubject();
-        String role = claims.get("role", String.class);
-
-        User principal = new User(email, "", Collections.singleton(() -> role));
-        return new UsernamePasswordAuthenticationToken(principal, token, principal.getAuthorities());
+        
+        try {
+            // CustomUserPrincipal을 통해 사용자 정보 로드
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
+        } catch (BusinessException e) {
+            // 사용자 정보를 찾을 수 없는 경우
+            throw new BusinessException(ErrorCode.INVALID_USER_CONTEXT);
+        }
     }
 
     public static String resolveToken(HttpServletRequest request) {
@@ -80,7 +86,7 @@ public class JwtTokenProvider {
     public Authentication extractAuthentication(HttpServletRequest request){
         String accessToken = resolveToken(request);
         if(accessToken == null || !validateToken(accessToken)) {
-            throw new InvalidTokenException("토큰이 유효하지 않습니다.");
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
         return getAuthentication(accessToken);
     }
