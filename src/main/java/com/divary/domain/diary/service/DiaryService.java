@@ -1,22 +1,18 @@
 package com.divary.domain.diary.service;
 
 import com.divary.domain.diary.dto.request.DiaryRequest;
-import com.divary.domain.diary.dto.request.DiaryUpdateRequest;
 import com.divary.domain.diary.dto.response.DiaryResponse;
 import com.divary.domain.diary.entity.Diary;
 import com.divary.domain.diary.repository.DiaryRepository;
-import com.divary.domain.image.entity.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.domain.logbook.entity.LogBook;
 import com.divary.domain.logbook.repository.LogBookRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -43,57 +39,13 @@ public class DiaryService {
         LogBook logbook = logBookRepository.findById(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_NOT_FOUND));
 
-        Diary.DiaryBuilder builder = Diary.builder()
+        Diary diary = Diary.builder()
                 .logBook(logbook)
-                .content(request.getContent());
+                .contentJson(request.getContents())
+                .build();
 
-        if (request.getContent() != null && !request.getContent().isBlank()) {
-            builder
-                    .fontType(request.getFontType())
-                    .fontSize(request.getFontSize())
-                    .italic(request.getItalic())
-                    .underline(request.getUnderline())
-                    .strikethrough(request.getStrikethrough())
-                    .textAlign(request.getTextAlign());
-        }
-
-        Diary diary = builder.build();
         diaryRepository.save(diary);
-
-        // 이미지 업로드 (경로 패턴: users/{userId}/diary/{logId})
-        Long userId = getUserId();
-        List<MultipartFile> images = request.getImagesSafe();
-        if (images != null) {
-            for (MultipartFile image : images) {
-                imageService.uploadImageByType(
-                        ImageType.USER_DIARY,
-                        image,
-                        userId,
-                        String.valueOf(logId)
-                );
-            }
-        }
-
-        return DiaryResponse.from(diary, imageService);
+        return DiaryResponse.from(diary);
     }
 
-    // TODO
-    @Transactional
-    public DiaryResponse updateDiary(Long logId, DiaryUpdateRequest request) {
-        Diary diary = diaryRepository.findByLogBookId(logId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
-        
-        diary.update(request.getContent());
-
-        return DiaryResponse.from(diary, imageService);
-
-    }
-
-    @Transactional
-    public DiaryResponse getDiary(Long logId) {
-        Diary diary = diaryRepository.findByLogBookId(logId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
-
-        return DiaryResponse.from(diary, imageService);
-    }
 }
