@@ -65,6 +65,7 @@ jobs:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
+          PROD_ENV: ${{ secrets.APPLICATION_PROD_ENV }}
         run: |
           cat << KEY_EOF > private_key.pem
           $EC2_SSH_KEY
@@ -75,6 +76,12 @@ jobs:
 
           # tar.gz 파일을 EC2로 전송 (압축 전송으로 속도 향상)
           scp -i private_key.pem -o StrictHostKeyChecking=no -o Compression=yes "$tar_file" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/divary-app.tar.gz
+
+          # 환경변수 파일 생성 및 전송
+          cat << ENV_EOF > .env
+          $PROD_ENV
+          ENV_EOF
+          scp -i private_key.pem -o StrictHostKeyChecking=no .env $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/.env
 
           # EC2에서 압축 해제 후 실행
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST << EOF
@@ -106,4 +113,4 @@ jobs:
 
           EOF
 
-          rm -f private_key.pem
+          rm -f private_key.pem .env
