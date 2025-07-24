@@ -6,6 +6,6 @@ import lombok.Getter;
 @Getter
 @Schema(description = "일기 수정 DTO")
 public class DiaryUpdateRequest {
-    
+
 }
 

@@ -9,6 +9,8 @@ import com.divary.domain.logbook.entity.LogBook;
 import com.divary.domain.logbook.repository.LogBookRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,9 +41,17 @@ public class DiaryService {
         LogBook logbook = logBookRepository.findById(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_NOT_FOUND));
 
+        // contents ->  JSON 문자열로
+        String contentJson;
+        try {
+            contentJson = new ObjectMapper().writeValueAsString(request.getContents());
+        } catch (JsonProcessingException e) {
+            throw new BusinessException(ErrorCode.INVALID_JSON_FORMAT);
+        }
+
         Diary diary = Diary.builder()
                 .logBook(logbook)
-                .contentJson(request.getContents())
+                .contentJson(contentJson)
                 .build();
 
         diaryRepository.save(diary);

@@ -29,7 +29,8 @@ public enum ErrorCode {
 
     // 다이어리 관련 에러코드
     DIARY_NOT_FOUND(HttpStatus.NOT_FOUND, "DIARY_001", "해당 로그의 다이어리를 찾을 수 없습니다."),
-    DIARY_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "DIARY_002", "해당 로그는 이미 다이어리가 존재합니다.");
+    DIARY_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "DIARY_002", "해당 로그는 이미 다이어리가 존재합니다."),
+    INVALID_JSON_FORMAT(HttpStatus.BAD_REQUEST, "DIARY_003", "일기 콘텐츠의 JSON 구조가 잘못되었습니다.");
 
     private final HttpStatus status;
     private final String code;
