@@ -25,9 +25,7 @@ public class DiaryController {
     private final DiaryService diaryService;
 
     @PostMapping
-    @Operation(
-            summary = "일기 생성"
-    )
+    @Operation(summary = "일기 생성")
     public ApiResponse<DiaryResponse> createDiary(
             @Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. diary 생성시 logId를 보내주세요.") @PathVariable Long logId,
             @RequestBody DiaryRequest request) {
