@@ -54,13 +54,17 @@ public class EncyclopediaCardService {
             cards = encyclopediaCardRepository.findAllByType(typeEnum);
         }
 
-        // 모든 도감 프로필 한 번에 조회
+        // 모든 도감 프로필 (도감 이모티콘) 한 번에 조회
         List<ImageResponse> allDogamProfiles = imageService.getImagesByType(ImageType.SYSTEM_DOGAM_PROFILE, null, null);
 
         // cardId -> FileUrl 매핑
         Map<Long, String> dogamProfileMap = allDogamProfiles.stream()
                 .collect(
-                        Collectors.toMap(img -> Long.valueOf(img.getS3Key().split("/")[2]), ImageResponse::getFileUrl));
+                        Collectors.toMap(img ->
+                                Long.valueOf(img.getS3Key().split("/")[2]),
+                                ImageResponse::getFileUrl,
+                                (v1, v2) -> v1 ) // 혹시라도 동일 cardId에 도감 프로필이 여러 개 있을 경우, 첫 번째 값만 사용
+                );
 
         return cards.stream()
                 .map(card ->
