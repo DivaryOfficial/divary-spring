@@ -59,4 +59,9 @@ public class Image extends BaseEntity {
     public void updateType(ImageType type) {
         this.type = type;
     }
+
+    // S3 키 업데이트
+    public void updateS3Key(String s3Key) {
+        this.s3Key = s3Key;
+    }
 }
