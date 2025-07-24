@@ -15,7 +15,9 @@ import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,24 +54,22 @@ public class EncyclopediaCardService {
             cards = encyclopediaCardRepository.findAllByType(typeEnum);
         }
 
-        return cards.stream()
-                .map(card -> {
-                    String thumbnailUrl = imageService.getImagesByType(
-                                    ImageType.SYSTEM_DOGAM_PROFILE,
-                                    null,
-                                    String.valueOf(card.getId())
-                            ).stream()
-                            .findFirst()
-                            .map(ImageResponse::getFileUrl)
-                            .orElse("");
+        // 모든 도감 프로필 한 번에 조회
+        List<ImageResponse> allDogamProfiles = imageService.getImagesByType(ImageType.SYSTEM_DOGAM_PROFILE, null, null);
 
-                    return EncyclopediaCardSummaryResponse.builder()
-                            .id(card.getId())
-                            .name(card.getName())
-                            .type(card.getType().getDescription())
-                            .thumbnailUrl(thumbnailUrl)
-                            .build();
-                })
+        // cardId -> FileUrl 매핑
+        Map<Long, String> dogamProfileMap = allDogamProfiles.stream()
+                .collect(
+                        Collectors.toMap(img -> Long.valueOf(img.getS3Key().split("/")[2]), ImageResponse::getFileUrl));
+
+        return cards.stream()
+                .map(card ->
+                        EncyclopediaCardSummaryResponse.builder()
+                                .id(card.getId())
+                                .name(card.getName())
+                                .type(card.getType().getDescription())
+                                .dogamProfileUrl(dogamProfileMap.get(card.getId()))
+                                .build())
                 .toList();
     }
 
