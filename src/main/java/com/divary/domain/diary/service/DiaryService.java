@@ -58,4 +58,13 @@ public class DiaryService {
         return DiaryResponse.from(diary);
     }
 
+    @Transactional(readOnly = true)
+    public DiaryResponse getDiary(Long logId) {
+        Diary diary = diaryRepository.findByLogBookId(logId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
+
+        return DiaryResponse.from(diary);
+    }
+
+
 }
