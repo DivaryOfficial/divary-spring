@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,13 +33,13 @@ public class DiaryController {
         return ApiResponse.success(diaryService.createDiary(logId, request));
     }
 
-//    @PatchMapping
-//    @Operation(summary = "일기 수정")
-//    public ApiResponse<DiaryResponse> updateDiary(@Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. diary 수정시 logId를 보내주세요.") @PathVariable Long logId,
-//                                                  @ModelAttribute DiaryUpdateRequest request) {
-//        return ApiResponse.success(diaryService.updateDiary(logId, request));
-//    }
-//
+    @PutMapping
+    @Operation(summary = "일기 수정")
+    public ApiResponse<DiaryResponse> updateDiary(@Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. diary 수정시 logId를 보내주세요.") @PathVariable Long logId,
+                                                  @RequestBody DiaryRequest request) {
+        return ApiResponse.success(diaryService.updateDiary(logId, request));
+    }
+
     @GetMapping
     @Operation(summary = "일기 조회")
     public ApiResponse<DiaryResponse> getDiary( @Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. diary 조회시 logId를 보내주세요.", example = "1") @PathVariable Long logId) {

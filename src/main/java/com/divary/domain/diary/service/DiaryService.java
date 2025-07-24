@@ -58,6 +58,22 @@ public class DiaryService {
         return DiaryResponse.from(diary);
     }
 
+    @Transactional
+    public DiaryResponse updateDiary(Long logId, DiaryRequest request) {
+        Diary diary = diaryRepository.findByLogBookId(logId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
+
+        String contentJson;
+        try {
+            contentJson = new ObjectMapper().writeValueAsString(request.getContents());
+        } catch (JsonProcessingException e) {
+            throw new BusinessException(ErrorCode.INVALID_JSON_FORMAT);
+        }
+
+        diary.updateContent(contentJson);
+        return DiaryResponse.from(diary);
+    }
+
     @Transactional(readOnly = true)
     public DiaryResponse getDiary(Long logId) {
         Diary diary = diaryRepository.findByLogBookId(logId)
@@ -65,6 +81,5 @@ public class DiaryService {
 
         return DiaryResponse.from(diary);
     }
-
-
+    
 }
