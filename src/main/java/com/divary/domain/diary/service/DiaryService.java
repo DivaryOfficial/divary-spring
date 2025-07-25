@@ -24,16 +24,10 @@ public class DiaryService {
 
     private final DiaryRepository diaryRepository;
     private final LogBookRepository logBookRepository;
-
-    // 사용자 ID 가져오기
-    private Long getUserId() {
-        // TODO: 사용자 ID를 Authorization 헤더에서 가져오도록 수정
-        return 1L;
-    }
+    private final ObjectMapper objectMapper;
 
     @Transactional
-
-    public DiaryResponse createDiary(Long logId, DiaryRequest request) {
+    public DiaryResponse createDiary(Long userId, Long logId, DiaryRequest request) {
         if (diaryRepository.existsByLogBookId(logId)) {
             throw new BusinessException(ErrorCode.DIARY_ALREADY_EXISTS);
         }
@@ -41,14 +35,11 @@ public class DiaryService {
         LogBook logbook = logBookRepository.findById(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_NOT_FOUND));
 
-        // contents ->  JSON 문자열로
-        String contentJson;
-        try {
-            contentJson = new ObjectMapper().writeValueAsString(request.getContents());
-        } catch (JsonProcessingException e) {
-            throw new BusinessException(ErrorCode.INVALID_JSON_FORMAT);
+        if (!logbook.getLogBaseInfo().getMember().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.DIARY_FORBIDDEN_ACCESS);
         }
 
+        String contentJson = toJson(request.getContents());
         Diary diary = Diary.builder()
                 .logBook(logbook)
                 .contentJson(contentJson)
@@ -59,25 +50,36 @@ public class DiaryService {
     }
 
     @Transactional
-    public DiaryResponse updateDiary(Long logId, DiaryRequest request) {
-        Diary diary = diaryRepository.findByLogBookId(logId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
-
-        String contentJson;
-        try {
-            contentJson = new ObjectMapper().writeValueAsString(request.getContents());
-        } catch (JsonProcessingException e) {
-            throw new BusinessException(ErrorCode.INVALID_JSON_FORMAT);
-        }
+    public DiaryResponse updateDiary(Long userId, Long logId, DiaryRequest request) {
+        Diary diary = getDiaryWithAuth(logId, userId);
+        String contentJson = toJson(request.getContents());
         diary.updateContent(contentJson);
         return DiaryResponse.from(diary);
     }
 
     @Transactional(readOnly = true)
-    public DiaryResponse getDiary(Long logId) {
+    public DiaryResponse getDiary(Long userId, Long logId) {
+        Diary diary = getDiaryWithAuth(logId, userId);
+        return DiaryResponse.from(diary);
+    }
+
+    private String toJson(Object contents) {
+        try {
+            return objectMapper.writeValueAsString(contents);
+        } catch (JsonProcessingException e) {
+            throw new BusinessException(ErrorCode.INVALID_JSON_FORMAT);
+        }
+    }
+
+    private Diary getDiaryWithAuth(Long logId, Long userId) {
         Diary diary = diaryRepository.findByLogBookId(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
-        return DiaryResponse.from(diary);
+
+        if (!diary.getLogBook().getLogBaseInfo().getMember().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.DIARY_FORBIDDEN_ACCESS);
+        }
+
+        return diary;
     }
 
 }
