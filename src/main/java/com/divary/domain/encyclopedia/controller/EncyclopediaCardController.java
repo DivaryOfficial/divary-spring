@@ -6,6 +6,7 @@ import com.divary.domain.encyclopedia.dto.EncyclopediaCardSummaryResponse;
 import com.divary.domain.encyclopedia.service.EncyclopediaCardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/cards")
 @RequiredArgsConstructor
+@Tag(name = "EncyclopediaCard", description = "해양도감 API")
 public class EncyclopediaCardController {
 
     private final EncyclopediaCardService encyclopediaCardService;

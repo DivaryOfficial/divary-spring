@@ -2,7 +2,11 @@ package com.divary.domain.image.entity;
 
 import com.divary.common.entity.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +24,7 @@ public class Image extends BaseEntity {
     private String s3Key;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type")
+    @Column(name = "type", length = 50)
     @Schema(description = "이미지 타입", example = "DOGAM")
     private ImageType type;
 

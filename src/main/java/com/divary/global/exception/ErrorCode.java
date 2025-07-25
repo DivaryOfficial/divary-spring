@@ -17,7 +17,13 @@ public enum ErrorCode {
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "VALIDATION_001", "입력값 검증에 실패했습니다."),
     REQUIRED_FIELD_MISSING(HttpStatus.BAD_REQUEST, "VALIDATION_002", "필수 필드가 누락되었습니다."),
 
+    // 다이어리 관련 에러코드
+    DIARY_NOT_FOUND(HttpStatus.NOT_FOUND, "DIARY_001", "해당 로그의 다이어리를 찾을 수 없습니다."),
+    DIARY_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "DIARY_002", "해당 로그는 이미 다이어리가 존재합니다."),
+    INVALID_JSON_FORMAT(HttpStatus.BAD_REQUEST, "DIARY_003", "일기 콘텐츠의 JSON 구조가 잘못되었습니다."),
+    DIARY_FORBIDDEN_ACCESS(HttpStatus.FORBIDDEN, "FORBIDDEN_001", "접근 권한이 없습니다."),
 
+    //해양도감 관련
     CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_001", "해당 카드에 대한 정보를 찾을 수 없습니다."),
     TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_002", "존재하지 않는 종류입니다."),
 
@@ -36,19 +42,20 @@ public enum ErrorCode {
     //알림 관련
     NOTIFICAITION_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_003", "해당 ID를 가진 사용자의 알림이 존재하지 않습니다"),
 
+    //아바타 관련
     AVATAR_NOT_FOUND(HttpStatus.NOT_FOUND, "AVATAR_001", "해당 유저의 아바타를 찾을 수 업습니다."),
 
     // 채팅방 관련 에러코드
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_ROOM_001", "채팅방을 찾을 수 없습니다."),
     CHAT_ROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CHAT_ROOM_002", "채팅방에 접근 권한이 없습니다."),
     CHAT_ROOM_MESSAGE_TOO_LONG(HttpStatus.BAD_REQUEST, "CHAT_ROOM_003", "메시지가 너무 깁니다."),
-    
+
     // OpenAI API 관련 에러코드
     OPENAI_API_ERROR(HttpStatus.BAD_GATEWAY, "OPENAI_001", "AI 서비스에 일시적인 문제가 발생했습니다."),
     OPENAI_QUOTA_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "OPENAI_002", "AI 서비스 사용량이 초과되었습니다."),
     OPENAI_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "OPENAI_003", "AI 서비스 요청이 올바르지 않습니다."),
     OPENAI_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "OPENAI_004", "AI 서비스 응답 시간이 초과되었습니다."),
-    
+  
     // 이미지 처리 관련 에러코드
     IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "IMAGE_001", "이미지 업로드에 실패했습니다."),
     IMAGE_SIZE_TOO_LARGE(HttpStatus.BAD_REQUEST, "IMAGE_002", "이미지 크기와 용량이 너무 큽니다."),

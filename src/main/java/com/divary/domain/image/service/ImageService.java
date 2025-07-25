@@ -7,16 +7,15 @@ import com.divary.domain.image.entity.ImageType;
 import com.divary.domain.image.repository.ImageRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.imageio.ImageIO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Slf4j
@@ -142,18 +141,18 @@ public class ImageService {
         } else {
             uploadPath = imagePathService.generateSystemUploadPath(imageType, additionalPath);
         }
-        
+
         ImageUploadRequest request = ImageUploadRequest.builder()
                 .file(file)
                 .uploadPath(uploadPath)
                 .build();
-        
+
         ImageResponse response = uploadImage(request);
-        
+
         Image savedImage = imageRepository.findById(response.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR));
         savedImage.updateType(imageType);
-        
+
         // 업데이트된 이미지로 응답 생성
         return ImageResponse.from(savedImage, response.getFileUrl());
     }
