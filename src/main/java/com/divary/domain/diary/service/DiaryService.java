@@ -32,12 +32,7 @@ public class DiaryService {
             throw new BusinessException(ErrorCode.DIARY_ALREADY_EXISTS);
         }
 
-        LogBook logbook = logBookRepository.findById(logId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.LOG_NOT_FOUND));
-
-        if (!logbook.getLogBaseInfo().getMember().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.DIARY_FORBIDDEN_ACCESS);
-        }
+        LogBook logbook = getLogBookWithAuth(logId, userId);
 
         String contentJson = toJson(request.getContents());
         Diary diary = Diary.builder()
@@ -71,13 +66,24 @@ public class DiaryService {
         }
     }
 
+    private LogBook getLogBookWithAuth(Long logId, Long userId) {
+        // 로그가 존재하는지 확인
+        LogBook logBook = logBookRepository.findById(logId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.LOG_NOT_FOUND));
+
+        // 로그를 작성한 유저가 일기 작성 요청을 보내는 유저인지 확인
+        if (!logBook.getLogBaseInfo().getMember().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.DIARY_FORBIDDEN_ACCESS);
+        }
+
+        return logBook;
+    }
+
     private Diary getDiaryWithAuth(Long logId, Long userId) {
         Diary diary = diaryRepository.findByLogBookId(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
 
-        if (!diary.getLogBook().getLogBaseInfo().getMember().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.DIARY_FORBIDDEN_ACCESS);
-        }
+        getLogBookWithAuth(logId, userId);
 
         return diary;
     }
