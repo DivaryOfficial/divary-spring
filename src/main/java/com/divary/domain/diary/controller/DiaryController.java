@@ -4,6 +4,9 @@ import com.divary.common.response.ApiResponse;
 import com.divary.domain.diary.dto.request.DiaryRequest;
 import com.divary.domain.diary.dto.response.DiaryResponse;
 import com.divary.domain.diary.service.DiaryService;
+import com.divary.global.config.SwaggerConfig.ApiErrorExamples;
+import com.divary.global.config.SwaggerConfig.ApiSuccessResponse;
+import com.divary.global.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,6 +29,12 @@ public class DiaryController {
 
     @PostMapping
     @Operation(summary = "일기 생성")
+    @ApiSuccessResponse(dataType = DiaryResponse.class)
+    @ApiErrorExamples({
+            ErrorCode.DIARY_ALREADY_EXISTS,
+            ErrorCode.LOG_NOT_FOUND,
+            ErrorCode.INVALID_JSON_FORMAT
+    })
     public ApiResponse<DiaryResponse> createDiary(
             @Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. diary 생성시 logId를 보내주세요.") @PathVariable Long logId,
             @RequestBody DiaryRequest request) {
@@ -34,6 +43,11 @@ public class DiaryController {
 
     @PutMapping
     @Operation(summary = "일기 수정")
+    @ApiSuccessResponse(dataType = DiaryResponse.class)
+    @ApiErrorExamples({
+            ErrorCode.DIARY_NOT_FOUND,
+            ErrorCode.INVALID_JSON_FORMAT
+    })
     public ApiResponse<DiaryResponse> updateDiary(
             @Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. diary 수정시 logId를 보내주세요.") @PathVariable Long logId,
             @RequestBody DiaryRequest request) {
@@ -42,6 +56,10 @@ public class DiaryController {
 
     @GetMapping
     @Operation(summary = "일기 조회")
+    @ApiSuccessResponse(dataType = DiaryResponse.class)
+    @ApiErrorExamples({
+            ErrorCode.DIARY_NOT_FOUND
+    })
     public ApiResponse<DiaryResponse> getDiary(
             @Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. diary 조회시 logId를 보내주세요.", example = "1") @PathVariable Long logId) {
         return ApiResponse.success(diaryService.getDiary(logId));
