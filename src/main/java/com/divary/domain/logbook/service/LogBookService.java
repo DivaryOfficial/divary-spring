@@ -83,6 +83,7 @@ public class LogBookService {
                         .name(logBaseInfo.getName())
                         .date(logBaseInfo.getDate())
                         .iconType(logBaseInfo.getIconType())
+                        .saveStatus(logBaseInfo.getSaveStatus())
                         .LogBaseInfoId(logBaseInfo.getId())
                         .build())
                 .collect(Collectors.toList());
@@ -134,15 +135,21 @@ public class LogBookService {
 
         logBookRepository.save(logBook);
 
-        return new LogDetailCreateResultDTO(logBook.getId(),"로그 세부내용 저장 완료");
+        return new LogDetailCreateResultDTO(logBook.getId(),"세부 로그북 생성 완료");
     }
 
     @Transactional
     public void deleteLog(Long logBaseId,Long userId) {
+
         LogBaseInfo logBaseInfo = logBaseInfoRepository.findById(logBaseId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
 
         validateLogBookOwnership(logBaseInfo, userId);
+
+        if (logBaseInfo.getLogBooks() == null || logBaseInfo.getLogBooks().isEmpty()) {
+            throw new BusinessException(ErrorCode.LOG_NOT_FOUND);
+        }
+
         logBaseInfoRepository.delete(logBaseInfo);
     }
 
@@ -156,6 +163,7 @@ public class LogBookService {
 
         // 모든 필드 덮어쓰기 (null도 그대로 반영)
         logBook.setPlace(dto.getPlace());
+        logBook.setSaveStatus(dto.getSaveStatus());
         logBook.setDivePoint(dto.getDivePoint());
         logBook.setDiveMethod(dto.getDiveMethod());
         logBook.setDivePurpose(dto.getDivePurpose());

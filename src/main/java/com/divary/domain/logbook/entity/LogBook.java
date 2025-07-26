@@ -8,6 +8,8 @@ import lombok.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Schema(description = "다이빙 로그 세부정보")
@@ -18,10 +20,18 @@ import java.time.LocalDate;
 @Setter
 public class LogBook extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "log_base_info_id")
     @Schema(description = "로그북의 기본정보 외래키", example = "1")
     private LogBaseInfo logBaseInfo;
+
+    @OneToMany(mappedBy = "logBook", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Schema(description = "동행자 리스트")
+    private List<Companion> companions = new ArrayList<>();
+
+    @Column(name = "save_status")
+    @Schema(description = "각 로그북의 저장 상태", example = "TEMP")
+    private SaveStatus saveStatus;
 
     @Column(name = "accumulation",nullable = false)
     @Schema(description = "누적 횟수", example = "3")
@@ -36,7 +46,7 @@ public class LogBook extends BaseEntity {
     private String divePoint;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "dive_type")
+    @Column(name = "dive_method")
     @Schema(description = "다이빙 방식", example = "보트")
     private DiveMethod diveMethod;
 

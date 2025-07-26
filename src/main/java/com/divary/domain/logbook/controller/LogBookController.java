@@ -80,7 +80,7 @@ public class LogBookController {
 
     @DeleteMapping("/{logBaseInfoId}")
     @SwaggerConfig.ApiSuccessResponse(dataType = void.class)
-    @SwaggerConfig.ApiErrorExamples(value = {ErrorCode.LOG_ACCESS_DENIED, ErrorCode.AUTHENTICATION_REQUIRED})
+    @SwaggerConfig.ApiErrorExamples(value = {ErrorCode.LOG_ACCESS_DENIED, ErrorCode.LOG_BASE_NOT_FOUND,ErrorCode.LOG_NOT_FOUND, ErrorCode.AUTHENTICATION_REQUIRED})
     @Operation(summary = "로그 삭제", description = "지정한 다이빙 로그를 삭제합니다.")
     public ApiResponse<Void> deleteLogBase
             (@PathVariable @Valid Long logBaseInfoId,

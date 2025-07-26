@@ -1,6 +1,7 @@
 package com.divary.domain.logbook.dto.response;
 
 import com.divary.domain.logbook.enums.IconType;
+import com.divary.domain.logbook.enums.SaveStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,5 +27,8 @@ public class LogBaseListResultDTO {
 
     @Schema(description = "베이스로그 id")
     private Long LogBaseInfoId;
+
+    @Schema(description = "로그북 저장 상태", example = "TEMP")
+    private SaveStatus saveStatus;
 
 }
