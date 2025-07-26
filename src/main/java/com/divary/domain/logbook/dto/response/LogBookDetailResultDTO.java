@@ -2,6 +2,7 @@ package com.divary.domain.logbook.dto.response;
 
 import com.divary.domain.logbook.entity.Companion;
 import com.divary.domain.logbook.entity.LogBook;
+import com.divary.domain.logbook.enums.SaveStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,10 +16,12 @@ import java.util.List;
 @AllArgsConstructor
 public class LogBookDetailResultDTO {
 
+    private Long LogBookId;
     private String name;
     private String icon;
     private LocalDate date;
 
+    private SaveStatus saveStatus;
     private int accumulation;
 
     private String place;
@@ -53,8 +56,10 @@ public class LogBookDetailResultDTO {
 
     public static LogBookDetailResultDTO from(LogBook logBook, List<Companion> companions) {
         return LogBookDetailResultDTO.builder()
+                .LogBookId(logBook.getId())
                 .name(logBook.getLogBaseInfo().getName())
                 .icon(logBook.getLogBaseInfo().getIconType().name())
+                .saveStatus(logBook.getSaveStatus())
                 .accumulation(logBook.getAccumulation())
                 .date(logBook.getLogBaseInfo().getDate())
                 .place(logBook.getPlace())

@@ -18,4 +18,6 @@ public interface LogBookRepository extends JpaRepository<LogBook,Long> {
     int countByLogBaseInfoMember(Member member);
 
     int countByLogBaseInfo(LogBaseInfo logBaseInfo);
+
+    void deleteByLogBaseInfo(LogBaseInfo logBaseInfo);
 }

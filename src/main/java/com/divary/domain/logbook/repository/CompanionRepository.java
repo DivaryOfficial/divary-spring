@@ -8,5 +8,8 @@ import java.util.List;
 
 public interface CompanionRepository extends JpaRepository<Companion, Long> {
     List<Companion> findByLogBook(LogBook logBook);
+
+    void deleteByLogBook(LogBook logBook);
+
 }
 
