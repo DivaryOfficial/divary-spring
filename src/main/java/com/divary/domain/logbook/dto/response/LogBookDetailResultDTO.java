@@ -15,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class LogBookDetailResultDTO {
 
+    private Long LogBookId;
     private String name;
     private String icon;
     private LocalDate date;
@@ -53,6 +54,7 @@ public class LogBookDetailResultDTO {
 
     public static LogBookDetailResultDTO from(LogBook logBook, List<Companion> companions) {
         return LogBookDetailResultDTO.builder()
+                .LogBookId(logBook.getId())
                 .name(logBook.getLogBaseInfo().getName())
                 .icon(logBook.getLogBaseInfo().getIconType().name())
                 .accumulation(logBook.getAccumulation())

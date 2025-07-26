@@ -41,4 +41,8 @@ public class LogBaseInfo extends BaseEntity {
     @Column(name = "save_status",nullable = false)
     @Schema(description = "저장 상태", example = "COMPLETE")
     private SaveStatus saveStatus = SaveStatus.COMPLETE;
+
+    public void updateName(String name) {
+        this.name = name;
+    }
 }
