@@ -1,7 +1,7 @@
 package com.divary.domain.notification.service;
 
-import com.divary.domain.Member.entity.Member;
-import com.divary.domain.Member.service.MemberService;
+import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.service.MemberService;
 import com.divary.domain.notification.dto.NotificationPatchRequestDTO;
 import com.divary.domain.notification.dto.NotificationResponseDTO;
 import com.divary.domain.notification.entity.Notification;

@@ -1,9 +1,9 @@
 package com.divary.domain.system.controller;
 
 import com.divary.common.response.ApiResponse;
-import com.divary.domain.Member.entity.Member;
-import com.divary.domain.Member.enums.Role;
-import com.divary.domain.Member.repository.MemberRepository;
+import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.enums.Role;
+import com.divary.domain.member.repository.MemberRepository;
 import com.divary.common.enums.SocialType;
 import com.divary.domain.image.enums.ImageType;
 import com.divary.domain.image.service.ImageService;

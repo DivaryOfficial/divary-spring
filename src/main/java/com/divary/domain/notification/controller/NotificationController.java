@@ -20,7 +20,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/notification")
-@RequiredArgsConstructor // jwt 필요시 작성
 public class NotificationController {
     private final NotificationService notificationService;
 

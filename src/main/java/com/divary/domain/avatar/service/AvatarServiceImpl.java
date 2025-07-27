@@ -1,7 +1,7 @@
 package com.divary.domain.avatar.service;
 
-import com.divary.domain.Member.entity.Member;
-import com.divary.domain.Member.service.MemberService;
+import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.service.MemberService;
 import com.divary.domain.avatar.dto.AvatarRequestDTO;
 import com.divary.domain.avatar.dto.AvatarResponseDTO;
 import com.divary.domain.avatar.entity.Avatar;
@@ -10,15 +10,6 @@ import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import com.divary.domain.avatar.enums.BodyColor;
-import com.divary.domain.avatar.enums.SpeechBubble;
-import com.divary.domain.avatar.enums.CheekColor;
-import com.divary.domain.avatar.enums.Mask;
-import com.divary.domain.avatar.enums.Regulator;
-import com.divary.domain.avatar.enums.Pin;
-import com.divary.domain.avatar.enums.Tank;
-import com.divary.domain.avatar.enums.BudyPet;
-import com.divary.domain.avatar.enums.Theme;
 
 @Service
 @RequiredArgsConstructor
