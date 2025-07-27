@@ -1,6 +1,6 @@
-package com.divary.domain.Member.service;
+package com.divary.domain.member.service;
 
-import com.divary.domain.Member.entity.Member;
+import com.divary.domain.member.entity.Member;
 
 public interface MemberService {
     Member findMemberByEmail(String email);

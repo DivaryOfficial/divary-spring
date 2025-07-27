@@ -1,6 +1,6 @@
 package com.divary.domain.logbase;
 
-import com.divary.domain.Member.entity.Member;
+import com.divary.domain.member.entity.Member;
 import com.divary.domain.logbase.logbook.enums.SaveStatus;
 import java.util.List;
 import java.util.Optional;

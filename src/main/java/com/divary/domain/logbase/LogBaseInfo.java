@@ -1,7 +1,7 @@
 package com.divary.domain.logbase;
 
 import com.divary.common.entity.BaseEntity;
-import com.divary.domain.Member.entity.Member;
+import com.divary.domain.member.entity.Member;
 import com.divary.domain.logbase.logbook.entity.LogBook;
 import com.divary.domain.logbase.logbook.enums.IconType;
 import com.divary.domain.logbase.logbook.enums.SaveStatus;

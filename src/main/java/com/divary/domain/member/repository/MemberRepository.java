@@ -1,6 +1,6 @@
-package com.divary.domain.Member.repository;
+package com.divary.domain.member.repository;
 
-import com.divary.domain.Member.entity.Member;
+import com.divary.domain.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
