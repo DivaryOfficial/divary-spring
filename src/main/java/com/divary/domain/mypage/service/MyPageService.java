@@ -10,10 +10,9 @@ import com.divary.domain.member.service.MemberService;
 import com.divary.domain.mypage.dto.requestDTO.MyPageImageRequestDTO;
 import com.divary.domain.mypage.dto.requestDTO.MyPageLevelRequestDTO;
 import com.divary.domain.mypage.dto.response.MyPageImageResponseDTO;
-import com.divary.global.config.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+
 
 @Service
 @RequiredArgsConstructor
@@ -31,9 +30,9 @@ public class MyPageService {
         member.setLevel(level);
     }
 
-    public MyPageImageResponseDTO uploadImage(ImageType type,MultipartFile image, Long userId) {
+    public MyPageImageResponseDTO uploadImage(ImageType type, MyPageImageRequestDTO requestDTO, Long userId) {
 
-        ImageResponse imageResponse = imageService.uploadImageByType(type, image, userId, additionalPath);
+        ImageResponse imageResponse = imageService.uploadImageByType(type, requestDTO.getImage(), userId, additionalPath);
 
         return new MyPageImageResponseDTO(imageResponse.getFileUrl());
     }
