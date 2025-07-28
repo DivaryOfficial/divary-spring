@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class ImageService {
 
     // 상수 정의
-    private static final int MAX_FILES_PER_UPLOAD = 10;
+    private static final int MAX_FILES_PER_UPLOAD = 10; // 최대 10개 업로드 가능
     private static final long MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
     private static final int TEMP_IMAGE_EXPIRY_HOURS = 24;
     private static Pattern tempUrlPattern = null;
@@ -121,8 +121,8 @@ public class ImageService {
                     .s3Key(s3Key)
                     .type(null)
                     .originalFilename(request.getFile().getOriginalFilename())
-                    .width(width)
-                    .height(height)
+                    .width(metadata.width)
+                    .height(metadata.height)
                     .userId(imagePathService.extractUserIdFromPath(request.getUploadPath()))
                     .build();
             
@@ -264,14 +264,22 @@ public class ImageService {
     // 본문에서 temp 이미지 URL 패턴 추출
     private List<String> extractTempImageUrls(String content) {
         if (tempUrlPattern == null) {
-            tempUrlPattern = Pattern.compile(imageStorageService.getTempImageUrlPattern(), Pattern.CASE_INSENSITIVE);
+            String pattern = imageStorageService.getTempImageUrlPattern();
+            log.info("temp URL 정규식 패턴: {}", pattern);
+            tempUrlPattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
         }
+        
+        log.info("컨텐츠에서 temp URL 추출 시도: {}", content);
         
         Matcher matcher = tempUrlPattern.matcher(content);
         List<String> tempUrls = new ArrayList<>();
         while (matcher.find()) {
-            tempUrls.add(matcher.group());
+            String foundUrl = matcher.group();
+            tempUrls.add(foundUrl);
+            log.info("temp URL 발견: {}", foundUrl);
         }
+        
+        log.info("총 발견된 temp URL 개수: {}", tempUrls.size());
         return tempUrls;
     }
 
@@ -333,7 +341,7 @@ public class ImageService {
     // 만료된 temp 이미지인지 확인
     private boolean isExpiredTempImage(Image image) {
         return isTempImage(image.getS3Key()) && 
-               image.getCreatedAt().isBefore(LocalDateTime.now().minusHours(TEMP_IMAGE_EXPIRY_HOURS));
+            image.getCreatedAt().isBefore(LocalDateTime.now().minusHours(TEMP_IMAGE_EXPIRY_HOURS));
     }
 
     // 공통 유틸리티 메서드들

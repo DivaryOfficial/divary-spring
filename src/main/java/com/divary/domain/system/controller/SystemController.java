@@ -5,6 +5,8 @@ import com.divary.domain.Member.entity.Member;
 import com.divary.domain.Member.enums.Role;
 import com.divary.domain.Member.repository.MemberRepository;
 import com.divary.common.enums.SocialType;
+import com.divary.domain.image.entity.ImageType;
+import com.divary.domain.image.service.ImageService;
 import com.divary.global.config.SwaggerConfig.ApiErrorExamples;
 import com.divary.global.config.security.jwt.JwtTokenProvider;
 import com.divary.global.exception.ErrorCode;
@@ -15,9 +17,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -25,13 +29,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Tag(name = "System", description = "시스템 관리 및 모니터링")
-@RestController
-@RequestMapping("/api/system")
+@Slf4j
+@Controller
+@RequestMapping("system")
 @RequiredArgsConstructor
 public class SystemController {
     private final DataSource dataSource;
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberRepository memberRepository;
+    private final ImageService imageService;
 
     @Operation(summary = "헬스 체크", description = "서비스 및 DB 상태를 확인합니다.")
     @ApiErrorExamples({
@@ -114,5 +120,56 @@ public class SystemController {
         );
         String token = jwtTokenProvider.generateToken(auth);
         return ApiResponse.success(token);
+    }
+
+    @PostMapping("/test/image-conversion")
+    @ResponseBody
+    public ImageConversionTestResponse testImageConversion(
+            @RequestParam("userId") Long userId,
+            @RequestParam("boardId") Long boardId,
+            @RequestParam("tempUrl") String tempUrl) {
+        
+        log.info("이미지 경로 변환 테스트 - 사용자: {}, 게시판: {}, temp URL: {}", userId, boardId, tempUrl);
+        
+        // temp URL이 포함된 테스트 컨텐츠 생성
+        String testContent = String.format("게시글 내용입니다.\n\n%s\n\n이미지가 포함된 내용입니다.", tempUrl);
+        
+        log.info("원본 컨텐츠: {}", testContent);
+        
+        // 게시글 타입으로 이미지 경로 변환 (temp -> test_post)
+        String processedContent = imageService.processContentAndMigrateImages(
+                testContent, 
+                ImageType.USER_TEST_POST, 
+                userId, 
+                String.valueOf(boardId)
+        );
+        
+        log.info("변환된 컨텐츠: {}", processedContent);
+        
+        boolean isConverted = !testContent.equals(processedContent);
+        
+        return ImageConversionTestResponse.builder()
+                .success(true)
+                .message(isConverted ? "이미지 경로가 성공적으로 변환되었습니다." : "변환할 temp 이미지가 없거나 변환에 실패했습니다.")
+                .userId(userId)
+                .boardId(boardId)
+                .originalTempUrl(tempUrl)
+                .originalContent(testContent)
+                .processedContent(processedContent)
+                .isConverted(isConverted)
+                .build();
+    }
+    // 테스트용 응답 DTO
+    @lombok.Builder
+    @lombok.Getter
+    public static class ImageConversionTestResponse {
+        private boolean success;
+        private String message;
+        private Long userId;
+        private Long boardId;
+        private String originalTempUrl;
+        private String originalContent;
+        private String processedContent;
+        private boolean isConverted;
     }
 }

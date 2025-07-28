@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/notification").authenticated()
                         .requestMatchers("/api/v1/chatrooms/**").authenticated()
+                        .requestMatchers("api/v1/images/upload/temp").authenticated()
                         .anyRequest().permitAll()
                 )
                 .exceptionHandling(exceptions -> exceptions

@@ -128,7 +128,7 @@ public class ImageStorageService {
     // 현재 S3 설정에 맞는 temp 이미지 URL 패턴 생성
     public String getTempImageUrlPattern() {
         return String.format(
-            "https://%s\\.s3\\.%s\\.amazonaws\\.com/users/\\\\d+/temp/[^\\\\s\"'<>]+\\\\.(jpg|jpeg|png|gif|webp)",
+            "https://%s\\.s3\\.%s\\.amazonaws\\.com/users/\\d+/temp/.*?\\.(jpg|jpeg|png|gif|webp)",
             java.util.regex.Pattern.quote(bucketName),
             java.util.regex.Pattern.quote(region)
         );
