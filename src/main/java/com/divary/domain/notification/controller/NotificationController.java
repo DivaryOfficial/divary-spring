@@ -25,8 +25,10 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @GetMapping
-    public ApiResponse<List<NotificationResponseDTO>> getNotification() {
-        List<NotificationResponseDTO> response = notificationService.getNotification();
+    @SwaggerConfig.ApiSuccessResponse(dataType = NotificationResponseDTO[].class)
+    @SwaggerConfig.ApiErrorExamples(value = {ErrorCode.NOTIFICAITION_NOT_FOUND, ErrorCode.AUTHENTICATION_REQUIRED})
+    public ApiResponse<List<NotificationResponseDTO>> getNotification(@AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+        List<NotificationResponseDTO> response = notificationService.getNotification(userPrincipal.getId());
         return ApiResponse.success(response);
     }
 

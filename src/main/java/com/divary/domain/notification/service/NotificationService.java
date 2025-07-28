@@ -20,8 +20,8 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final MemberService memberService;
 
-    public List<NotificationResponseDTO> getNotification() {
-        Long userId = 1L;
+    public List<NotificationResponseDTO> getNotification(Long userId) {
+
 
         Member receiver = memberService.findById(userId);
 
