@@ -13,6 +13,7 @@ import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.config.security.jwt.JwtTokenProvider;
 import com.divary.global.exception.ErrorCode;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -31,18 +32,18 @@ public class MyPageController {
     @Transactional
     @SwaggerConfig.ApiSuccessResponse(dataType = Void.class)
     @SwaggerConfig.ApiErrorExamples(value = {ErrorCode.INVALID_INPUT_VALUE, ErrorCode.AUTHENTICATION_REQUIRED})
-    public void updateLevel(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @RequestBody MyPageLevelRequestDTO requestDTO) {
+    public void updateLevel(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @Valid @RequestBody MyPageLevelRequestDTO requestDTO) {
         myPageService.updateLevel(userPrincipal.getId(), requestDTO);
     }
 
     @PostMapping(value ="/image/upload/{type}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @SwaggerConfig.ApiSuccessResponse(dataType = MyPageImageResponseDTO.class)
     @SwaggerConfig.ApiErrorExamples(value = {ErrorCode.INVALID_INPUT_VALUE, ErrorCode.AUTHENTICATION_REQUIRED})
-    public ApiResponse<MyPageImageResponseDTO> uploadImage(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @PathVariable("type") String type, @RequestPart("image") MultipartFile image) {
+    public ApiResponse<MyPageImageResponseDTO> uploadImage(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @PathVariable("type") String type, @Valid @ModelAttribute MyPageImageRequestDTO requestDTO) {
 
         ImageType imageType = EnumValidator.validateEnum(ImageType.class, type);
 
-        MyPageImageResponseDTO response = myPageService.uploadImage(imageType, image, userPrincipal.getId());
+        MyPageImageResponseDTO response = myPageService.uploadImage(imageType, requestDTO, userPrincipal.getId());
 
         return ApiResponse.success(response);
     }
