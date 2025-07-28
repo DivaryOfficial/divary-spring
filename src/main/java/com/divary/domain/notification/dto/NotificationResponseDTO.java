@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +14,9 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 public class NotificationResponseDTO {
+
+    @Schema(description = "알림 id", example = "1")
+    private Long id;
 
     @Schema(description = "타입", example = "시스템")
     private NotificationType type;
@@ -30,6 +34,7 @@ public class NotificationResponseDTO {
         String safeMessage = (notification.getMessage() != null) ? notification.getMessage() : "메시지가 존재하지 않습니다";
 
         return NotificationResponseDTO.builder()
+                .id(notification.getId())
                 .type(notification.getType())
                 .message(safeMessage)
                 .isRead(notification.getIsRead())
