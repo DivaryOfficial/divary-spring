@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/logs/{logId}/diary")
+@RequestMapping("/logs/{logBaseInfoId}/diary")
 @RequiredArgsConstructor
 @Tag(name = "Diary", description = "일기 API")
 public class DiaryController {
@@ -38,9 +38,9 @@ public class DiaryController {
             ErrorCode.DIARY_FORBIDDEN_ACCESS
     })
     public ApiResponse<DiaryResponse> createDiary(
-            @Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. diary 생성시 logId를 보내주세요.") @PathVariable Long logId,
+            @Parameter(description = "하나의 logBaseInfo당 하나의 diary가 매핑됩니다. diary 생성시 logBaseInfoId를 보내주세요.") @PathVariable  Long logBaseInfoId,
             @RequestBody DiaryRequest request, @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        return ApiResponse.success(diaryService.createDiary(userPrincipal.getId(), logId, request));
+        return ApiResponse.success(diaryService.createDiary(userPrincipal.getId(), logBaseInfoId, request));
     }
 
     @PutMapping
@@ -52,9 +52,9 @@ public class DiaryController {
             ErrorCode.DIARY_FORBIDDEN_ACCESS
     })
     public ApiResponse<DiaryResponse> updateDiary(
-            @Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. diary 수정시 logId를 보내주세요.") @PathVariable Long logId,
+            @Parameter(description = "하나의 logBaseInfo당 하나의 diary가 매핑됩니다. diary 생성시 logBaseInfoId를 보내주세요.") @PathVariable  Long logBaseInfoId,
             @RequestBody DiaryRequest request, @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        return ApiResponse.success(diaryService.updateDiary(userPrincipal.getId(), logId, request));
+        return ApiResponse.success(diaryService.updateDiary(userPrincipal.getId(), logBaseInfoId, request));
     }
 
     @GetMapping
@@ -65,8 +65,8 @@ public class DiaryController {
             ErrorCode.DIARY_FORBIDDEN_ACCESS
     })
     public ApiResponse<DiaryResponse> getDiary(
-            @Parameter(description = "하나의 log당 하나의 diary가 매핑됩니다. diary 조회시 logId를 보내주세요.", example = "1") @PathVariable Long logId,
+            @Parameter(description = "하나의 logBaseInfo당 하나의 diary가 매핑됩니다. diary 생성시 logBaseInfoId를 보내주세요.") @PathVariable  Long logBaseInfoId,
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        return ApiResponse.success(diaryService.getDiary(userPrincipal.getId(), logId));
+        return ApiResponse.success(diaryService.getDiary(userPrincipal.getId(), logBaseInfoId));
     }
 }
