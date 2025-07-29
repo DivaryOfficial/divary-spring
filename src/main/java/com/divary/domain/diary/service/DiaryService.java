@@ -78,13 +78,8 @@ public class DiaryService {
     }
 
     private Diary getDiaryWithAuth(Long logId, Long userId) {
-        // 다이어리가 존재하는지 확인
-        Diary diary = diaryRepository.findByLogBaseInfoId(logId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
-
-        // 찾으려는 다이어리에 유저가 접근 권한 있는지 확인
-        getLogBaseInfoWithAuth(logId, userId);
-        return diary;
+        return diaryRepository.findByLogBaseInfoIdAndMemberId(logId, userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_FORBIDDEN_ACCESS));
     }
 
 }
