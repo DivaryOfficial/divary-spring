@@ -10,6 +10,7 @@ import com.divary.domain.member.service.MemberService;
 import com.divary.domain.mypage.dto.requestDTO.MyPageImageRequestDTO;
 import com.divary.domain.mypage.dto.requestDTO.MyPageLevelRequestDTO;
 import com.divary.domain.mypage.dto.response.MyPageImageResponseDTO;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ public class MyPageService {
     String additionalPath = "qualifications";
 
 
+    @Transactional
     public void updateLevel(Long userId, MyPageLevelRequestDTO requestDTO) {
         Levels level = EnumValidator.validateEnum(Levels.class, requestDTO.getLevel().name());
 

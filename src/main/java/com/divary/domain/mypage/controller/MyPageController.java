@@ -8,19 +8,16 @@ import com.divary.domain.mypage.dto.requestDTO.MyPageImageRequestDTO;
 import com.divary.domain.mypage.dto.requestDTO.MyPageLevelRequestDTO;
 import com.divary.domain.mypage.dto.response.MyPageImageResponseDTO;
 import com.divary.domain.mypage.service.MyPageService;
-import com.divary.global.config.SwaggerConfig;
+import com.divary.global.config.SwaggerConfig.ApiSuccessResponse;
+import com.divary.global.config.SwaggerConfig.ApiErrorExamples;
 import com.divary.global.config.security.CustomUserPrincipal;
-import com.divary.global.config.security.jwt.JwtTokenProvider;
 import com.divary.global.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,16 +26,16 @@ public class MyPageController {
     private final MyPageService myPageService;
 
     @PatchMapping("/level")
-    @Transactional
-    @SwaggerConfig.ApiSuccessResponse(dataType = Void.class)
-    @SwaggerConfig.ApiErrorExamples(value = {ErrorCode.INVALID_INPUT_VALUE, ErrorCode.AUTHENTICATION_REQUIRED})
-    public void updateLevel(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @Valid @RequestBody MyPageLevelRequestDTO requestDTO) {
+    @ApiSuccessResponse(dataType = Void.class)
+    @ApiErrorExamples(value = {ErrorCode.INVALID_INPUT_VALUE, ErrorCode.AUTHENTICATION_REQUIRED})
+    public ApiResponse updateLevel(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @Valid @RequestBody MyPageLevelRequestDTO requestDTO) {
         myPageService.updateLevel(userPrincipal.getId(), requestDTO);
+        return ApiResponse.success(null);
     }
 
     @PostMapping(value ="/image/upload/{type}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @SwaggerConfig.ApiSuccessResponse(dataType = MyPageImageResponseDTO.class)
-    @SwaggerConfig.ApiErrorExamples(value = {ErrorCode.INVALID_INPUT_VALUE, ErrorCode.AUTHENTICATION_REQUIRED})
+    @ApiSuccessResponse(dataType = MyPageImageResponseDTO.class)
+    @ApiErrorExamples(value = {ErrorCode.INVALID_INPUT_VALUE, ErrorCode.AUTHENTICATION_REQUIRED})
     public ApiResponse<MyPageImageResponseDTO> uploadImage(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @PathVariable("type") String type, @Valid @ModelAttribute MyPageImageRequestDTO requestDTO) {
 
         ImageType imageType = EnumValidator.validateEnum(ImageType.class, type);
