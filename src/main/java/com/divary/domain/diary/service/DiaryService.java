@@ -77,8 +77,8 @@ public class DiaryService {
         return logBaseInfo;
     }
 
-    private Diary getDiaryWithAuth(Long logId, Long userId) {
-        return diaryRepository.findByLogBaseInfoIdAndMemberId(logId, userId)
+    private Diary getDiaryWithAuth(Long logBaseInfoId, Long userId) {
+        return diaryRepository.findByLogBaseInfoIdAndMemberId(logBaseInfoId, userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_FORBIDDEN_ACCESS));
     }
 
