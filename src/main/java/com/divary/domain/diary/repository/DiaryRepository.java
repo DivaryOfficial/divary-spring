@@ -9,9 +9,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
     @EntityGraph(attributePaths = {
-            "logBook",
-            "logBook.logBaseInfo",
-            "logBook.logBaseInfo.member"
+            "logBaseInfo",
+            "logBaseInfo.member"
     })
     boolean existsByLogBaseInfoId(Long logBaseInfoId);
 

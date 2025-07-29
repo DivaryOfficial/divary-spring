@@ -25,7 +25,7 @@ public class DiaryRequest {
                       {
                         "type": "image",
                         "data": {
-                          "s3Filename": "https://divary-file-bucket.s3....",
+                          "tempFilename": "https://divary-file-bucket.s3.../temp...",
                           "caption": "바다 거북이와 함께",
                           "frameColor": "0",
                           "date": "2025-07-24"
