@@ -25,12 +25,12 @@ public class DiaryService {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public DiaryResponse createDiary(Long userId, Long logId, DiaryRequest request) {
-        if (diaryRepository.existsByLogBaseInfoId(logId)) {
+    public DiaryResponse createDiary(Long userId, Long logBaseInfoId, DiaryRequest request) {
+        if (diaryRepository.existsByLogBaseInfoId(logBaseInfoId)) {
             throw new BusinessException(ErrorCode.DIARY_ALREADY_EXISTS);
         }
 
-        LogBaseInfo logBaseInfo = getLogBaseInfoWithAuth(logId, userId);
+        LogBaseInfo logBaseInfo = getLogBaseInfoWithAuth(logBaseInfoId, userId);
 
         String contentJson = toJson(request.getContents());
         Diary diary = Diary.builder()
@@ -43,16 +43,16 @@ public class DiaryService {
     }
 
     @Transactional
-    public DiaryResponse updateDiary(Long userId, Long logId, DiaryRequest request) {
-        Diary diary = getDiaryWithAuth(logId, userId);
+    public DiaryResponse updateDiary(Long userId, Long logBaseInfoId, DiaryRequest request) {
+        Diary diary = getDiaryWithAuth(logBaseInfoId, userId);
         String contentJson = toJson(request.getContents());
         diary.updateContent(contentJson);
         return DiaryResponse.from(diary);
     }
 
     @Transactional(readOnly = true)
-    public DiaryResponse getDiary(Long userId, Long logId) {
-        Diary diary = getDiaryWithAuth(logId, userId);
+    public DiaryResponse getDiary(Long userId, Long logBaseInfoId) {
+        Diary diary = getDiaryWithAuth(logBaseInfoId, userId);
         return DiaryResponse.from(diary);
     }
 
@@ -64,9 +64,9 @@ public class DiaryService {
         }
     }
 
-    private LogBaseInfo getLogBaseInfoWithAuth(Long logId, Long userId) {
+    private LogBaseInfo getLogBaseInfoWithAuth(Long logBaseInfoId, Long userId) {
         // 로그북 베이스가 존재하는지 확인
-        LogBaseInfo logBaseInfo = logBaseInfoRepository.findById(logId)
+        LogBaseInfo logBaseInfo = logBaseInfoRepository.findById(logBaseInfoId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_NOT_FOUND));
 
         // 로그북 베이스를 작성한 유저가 일기 작성 요청을 보내는 유저인지 확인
