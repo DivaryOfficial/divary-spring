@@ -19,47 +19,31 @@ public class AvatarServiceImpl implements AvatarService {
     private final MemberService memberService;
 
     @Override
-    public void patchAvatar(Long userId, AvatarRequestDTO avatarRequestDTO) {
+    public void upsertAvatar(Long userId, AvatarRequestDTO avatarRequestDTO) {
 
         Member user = memberService.findById(userId);
         Avatar avatar = avatarRepository.findByUser(user)
-                .orElseThrow(() -> new BusinessException(ErrorCode.AVATAR_NOT_FOUND));
+                .orElse(Avatar.builder()
+                        .user(user)
+                        .build());
 
-        if (avatarRequestDTO.getName() != null) {
-            avatar.setName(avatarRequestDTO.getName());
-        }
-        if (avatarRequestDTO.getTank() != null) {
-            avatar.setTank(avatarRequestDTO.getTank());
-        }
-        if (avatarRequestDTO.getBodyColor() != null) {
-            avatar.setBodyColor(avatarRequestDTO.getBodyColor());
-        }
-        if (avatarRequestDTO.getBuddyPetInfo() != null) {
-            avatar.setBudyPet(avatarRequestDTO.getBuddyPetInfo().getBudyPet());
-            avatar.setPetRotation(avatarRequestDTO.getBuddyPetInfo().getRotation());
-            avatar.setPetScale(avatarRequestDTO.getBuddyPetInfo().getScale());
-        }
-        if (avatarRequestDTO.getBubbleText() != null) {
-            avatar.setBubbleText(avatarRequestDTO.getBubbleText());
-        }
-        if (avatarRequestDTO.getCheekColor() != null) {
-            avatar.setCheekColor(avatarRequestDTO.getCheekColor());
-        }
-        if (avatarRequestDTO.getSpeechBubble() != null) {
-            avatar.setSpeechBubble(avatarRequestDTO.getSpeechBubble());
-        }
-        if (avatarRequestDTO.getMask() != null) {
-            avatar.setMask(avatarRequestDTO.getMask());
-        }
-        if (avatarRequestDTO.getPin() != null) {
-            avatar.setPin(avatarRequestDTO.getPin());
-        }
-        if (avatarRequestDTO.getRegulator() != null) {
-            avatar.setRegulator(avatarRequestDTO.getRegulator());
-        }
-        if (avatarRequestDTO.getTheme() != null) {
-            avatar.setTheme(avatarRequestDTO.getTheme());
-        }
+        avatar.setName(avatarRequestDTO.getName());
+        avatar.setTank(avatarRequestDTO.getTank());
+        avatar.setBodyColor(avatarRequestDTO.getBodyColor());
+
+        avatar.setBudyPet(avatarRequestDTO.getBuddyPetInfo().getBudyPet());
+        avatar.setPetRotation(avatarRequestDTO.getBuddyPetInfo().getRotation());
+        avatar.setPetScale(avatarRequestDTO.getBuddyPetInfo().getScale());
+
+        avatar.setBubbleText(avatarRequestDTO.getBubbleText());
+        avatar.setCheekColor(avatarRequestDTO.getCheekColor());
+        avatar.setSpeechBubble(avatarRequestDTO.getSpeechBubble());
+        avatar.setMask(avatarRequestDTO.getMask());
+        avatar.setPin(avatarRequestDTO.getPin());
+        avatar.setRegulator(avatarRequestDTO.getRegulator());
+        avatar.setTheme(avatarRequestDTO.getTheme());
+
+        avatarRepository.save(avatar);
 
         avatarRepository.save(avatar);
 

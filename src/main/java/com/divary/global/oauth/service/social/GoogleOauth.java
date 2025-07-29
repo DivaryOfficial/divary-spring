@@ -78,7 +78,7 @@ public class GoogleOauth implements SocialOauth {
                     .socialType(SocialType.GOOGLE)
                     .role(Role.USER)
                     .build());
-            avatarService.createDefaultAvatarForMember(member); // 추후 upsert로 바꿔볼 예정
+            
         }
 
 

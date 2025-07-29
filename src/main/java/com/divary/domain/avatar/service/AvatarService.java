@@ -7,7 +7,7 @@ import com.divary.domain.avatar.entity.Avatar;
 
 
 public interface AvatarService {
-    void patchAvatar(Long userId, AvatarRequestDTO avatarRequestDTO);
+    void upsertAvatar(Long userId, AvatarRequestDTO avatarRequestDTO);
 
     AvatarResponseDTO getAvatar(Long userId);
 
