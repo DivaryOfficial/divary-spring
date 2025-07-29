@@ -58,11 +58,6 @@ public class LogBookService {
                 .LogBaseInfoId(saved.getId())
                 .build();
     }
-    private void validateLogBookOwnership(LogBaseInfo logBaseInfo, Long userId) {
-        if (!logBaseInfo.getMember().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.LOG_ACCESS_DENIED);
-        }
-    }//로그인한 사용자가 자신의 로그북만 접근 가능하도록 검증
 
     @Transactional
     public List<LogBaseListResultDTO> getLogBooksByYearAndStatus(int year, SaveStatus status, Long userId) {
@@ -114,10 +109,8 @@ public class LogBookService {
     @Transactional
     public LogDetailCreateResultDTO createLogDetail(Long logBaseInfoId, Long userId) {
 
-        LogBaseInfo base = logBaseInfoRepository.findById(logBaseInfoId)
+        LogBaseInfo base = logBaseInfoRepository.findByIdAndMemberId(logBaseInfoId, userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
-
-        validateLogBookOwnership(base,userId);
 
         // 연결된 기존의 로그북 개수 확인
         if (logBookRepository.countByLogBaseInfo(base) >= 3) {
@@ -141,10 +134,9 @@ public class LogBookService {
     @Transactional
     public void deleteLog(Long logBaseId,Long userId) {
 
-        LogBaseInfo logBaseInfo = logBaseInfoRepository.findById(logBaseId)
+        LogBaseInfo logBaseInfo = logBaseInfoRepository.findByIdAndMemberId(logBaseId, userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
 
-        validateLogBookOwnership(logBaseInfo, userId);
 
         if (logBaseInfo.getLogBooks() == null || logBaseInfo.getLogBooks().isEmpty()) {
             throw new BusinessException(ErrorCode.LOG_NOT_FOUND);
@@ -156,10 +148,9 @@ public class LogBookService {
     @Transactional
     public LogDetailPutResultDTO updateLogBook(Long userId, Long logBookId, LogDetailPutRequestDTO dto) {
 
-        LogBook logBook = logBookRepository.findById(logBookId)
+        LogBook logBook = logBookRepository.findByIdAndLogBaseInfoMemberId(logBookId, userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_NOT_FOUND));
 
-        validateLogBookOwnership(logBook.getLogBaseInfo(),userId);
 
         // 모든 필드 덮어쓰기 (null도 그대로 반영)
         logBook.setPlace(dto.getPlace());
@@ -221,10 +212,8 @@ public class LogBookService {
     @Transactional
     public void updateLogName(Long logBaseInfoId, Long userId, String name){
 
-        LogBaseInfo logBaseInfo = logBaseInfoRepository.findById(logBaseInfoId)
+        LogBaseInfo logBaseInfo = logBaseInfoRepository.findByIdAndMemberId(logBaseInfoId, userId)
                 .orElseThrow(()->new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
-
-        validateLogBookOwnership(logBaseInfo,userId);
 
         logBaseInfo.updateName(name);
 

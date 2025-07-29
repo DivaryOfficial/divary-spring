@@ -18,4 +18,6 @@ public interface LogBaseInfoRepository extends JpaRepository<LogBaseInfo, Long> 
     @Query("SELECT l FROM LogBaseInfo l WHERE YEAR(l.date) = :year AND l.member = :member ORDER BY l.date DESC")
     List<LogBaseInfo> findByYearAndMember(@Param("year") int year, @Param("member") Member member);
 
+    Optional<LogBaseInfo> findByIdAndMemberId(Long id, Long memberId);
+
 }

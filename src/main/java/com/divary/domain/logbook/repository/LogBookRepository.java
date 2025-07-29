@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface LogBookRepository extends JpaRepository<LogBook,Long> {
 
@@ -19,5 +20,7 @@ public interface LogBookRepository extends JpaRepository<LogBook,Long> {
 
     int countByLogBaseInfo(LogBaseInfo logBaseInfo);
 
-    void deleteByLogBaseInfo(LogBaseInfo logBaseInfo);
+    Optional<LogBook> findByIdAndLogBaseInfoMemberId(Long logBookId, Long memberId);
+
+
 }
