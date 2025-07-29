@@ -11,6 +11,7 @@ import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -37,10 +38,11 @@ public class NotificationService {
 
     }
 
-    public void patchIsRead(Long userId, NotificationPatchRequestDTO patchRequestDTO) {
-        Member receiver = memberService.findById(userId);
+    @Transactional
+    public void patchIsRead(NotificationPatchRequestDTO patchRequestDTO) {
 
-        Notification notification = notificationRepository.findByReceiverAndId(receiver, patchRequestDTO.getId());
+        Notification notification = notificationRepository.findById(patchRequestDTO.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTIFICAITION_NOT_FOUND));
 
         notification.setIsRead(true);
 
