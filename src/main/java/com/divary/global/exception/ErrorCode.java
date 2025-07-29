@@ -17,9 +17,15 @@ public enum ErrorCode {
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "VALIDATION_001", "입력값 검증에 실패했습니다."),
     REQUIRED_FIELD_MISSING(HttpStatus.BAD_REQUEST, "VALIDATION_002", "필수 필드가 누락되었습니다."),
 
-
+    // 해양도감 관련 에러코드
     CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_001", "해당 카드에 대한 정보를 찾을 수 없습니다."),
     TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_002", "존재하지 않는 종류입니다."),
+
+    // 다이어리 관련 에러코드
+    DIARY_NOT_FOUND(HttpStatus.NOT_FOUND, "DIARY_001", "해당 로그의 다이어리를 찾을 수 없습니다."),
+    DIARY_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "DIARY_002", "해당 로그는 이미 다이어리가 존재합니다."),
+    INVALID_JSON_FORMAT(HttpStatus.BAD_REQUEST, "DIARY_003", "일기 콘텐츠의 JSON 구조가 잘못되었습니다."),
+    DIARY_FORBIDDEN_ACCESS(HttpStatus.FORBIDDEN, "FORBIDDEN_001", "접근 권한이 없습니다."),
 
     //로그북 관련 에러코드
     LOG_BASE_NOT_FOUND(HttpStatus.NOT_FOUND, "LOGBOOK_001", "해당 날짜에는 로그북을 찾을 수 없습니다."),
