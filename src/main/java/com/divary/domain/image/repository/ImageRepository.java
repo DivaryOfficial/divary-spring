@@ -25,4 +25,10 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
     
     // S3 키가 특정 패턴으로 시작하는 이미지 목록 조회
     List<Image> findByS3KeyStartingWith(String s3KeyPrefix);
+    
+    // 특정 타입과 게시글 ID로 이미지 조회
+    List<Image> findByTypeAndPostId(ImageType type, Long postId);
+    
+    // postId가 null인 temp 이미지들 조회
+    List<Image> findByPostIdIsNull();
 } 

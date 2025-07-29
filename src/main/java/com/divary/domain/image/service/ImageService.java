@@ -76,7 +76,7 @@ public class ImageService {
             // S3 업로드
             imageStorageService.uploadToS3(tempS3Key, file);
             
-            // DB 저장
+            // DB 저장 (temp 이미지는 postId null)
             Image tempImage = Image.builder()
                     .s3Key(tempS3Key)
                     .type(null)
@@ -84,6 +84,7 @@ public class ImageService {
                     .width(metadata.width)
                     .height(metadata.height)
                     .userId(userId)
+                    .postId(null)
                     .build();
             
             Image savedImage = imageRepository.save(tempImage);
@@ -124,6 +125,7 @@ public class ImageService {
                     .width(metadata.width)
                     .height(metadata.height)
                     .userId(imagePathService.extractUserIdFromPath(request.getUploadPath()))
+                    .postId(null)
                     .build();
             
             Image savedImage = imageRepository.save(image);
@@ -285,7 +287,7 @@ public class ImageService {
 
     // temp URL을 permanent URL로 이동 처리
     private String migrateTempImageByUrl(String tempUrl, ImageType imageType, Long userId, String additionalPath) {
-        String tempS3Key = extractS3KeyFromUrl(tempUrl);
+        String tempS3Key = imageStorageService.extractS3KeyFromUrl(tempUrl);
         
         Image tempImage = imageRepository.findByS3Key(tempS3Key)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
@@ -307,22 +309,13 @@ public class ImageService {
         
         tempImage.updateS3Key(newS3Key);
         tempImage.updateType(imageType);
+        tempImage.updatePostId(Long.parseLong(additionalPath)); // postId 설정
+        
+        log.info("temp → permanent 이동 완료: imageId={}, postId={}", tempImage.getId(), additionalPath);
         
         return imageStorageService.generatePublicUrl(newS3Key);
     }
 
-    // 이미지 URL에서 S3 키 추출
-    private String extractS3KeyFromUrl(String imageUrl) {
-        try {
-            String[] parts = imageUrl.split(".amazonaws.com/", 2);
-            if (parts.length == 2) {
-                return parts[1];
-            }
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
-        } catch (Exception e) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-    }
 
     // 본문의 temp URL을 permanent URL로 교체
     private String replaceTempUrls(String content, Map<String, String> urlMappings) {
@@ -342,6 +335,58 @@ public class ImageService {
     private boolean isExpiredTempImage(Image image) {
         return isTempImage(image.getS3Key()) && 
             image.getCreatedAt().isBefore(LocalDateTime.now().minusHours(TEMP_IMAGE_EXPIRY_HOURS));
+    }
+
+    // 게시글 수정 시 삭제된 이미지 처리
+    @Transactional
+    public void processDeletedImagesAfterPostUpdate(ImageType imageType, Long postId, String newContent) {
+        // 현재 게시글에 연결된 이미지 목록 조회
+        List<Image> currentImages = imageRepository.findByTypeAndPostId(imageType, postId);
+        
+        if (currentImages.isEmpty()) {
+            return;
+        }
+        
+        // 새 컨텐츠에서 이미지 URL 추출
+        List<String> newImageUrls = extractAllImageUrls(newContent);
+        
+        // 삭제할 이미지 찾기 (현재 DB에는 있지만 새 컨텐츠에는 없는 이미지)
+        List<Image> imagesToDelete = currentImages.stream()
+                .filter(image -> {
+                    String imageUrl = imageStorageService.generatePublicUrl(image.getS3Key());
+                    return !newImageUrls.contains(imageUrl);
+                })
+                .collect(Collectors.toList());
+        
+        // 삭제 처리
+        for (Image imageToDelete : imagesToDelete) {
+            try {
+                deleteImage(imageToDelete.getId());
+                log.info("게시글 수정으로 인한 이미지 삭제: imageId={}, postId={}, imageType={}", 
+                        imageToDelete.getId(), postId, imageType);
+            } catch (Exception e) {
+                log.error("이미지 삭제 실패: imageId={}, postId={}", imageToDelete.getId(), postId, e);
+            }
+        }
+    }
+    
+    // 컨텐츠에서 모든 이미지 URL 추출 (temp 이미지뿐만 아니라 permanent 이미지도)
+    private List<String> extractAllImageUrls(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        String allImagePattern = imageStorageService.getAllImageUrlPattern();
+        Pattern pattern = Pattern.compile(allImagePattern, Pattern.CASE_INSENSITIVE);
+        
+        Matcher matcher = pattern.matcher(content);
+        List<String> imageUrls = new ArrayList<>();
+        while (matcher.find()) {
+            imageUrls.add(matcher.group());
+        }
+        
+        log.debug("컨텐츠에서 추출된 이미지 URL 개수: {}", imageUrls.size());
+        return imageUrls;
     }
 
     // 공통 유틸리티 메서드들

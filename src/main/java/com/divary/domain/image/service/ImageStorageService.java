@@ -125,13 +125,37 @@ public class ImageStorageService {
         return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, s3Key);
     }
 
-    // 현재 S3 설정에 맞는 temp 이미지 URL 패턴 생성
-    public String getTempImageUrlPattern() {
+    // S3 이미지 URL 패턴 생성 (공통 베이스 메서드)
+    private String getS3ImageUrlPattern(String pathPattern) {
         return String.format(
-            "https://%s\\.s3\\.%s\\.amazonaws\\.com/users/\\d+/temp/.*?\\.(jpg|jpeg|png|gif|webp)",
+            "https://%s\\.s3\\.%s\\.amazonaws\\.com/%s\\.(jpg|jpeg|png|gif|webp)",
             java.util.regex.Pattern.quote(bucketName),
-            java.util.regex.Pattern.quote(region)
+            java.util.regex.Pattern.quote(region),
+            pathPattern
         );
+    }
+
+    // temp 이미지 URL 패턴 생성
+    public String getTempImageUrlPattern() {
+        return getS3ImageUrlPattern("users/\\\\d+/temp/.*?");
+    }
+
+    // 모든 이미지 URL 패턴 생성 (temp + permanent)
+    public String getAllImageUrlPattern() {
+        return getS3ImageUrlPattern("[^\\\\s\"'<>]+");
+    }
+
+    // S3 URL에서 S3 키 추출
+    public String extractS3KeyFromUrl(String imageUrl) {
+        try {
+            String[] parts = imageUrl.split(".amazonaws.com/", 2);
+            if (parts.length == 2) {
+                return parts[1];
+            }
+            throw new IllegalArgumentException("Invalid S3 URL format: " + imageUrl);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to extract S3 key from URL: " + imageUrl, e);
+        }
     }
 
     // 고유한 파일명 생성
