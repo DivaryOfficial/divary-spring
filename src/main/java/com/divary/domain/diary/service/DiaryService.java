@@ -4,8 +4,8 @@ import com.divary.domain.diary.dto.DiaryRequest;
 import com.divary.domain.diary.dto.DiaryResponse;
 import com.divary.domain.diary.entity.Diary;
 import com.divary.domain.diary.repository.DiaryRepository;
-import com.divary.domain.logbook.entity.LogBook;
-import com.divary.domain.logbook.repository.LogBookRepository;
+import com.divary.domain.logbook.entity.LogBaseInfo;
+import com.divary.domain.logbook.repository.LogBaseInfoRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,24 +18,23 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class DiaryService {
 
     private final DiaryRepository diaryRepository;
-    private final LogBookRepository logBookRepository;
+    private final LogBaseInfoRepository logBaseInfoRepository;
     private final ObjectMapper objectMapper;
 
     @Transactional
     public DiaryResponse createDiary(Long userId, Long logId, DiaryRequest request) {
-        if (diaryRepository.existsByLogBookId(logId)) {
+        if (diaryRepository.existsByLogBaseInfoId(logId)) {
             throw new BusinessException(ErrorCode.DIARY_ALREADY_EXISTS);
         }
 
-        LogBook logbook = getLogBookWithAuth(logId, userId);
+        LogBaseInfo logBaseInfo = getLogBaseInfoWithAuth(logId, userId);
 
         String contentJson = toJson(request.getContents());
         Diary diary = Diary.builder()
-                .logBook(logbook)
+                .logBaseInfo(logBaseInfo)
                 .contentJson(contentJson)
                 .build();
 
@@ -65,24 +64,26 @@ public class DiaryService {
         }
     }
 
-    private LogBook getLogBookWithAuth(Long logId, Long userId) {
-        // 로그가 존재하는지 확인
-        LogBook logBook = logBookRepository.findById(logId)
+    private LogBaseInfo getLogBaseInfoWithAuth(Long logId, Long userId) {
+        // 로그북 베이스가 존재하는지 확인
+        LogBaseInfo logBaseInfo = logBaseInfoRepository.findById(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_NOT_FOUND));
 
-        // 로그를 작성한 유저가 일기 작성 요청을 보내는 유저인지 확인
-        if (!logBook.getLogBaseInfo().getMember().getId().equals(userId)) {
+        // 로그북 베이스를 작성한 유저가 일기 작성 요청을 보내는 유저인지 확인
+        if (!logBaseInfo.getMember().getId().equals(userId)) {
             throw new BusinessException(ErrorCode.DIARY_FORBIDDEN_ACCESS);
         }
 
-        return logBook;
+        return logBaseInfo;
     }
 
     private Diary getDiaryWithAuth(Long logId, Long userId) {
-        Diary diary = diaryRepository.findByLogBookId(logId)
+        // 다이어리가 존재하는지 확인
+        Diary diary = diaryRepository.findByLogBaseInfoId(logId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.DIARY_NOT_FOUND));
 
-        getLogBookWithAuth(logId, userId);
+        // 찾으려는 다이어리에 유저가 접근 권한 있는지 확인
+        getLogBaseInfoWithAuth(logId, userId);
         return diary;
     }
 

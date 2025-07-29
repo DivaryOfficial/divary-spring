@@ -2,13 +2,26 @@ package com.divary.domain.logbook.entity;
 
 import com.divary.common.entity.BaseEntity;
 import com.divary.domain.Member.entity.Member;
+import com.divary.domain.diary.entity.Diary;
 import com.divary.domain.logbook.enums.IconType;
 import com.divary.domain.logbook.enums.SaveStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
-import lombok.*;
-
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import java.time.LocalDate;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Schema(description = "다이빙 로그 기본정보")
@@ -18,6 +31,8 @@ import java.time.LocalDate;
 @Entity
 @Setter
 public class LogBaseInfo extends BaseEntity {
+    @OneToOne(mappedBy = "logBaseInfo", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private Diary diary;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "member_id", nullable = false)

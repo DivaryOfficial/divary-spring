@@ -11,6 +11,6 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
             "logBook.logBaseInfo",
             "logBook.logBaseInfo.member"
     })
-    Optional<Diary> findByLogBookId(Long logId);
-    boolean existsByLogBookId(Long logId);
+    Optional<Diary> findByLogBaseInfoId(Long logBaseInfoId);
+    boolean existsByLogBaseInfoId(Long logBaseInfoId);
 }

@@ -1,7 +1,7 @@
 package com.divary.domain.diary.entity;
 
 import com.divary.common.entity.BaseEntity;
-import com.divary.domain.logbook.entity.LogBook;
+import com.divary.domain.logbook.entity.LogBaseInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,14 +22,14 @@ import lombok.NoArgsConstructor;
 public class Diary extends BaseEntity {
 
     @Builder
-    public Diary(LogBook logBook, String contentJson) {
-        this.logBook = logBook;
+    public Diary(LogBaseInfo logBaseInfo, String contentJson) {
+        this.logBaseInfo = logBaseInfo;
         this.contentJson = contentJson;
     }
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "log_id", nullable = false, unique = true)
-    private LogBook logBook;
+    @JoinColumn(name = "logBaseInfo_id", nullable = false, unique = true)
+    private LogBaseInfo logBaseInfo;
 
     @Column(name = "content_json", columnDefinition = "LONGTEXT")
     @Schema(description = "일기 콘텐츠")

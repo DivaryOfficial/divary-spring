@@ -32,7 +32,7 @@ public class DiaryResponse {
 
         return DiaryResponse.builder()
                 .diaryId(diary.getId())
-                .logId(diary.getLogBook().getId())
+                .logId(diary.getLogBaseInfo().getId())
                 .contents(contents)
                 .build();
     }
