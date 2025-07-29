@@ -22,12 +22,15 @@ public class Avatar extends BaseEntity {
     private String name;
 
     @Builder.Default
-    @Column(nullable = false, name = "body_color")
+    @Column(nullable = false,name = "body_color")
     @Enumerated(EnumType.STRING)
     private BodyColor bodyColor = BodyColor.IVORY;
 
+    @Column(name = "buble_text")
+    private String bubbleText;
+
     @Builder.Default
-    @Column(nullable = false, name = "eye_color")
+    @Column(nullable = false, name = "speechBubble")
     @Enumerated(EnumType.STRING)
     private SpeechBubble speechBubble = SpeechBubble.NONE;
 
@@ -56,6 +59,12 @@ public class Avatar extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "budy_pet")
     private BudyPet budyPet = BudyPet.NONE;
+
+    @Column(name = "pet_rotation")
+    private Double petRotation;
+
+    @Column(name = "pet_scale")
+    private Double petScale;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)

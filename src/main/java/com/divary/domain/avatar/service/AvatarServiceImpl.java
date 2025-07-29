@@ -4,21 +4,13 @@ import com.divary.domain.Member.entity.Member;
 import com.divary.domain.Member.service.MemberService;
 import com.divary.domain.avatar.dto.AvatarRequestDTO;
 import com.divary.domain.avatar.dto.AvatarResponseDTO;
+import com.divary.domain.avatar.dto.BuddyPetInfoDTO;
 import com.divary.domain.avatar.entity.Avatar;
 import com.divary.domain.avatar.repository.AvatarRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import com.divary.domain.avatar.enums.BodyColor;
-import com.divary.domain.avatar.enums.SpeechBubble;
-import com.divary.domain.avatar.enums.CheekColor;
-import com.divary.domain.avatar.enums.Mask;
-import com.divary.domain.avatar.enums.Regulator;
-import com.divary.domain.avatar.enums.Pin;
-import com.divary.domain.avatar.enums.Tank;
-import com.divary.domain.avatar.enums.BudyPet;
-import com.divary.domain.avatar.enums.Theme;
 
 @Service
 @RequiredArgsConstructor
@@ -27,9 +19,9 @@ public class AvatarServiceImpl implements AvatarService {
     private final MemberService memberService;
 
     @Override
-    public void patchAvatar(AvatarRequestDTO avatarRequestDTO) {
+    public void patchAvatar(Long userId, AvatarRequestDTO avatarRequestDTO) {
 
-        Member user = memberService.findById(1L); //임시
+        Member user = memberService.findById(userId);
         Avatar avatar = avatarRepository.findByUser(user)
                 .orElseThrow(() -> new BusinessException(ErrorCode.AVATAR_NOT_FOUND));
 
@@ -42,8 +34,13 @@ public class AvatarServiceImpl implements AvatarService {
         if (avatarRequestDTO.getBodyColor() != null) {
             avatar.setBodyColor(avatarRequestDTO.getBodyColor());
         }
-        if (avatarRequestDTO.getBudyPet() != null) {
-            avatar.setBudyPet(avatarRequestDTO.getBudyPet());
+        if (avatarRequestDTO.getBuddyPetInfo() != null) {
+            avatar.setBudyPet(avatarRequestDTO.getBuddyPetInfo().getBudyPet());
+            avatar.setPetRotation(avatarRequestDTO.getBuddyPetInfo().getRotation());
+            avatar.setPetScale(avatarRequestDTO.getBuddyPetInfo().getScale());
+        }
+        if (avatarRequestDTO.getBubbleText() != null) {
+            avatar.setBubbleText(avatarRequestDTO.getBubbleText());
         }
         if (avatarRequestDTO.getCheekColor() != null) {
             avatar.setCheekColor(avatarRequestDTO.getCheekColor());
@@ -69,15 +66,24 @@ public class AvatarServiceImpl implements AvatarService {
     }
 
     @Override
-    public AvatarResponseDTO getAvatar(){
-        Member user = memberService.findById(1L);
+    public AvatarResponseDTO getAvatar(Long userId){
+        Member user = memberService.findById(userId);
 
         Avatar avatar = avatarRepository.findByUser(user).orElseThrow(()-> new BusinessException(ErrorCode.AVATAR_NOT_FOUND)); //로그인  merge되면 MemberNotFound로 변경
+
+        BuddyPetInfoDTO buddyPetInfo = BuddyPetInfoDTO.builder()
+                .budyPet(avatar.getBudyPet())
+                .rotation(avatar.getPetRotation())
+                .scale(avatar.getPetScale())
+                .build();
+
         return AvatarResponseDTO.builder()
                 .name(avatar.getName())
                 .tank(avatar.getTank())
                 .bodyColor(avatar.getBodyColor())
                 .budyPet(avatar.getBudyPet())
+                .bubbleText(avatar.getBubbleText())
+                .buddyPetInfo(buddyPetInfo)
                 .cheekColor(avatar.getCheekColor())
                 .speechBubble(avatar.getSpeechBubble())
                 .mask(avatar.getMask())
