@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 public class AvatarRequestDTO {
     @Schema(description = "아바타 이름", example = "아진봇", nullable = true)
@@ -17,19 +19,23 @@ public class AvatarRequestDTO {
     )
     private String name;
 
-    @Schema(description = "탱크 색깔", example = "WHITE", nullable = true)
+    @Schema(description = "탱크 색깔", example = "YELLOW", nullable = true)
     private Tank tank;
 
     @Schema(description = "몸 색상", example = "IVORY", nullable = true)
     private BodyColor bodyColor;
 
-    @Schema(description = "버디펫", example = "AXOLOTL", nullable = true)
-    private BudyPet budyPet;
+    @Schema(description = "버디펫 정보 리스트", nullable = true)
+    private BuddyPetInfoDTO buddyPetInfo;
+
+
+    @Schema(description = "말풍선 텍스트", example = "Hi i'm buddy", nullable = true)
+    private String bubbleText;
 
     @Schema(description = "볼 색상", example = "PINK", nullable = true)
     private CheekColor cheekColor;
 
-    @Schema(description = "말풍선 타입", example = "WHITE", nullable = true) //임시 enum 값 바꿔야 함
+    @Schema(description = "말풍선 타입", example = "NONE", nullable = true)
     private SpeechBubble speechBubble;
 
     @Schema(description = "마스크 샐깔", example = "WHITE", nullable = true)

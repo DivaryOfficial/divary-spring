@@ -6,9 +6,9 @@ import com.divary.domain.avatar.dto.AvatarResponseDTO;
 
 
 public interface AvatarService {
-    void patchAvatar(AvatarRequestDTO avatarRequestDTO);
+    void patchAvatar(Long userId, AvatarRequestDTO avatarRequestDTO);
 
-    AvatarResponseDTO getAvatar();
+    AvatarResponseDTO getAvatar(Long userId);
 
     void createDefaultAvatarForMember(Member member);
 }
