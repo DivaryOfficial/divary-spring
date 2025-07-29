@@ -20,12 +20,12 @@ import org.springframework.web.bind.annotation.*;
 public class AvatarController {
     private final AvatarService avatarService;
 
-    @PatchMapping
+    @PutMapping
     @Operation(summary = "아바타 저장", description = "아바타를 저장합니다")
     @SwaggerConfig.ApiSuccessResponse(dataType = Void.class)
     @SwaggerConfig.ApiErrorExamples(value = {ErrorCode.AVATAR_NOT_FOUND, ErrorCode.AUTHENTICATION_REQUIRED})
     public ApiResponse saveAvatar(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @RequestBody @Valid AvatarRequestDTO avatarRequestDTO) {
-        avatarService.patchAvatar(userPrincipal.getId(), avatarRequestDTO);
+        avatarService.upsertAvatar(userPrincipal.getId(), avatarRequestDTO);
         return ApiResponse.success(null);
     }
 

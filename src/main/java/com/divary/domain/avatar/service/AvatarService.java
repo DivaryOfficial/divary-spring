@@ -6,7 +6,7 @@ import com.divary.domain.avatar.dto.AvatarResponseDTO;
 
 
 public interface AvatarService {
-    void patchAvatar(Long userId, AvatarRequestDTO avatarRequestDTO);
+    void upsertAvatar(Long userId, AvatarRequestDTO avatarRequestDTO);
 
     AvatarResponseDTO getAvatar(Long userId);
 
