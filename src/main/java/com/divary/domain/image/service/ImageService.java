@@ -370,6 +370,11 @@ public class ImageService {
         }
     }
     
+    // postId로 이미지 목록 조회
+    public List<Image> findByTypeAndPostId(ImageType imageType, Long postId) {
+        return imageRepository.findByTypeAndPostId(imageType, postId);
+    }
+    
     // 컨텐츠에서 모든 이미지 URL 추출 (temp 이미지뿐만 아니라 permanent 이미지도)
     private List<String> extractAllImageUrls(String content) {
         if (content == null || content.trim().isEmpty()) {

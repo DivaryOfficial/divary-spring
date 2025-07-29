@@ -30,8 +30,8 @@ import java.util.Map;
 
 @Tag(name = "System", description = "시스템 관리 및 모니터링")
 @Slf4j
-@Controller
-@RequestMapping("system")
+@RestController
+@RequestMapping("/system")
 @RequiredArgsConstructor
 public class SystemController {
     private final DataSource dataSource;
@@ -123,7 +123,6 @@ public class SystemController {
     }
 
     @PostMapping("/test/image-conversion")
-    @ResponseBody
     public ImageConversionTestResponse testImageConversion(
             @RequestParam("userId") Long userId,
             @RequestParam("boardId") Long boardId,
@@ -159,6 +158,53 @@ public class SystemController {
                 .isConverted(isConverted)
                 .build();
     }
+
+    @Operation(summary = "게시글 수정 시 이미지 정리 테스트", description = "게시글 수정 시 삭제된 이미지들이 정리되는지 테스트합니다.")
+    @PostMapping("/test/post-update-cleanup")
+    public PostUpdateCleanupTestResponse testPostUpdateCleanup(
+            @RequestParam("postId") Long postId,
+            @RequestParam("newContent") String newContent) {
+        
+        log.info("게시글 수정 시 이미지 정리 테스트 시각 게시글 ID: {}", postId);
+        log.info("새 컨텐츠: {}", newContent);
+        
+        try {
+            // 수정 전 해당 게시글의 이미지 목록 조회
+            var beforeImages = imageService.findByTypeAndPostId(ImageType.USER_TEST_POST, postId);
+            log.info("수정 전 이미지 개수: {}", beforeImages.size());
+            
+            // 게시글 수정 시 삭제된 이미지 정리 실행
+            imageService.processDeletedImagesAfterPostUpdate(ImageType.USER_TEST_POST, postId, newContent);
+            
+            // 수정 후 해당 게시글의 이미지 목록 조회
+            var afterImages = imageService.findByTypeAndPostId(ImageType.USER_TEST_POST, postId);
+            log.info("수정 후 이미지 개수: {}", afterImages.size());
+            
+            int deletedCount = beforeImages.size() - afterImages.size();
+            
+            return PostUpdateCleanupTestResponse.builder()
+                    .success(true)
+                    .message(String.format("이미지 정리 완료. %d개 이미지가 삭제되었습니다.", deletedCount))
+                    .postId(postId)
+                    .newContent(newContent)
+                    .beforeImageCount(beforeImages.size())
+                    .afterImageCount(afterImages.size())
+                    .deletedImageCount(deletedCount)
+                    .build();
+                    
+        } catch (Exception e) {
+            log.error("게시글 수정 시 이미지 정리 테스트 실패", e);
+            return PostUpdateCleanupTestResponse.builder()
+                    .success(false)
+                    .message("테스트 실패: " + e.getMessage())
+                    .postId(postId)
+                    .newContent(newContent)
+                    .beforeImageCount(0)
+                    .afterImageCount(0)
+                    .deletedImageCount(0)
+                    .build();
+        }
+    }
     // 테스트용 응답 DTO
     @lombok.Builder
     @lombok.Getter
@@ -171,5 +217,17 @@ public class SystemController {
         private String originalContent;
         private String processedContent;
         private boolean isConverted;
+    }
+
+    @lombok.Builder
+    @lombok.Getter
+    public static class PostUpdateCleanupTestResponse {
+        private boolean success;
+        private String message;
+        private Long postId;
+        private String newContent;
+        private int beforeImageCount;
+        private int afterImageCount;
+        private int deletedImageCount;
     }
 }

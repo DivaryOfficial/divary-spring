@@ -125,7 +125,7 @@ public class ImageStorageService {
         return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, s3Key);
     }
 
-    // S3 이미지 URL 패턴 생성 (공통 베이스 메서드)
+    // S3 이미지 URL 패턴 생성 
     private String getS3ImageUrlPattern(String pathPattern) {
         return String.format(
             "https://%s\\.s3\\.%s\\.amazonaws\\.com/%s\\.(jpg|jpeg|png|gif|webp)",
@@ -137,7 +137,7 @@ public class ImageStorageService {
 
     // temp 이미지 URL 패턴 생성
     public String getTempImageUrlPattern() {
-        return getS3ImageUrlPattern("users/\\\\d+/temp/.*?");
+        return getS3ImageUrlPattern("users/\\d+/temp/.*?");
     }
 
     // 모든 이미지 URL 패턴 생성 (temp + permanent)
@@ -147,14 +147,24 @@ public class ImageStorageService {
 
     // S3 URL에서 S3 키 추출
     public String extractS3KeyFromUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.trim().isEmpty()) {
+            throw new BusinessException(ErrorCode.IMAGE_URL_INVALID_FORMAT);
+        }
+        
         try {
             String[] parts = imageUrl.split(".amazonaws.com/", 2);
-            if (parts.length == 2) {
+            if (parts.length == 2 && !parts[1].trim().isEmpty()) {
                 return parts[1];
             }
-            throw new IllegalArgumentException("Invalid S3 URL format: " + imageUrl);
+            
+            log.error("S3 URL 형식 오류: {}", imageUrl);
+            throw new BusinessException(ErrorCode.IMAGE_URL_INVALID_FORMAT);
+            
+        } catch (BusinessException e) {
+            throw e; 
         } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to extract S3 key from URL: " + imageUrl, e);
+            log.error("S3 키 추출 중 예외 발생: url={}", imageUrl, e);
+            throw new BusinessException(ErrorCode.IMAGE_URL_INVALID_FORMAT);
         }
     }
 
