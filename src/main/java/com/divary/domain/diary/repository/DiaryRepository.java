@@ -13,6 +13,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
             "logBook.logBaseInfo",
             "logBook.logBaseInfo.member"
     })
+
     boolean existsByLogBaseInfoId(Long logBaseInfoId);
 
     @Query("""
