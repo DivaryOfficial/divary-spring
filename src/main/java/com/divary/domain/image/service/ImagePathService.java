@@ -24,11 +24,13 @@ public class ImagePathService {
     private String region;
 
     private static Pattern tempUrlPattern = null;
+    
+    private final ImageValidationService imageValidationService;
 
     // 유저 이미지 업로드 경로 생성
     public String generateUserUploadPath(ImageType imageType, Long userId, String additionalPath) {
-        validateUserImageType(imageType);
-        validateUserId(userId);
+        imageValidationService.validateUserImageType(imageType);
+        imageValidationService.validateUserId(userId);
         
         String typeWithoutPrefix = extractTypeWithoutPrefix(imageType.name(), "USER_");
         
@@ -46,7 +48,7 @@ public class ImagePathService {
     
     // 시스템 이미지 업로드 경로 생성
     public String generateSystemUploadPath(ImageType imageType, String additionalPath) {
-        validateSystemImageType(imageType);
+        imageValidationService.validateSystemImageType(imageType);
         
         String typeWithoutPrefix = extractTypeWithoutPrefix(imageType.name(), "SYSTEM_");
         
@@ -62,7 +64,7 @@ public class ImagePathService {
 
     // temp 경로 생성
     public String generateTempPath(Long userId) {
-        validateUserId(userId);
+        imageValidationService.validateUserId(userId);
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
         String randomId = UUID.randomUUID().toString().substring(0, 8);
         return String.format("users/%d/temp/%s_%s", userId, timestamp, randomId);
@@ -83,6 +85,15 @@ public class ImagePathService {
         return null;
     }
 
+    // S3 이미지 URL 패턴 생성 
+    private String getS3ImageUrlPattern(String pathPattern) {
+        return String.format(
+                "https://%s\\.s3\\.%s\\.amazonaws\\.com/%s\\.(jpg|jpeg|png|gif|webp)",
+                java.util.regex.Pattern.quote(bucketName),
+                java.util.regex.Pattern.quote(region),
+                pathPattern);
+    }
+    
     // temp 이미지 URL 패턴 생성
     public String getTempImageUrlPattern() {
         return getS3ImageUrlPattern("users/\\d+/temp/.*?");
@@ -146,34 +157,6 @@ public class ImagePathService {
     // temp 경로 이미지인지 확인
     public boolean isTempImage(String s3Key) {
         return s3Key != null && s3Key.contains("/temp/");
-    }
-
-    // S3 이미지 URL 패턴 생성 
-    private String getS3ImageUrlPattern(String pathPattern) {
-        return String.format(
-            "https://%s\\.s3\\.%s\\.amazonaws\\.com/%s\\.(jpg|jpeg|png|gif|webp)",
-            java.util.regex.Pattern.quote(bucketName),
-            java.util.regex.Pattern.quote(region),
-            pathPattern
-        );
-    }
-
-    private void validateUserImageType(ImageType imageType) {
-        if (!imageType.name().startsWith("USER_")) {
-            throw new IllegalArgumentException("USER 타입 이미지만 처리 가능합니다: " + imageType);
-        }
-    }
-
-    private void validateSystemImageType(ImageType imageType) {
-        if (!imageType.name().startsWith("SYSTEM_")) {
-            throw new IllegalArgumentException("SYSTEM 타입 이미지만 처리 가능합니다: " + imageType);
-        }
-    }
-
-    private void validateUserId(Long userId) {
-        if (userId == null) {
-            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
-        }
     }
 
     private String extractTypeWithoutPrefix(String typeName, String prefix) {

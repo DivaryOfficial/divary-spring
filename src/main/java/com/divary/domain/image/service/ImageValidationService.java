@@ -1,6 +1,7 @@
 package com.divary.domain.image.service;
 
 import com.divary.domain.image.dto.request.ImageUploadRequest;
+import com.divary.domain.image.entity.ImageType;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,24 @@ public class ImageValidationService {
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new BusinessException(ErrorCode.IMAGE_FORMAT_NOT_SUPPORTED);
+        }
+    }
+
+    public void validateUserImageType(ImageType imageType) {
+        if (!imageType.name().startsWith("USER_")) {
+            throw new IllegalArgumentException("USER 타입 이미지만 처리 가능합니다: " + imageType);
+        }
+    }
+
+    public void validateSystemImageType(ImageType imageType) {
+        if (!imageType.name().startsWith("SYSTEM_")) {
+            throw new IllegalArgumentException("SYSTEM 타입 이미지만 처리 가능합니다: " + imageType);
+        }
+    }
+
+    public void validateUserId(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
         }
     }
 
