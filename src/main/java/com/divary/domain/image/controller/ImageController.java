@@ -3,7 +3,7 @@ package com.divary.domain.image.controller;
 import com.divary.common.response.ApiResponse;
 import com.divary.domain.image.dto.response.ImageResponse;
 import com.divary.domain.image.dto.response.MultipleImageUploadResponse;
-import com.divary.domain.image.entity.ImageType;
+import com.divary.domain.image.enums.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.config.SwaggerConfig.ApiErrorExamples;

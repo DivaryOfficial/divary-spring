@@ -5,7 +5,7 @@ import com.divary.domain.Member.entity.Member;
 import com.divary.domain.Member.enums.Role;
 import com.divary.domain.Member.repository.MemberRepository;
 import com.divary.common.enums.SocialType;
-import com.divary.domain.image.entity.ImageType;
+import com.divary.domain.image.enums.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.global.config.SwaggerConfig.ApiErrorExamples;
 import com.divary.global.config.security.jwt.JwtTokenProvider;

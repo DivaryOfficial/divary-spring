@@ -4,7 +4,7 @@ import com.divary.domain.image.dto.request.ImageUploadRequest;
 import com.divary.domain.image.dto.response.ImageResponse;
 import com.divary.domain.image.dto.response.MultipleImageUploadResponse;
 import com.divary.domain.image.entity.Image;
-import com.divary.domain.image.entity.ImageType;
+import com.divary.domain.image.enums.ImageType;
 import com.divary.domain.image.repository.ImageRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;

@@ -1,10 +1,11 @@
 package com.divary.domain.image.service;
 
-import com.divary.domain.image.entity.ImageType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import com.divary.domain.image.enums.ImageType;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

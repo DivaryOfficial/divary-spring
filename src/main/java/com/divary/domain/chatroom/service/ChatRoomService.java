@@ -10,7 +10,7 @@ import com.divary.domain.chatroom.dto.response.OpenAIResponse;
 import com.divary.domain.chatroom.entity.ChatRoom;
 import com.divary.domain.chatroom.repository.ChatRoomRepository;
 import com.divary.domain.image.dto.response.ImageResponse;
-import com.divary.domain.image.entity.ImageType;
+import com.divary.domain.image.enums.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;

@@ -1,7 +1,7 @@
 package com.divary.domain.image.service;
 
 import com.divary.domain.image.dto.request.ImageUploadRequest;
-import com.divary.domain.image.entity.ImageType;
+import com.divary.domain.image.enums.ImageType;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

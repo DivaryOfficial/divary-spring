@@ -9,7 +9,7 @@ import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
 import com.divary.domain.encyclopedia.enums.Type;
 import com.divary.domain.encyclopedia.repository.EncyclopediaCardRepository;
 import com.divary.domain.image.dto.response.ImageResponse;
-import com.divary.domain.image.entity.ImageType;
+import com.divary.domain.image.enums.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;

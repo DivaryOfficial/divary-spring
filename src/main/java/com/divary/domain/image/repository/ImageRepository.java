@@ -1,7 +1,8 @@
 package com.divary.domain.image.repository;
 
 import com.divary.domain.image.entity.Image;
-import com.divary.domain.image.entity.ImageType;
+import com.divary.domain.image.enums.ImageType;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

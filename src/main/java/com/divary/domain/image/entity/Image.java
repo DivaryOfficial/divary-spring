@@ -1,6 +1,8 @@
 package com.divary.domain.image.entity;
 
 import com.divary.common.entity.BaseEntity;
+import com.divary.domain.image.enums.ImageType;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
