@@ -139,7 +139,7 @@ public class SystemController {
                 testContent, 
                 ImageType.USER_TEST_POST, 
                 userId, 
-                String.valueOf(boardId)
+                boardId
         );
         
         log.info("변환된 컨텐츠: {}", processedContent);

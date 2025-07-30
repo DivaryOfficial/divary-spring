@@ -90,14 +90,14 @@ public class ImageController {
             @Parameter(description = "사용자 ID (USER 타입의 경우 필수)", example = "1")
             @RequestParam(required = false) Long userId,
             
-            @Parameter(description = "추가 경로 (선택사항)", example = "additional/path")
-            @RequestParam(required = false) String additionalPath
+            @Parameter(description = "추가 경로 (선택사항)", example = "1")
+            @RequestParam(required = false) Long postId
     ) {
-        ImageResponse response = imageService.uploadImageByType(imageType, file, userId, additionalPath);
+        ImageResponse response = imageService.uploadImageByType(imageType, file, userId, postId);
         return ApiResponse.success("타입별 이미지 업로드가 완료되었습니다.", response);
     }
 
-    @Operation(summary = "이미지 타입별 상세 정보 조회", description = "ImageType을 기준으로 해당 타입의 이미지 상세 정보를 조회합니다.")
+    @Operation(summary = "이미지 타입별 상세 정보 조회", description = "ImageType을 기준으로 해당 타입의 이미지 상세 정보를 조회합니다. 시스템 타입은 추가 경로 없이 조회 가능합니다.")
     @ApiErrorExamples({
             ErrorCode.INVALID_INPUT_VALUE,
             ErrorCode.INTERNAL_SERVER_ERROR
@@ -108,10 +108,10 @@ public class ImageController {
             @PathVariable ImageType imageType,
             @Parameter(description = "사용자 ID (USER 타입의 경우 필수)", example = "1")
             @RequestParam(required = false) Long userId,
-            @Parameter(description = "추가 경로 (선택사항)", example = "additional/path")
-            @RequestParam(required = false) String additionalPath
+            @Parameter(description = "추가 경로 (선택사항)", example = "1")
+            @RequestParam(required = false) Long postId
     ) {
-        List<ImageResponse> images = imageService.getImagesByType(imageType, userId, additionalPath);
+        List<ImageResponse> images = imageService.getImagesByType(imageType, userId, postId);
         return ApiResponse.success("이미지 타입별 상세 정보를 조회했습니다.", images);
     }
 } 

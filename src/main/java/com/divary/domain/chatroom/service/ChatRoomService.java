@@ -90,7 +90,7 @@ public class ChatRoomService {
             String firstMessageId = (String) metadata.get("lastMessageId");
             HashMap<String, Object> userMessage = TypeConverter.castToHashMap(messages.get(firstMessageId));
 
-            processImageUpload(userMessage, request.getImage(), userId, savedChatRoom.getId().toString());
+            processImageUpload(userMessage, request.getImage(), userId, savedChatRoom.getId());
 
             messages.put(firstMessageId, userMessage);
             savedChatRoom.updateMessages(messages);
@@ -121,7 +121,7 @@ public class ChatRoomService {
         HashMap<String, Object> messageData = messageFactory.createUserMessageData(request.getMessage(), null);
 
         // 이미지 처리
-        processImageUpload(messageData, request.getImage(), userId, chatRoom.getId().toString());
+        processImageUpload(messageData, request.getImage(), userId, chatRoom.getId());
 
         messages.put(newMessageId, messageData);
 
@@ -168,7 +168,7 @@ public class ChatRoomService {
     
     
     // 이미지 업로드 처리
-    private void processImageUpload(HashMap<String, Object> messageData, MultipartFile image, Long userId, String chatRoomId) {
+    private void processImageUpload(HashMap<String, Object> messageData, MultipartFile image, Long userId, Long chatRoomId) {
         if (image != null && !image.isEmpty()) {
             ImageResponse imageResponse = imageService.uploadImageByType(
                 ImageType.USER_CHAT,

@@ -95,7 +95,7 @@ public class ImageService {
 
     // 본문에서 temp 이미지 URL을 찾아서 permanent URL로 변환 (다른 서비스에서 사용해야하는 메서드)
     @Transactional
-    public String processContentAndMigrateImages(String content, ImageType imageType, Long userId, String additionalPath) {
+    public String processContentAndMigrateImages(String content, ImageType imageType, Long userId, Long postId) {
         if (content == null || content.trim().isEmpty()) {
             return content;
         }
@@ -108,7 +108,7 @@ public class ImageService {
         Map<String, String> urlMappings = new HashMap<>();
         for (String tempUrl : tempUrls) {
             try {
-                String permanentUrl = migrateTempImageByUrl(tempUrl, imageType, userId, additionalPath);
+                String permanentUrl = migrateTempImageByUrl(tempUrl, imageType, userId, postId);
                 urlMappings.put(tempUrl, permanentUrl);
             } catch (Exception e) {
                 log.error("이미지 이동 실패: tempUrl={}, userId={}", tempUrl, userId, e);
@@ -225,13 +225,13 @@ public class ImageService {
 
     // 타입별 이미지 업로드
     @Transactional
-    public ImageResponse uploadImageByType(ImageType imageType, MultipartFile file, Long userId, String additionalPath) {
+    public ImageResponse uploadImageByType(ImageType imageType, MultipartFile file, Long userId, Long postId) {
         // 업로드 경로 생성
         String uploadPath;
         if (imageType.name().startsWith("USER_")) {
-            uploadPath = imagePathService.generateUserUploadPath(imageType, userId, additionalPath);
+            uploadPath = imagePathService.generateUserUploadPath(imageType, userId, postId.toString());
         } else {
-            uploadPath = imagePathService.generateSystemUploadPath(imageType, additionalPath);
+            uploadPath = imagePathService.generateSystemUploadPath(imageType, postId.toString());
         }
         
         ImageUploadRequest request = ImageUploadRequest.builder()
@@ -249,13 +249,13 @@ public class ImageService {
         return ImageResponse.from(savedImage, response.getFileUrl());
     }
 
-    public List<ImageResponse> getImagesByType(ImageType imageType, Long userId, String additionalPath) {
+    public List<ImageResponse> getImagesByType(ImageType imageType, Long userId, Long postId) {
         // 타입에 따라 적절한 경로 생성
         String uploadPath;
         if (imageType.name().startsWith("USER_")) {
-            uploadPath = imagePathService.generateUserUploadPath(imageType, userId, additionalPath);
+            uploadPath = imagePathService.generateUserUploadPath(imageType, userId, postId.toString());
         } else {
-            uploadPath = imagePathService.generateSystemUploadPath(imageType, additionalPath);
+            uploadPath = imagePathService.generateSystemUploadPath(imageType, postId.toString());
         }
         
         List<Image> images = imageRepository.findByS3KeyStartingWith(uploadPath);
@@ -266,7 +266,7 @@ public class ImageService {
 
 
     // temp URL을 permanent URL로 이동 처리
-    private String migrateTempImageByUrl(String tempUrl, ImageType imageType, Long userId, String additionalPath) {
+    private String migrateTempImageByUrl(String tempUrl, ImageType imageType, Long userId, Long postId) {
         String tempS3Key = imageStorageService.extractS3KeyFromUrl(tempUrl);
         
         Image tempImage = imageRepository.findByS3Key(tempS3Key)
@@ -281,7 +281,7 @@ public class ImageService {
         }
         
         // permanent 경로 생성
-        String permanentBasePath = imagePathService.generateUserUploadPath(imageType, userId, additionalPath);
+        String permanentBasePath = imagePathService.generateUserUploadPath(imageType, userId, postId.toString());
         String newFileName = imageStorageService.generateUniqueFileName(tempImage.getOriginalFilename());
         String newS3Key = imageStorageService.generateS3Key(permanentBasePath, newFileName);
         
@@ -289,9 +289,9 @@ public class ImageService {
         
         tempImage.updateS3Key(newS3Key);
         tempImage.updateType(imageType);
-        tempImage.updatePostId(Long.parseLong(additionalPath)); // postId 설정
+        tempImage.updatePostId(postId); // postId 설정
         
-        log.info("temp → permanent 이동 완료: imageId={}, postId={}", tempImage.getId(), additionalPath);
+        log.info("temp → permanent 이동 완료: imageId={}, postId={}", tempImage.getId(), postId);
         
         return imageStorageService.generatePublicUrl(newS3Key);
     }
