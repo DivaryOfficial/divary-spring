@@ -1,7 +1,6 @@
 package com.divary.domain.image.controller;
 
 import com.divary.common.response.ApiResponse;
-import com.divary.domain.image.dto.request.ImageUploadRequest;
 import com.divary.domain.image.dto.response.ImageResponse;
 import com.divary.domain.image.dto.response.MultipleImageUploadResponse;
 import com.divary.domain.image.entity.ImageType;
@@ -46,28 +45,6 @@ public class ImageController {
         
         MultipleImageUploadResponse response = imageService.uploadTempImages(files, userPrincipal.getId());
         return ApiResponse.success("임시 이미지 업로드가 완료되었습니다. 24시간 내에 사용하지 않으면 자동 삭제됩니다.", response);
-    }
-
-    @Operation(summary = "이미지 업로드", description = "S3에 이미지를 업로드하고 정보를 저장합니다.")
-    @ApiErrorExamples({
-            ErrorCode.VALIDATION_ERROR,
-            ErrorCode.INTERNAL_SERVER_ERROR
-    })
-    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ApiResponse<ImageResponse> uploadImage(
-            @Parameter(description = "업로드할 이미지 파일", required = true,
-                      content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE))
-            @RequestPart("file") MultipartFile file,
-            
-            @Parameter(description = "S3 업로드 경로", required = true, example = "users/1/chat/10/")
-            @RequestParam("uploadPath") String uploadPath) {
-        ImageUploadRequest request = ImageUploadRequest.builder()
-                .file(file)
-                .uploadPath(uploadPath)
-                .build();
-
-        ImageResponse response = imageService.uploadImage(request);
-        return ApiResponse.success("이미지 업로드가 완료되었습니다.", response);
     }
 
     @Operation(summary = "이미지 삭제", description = "S3와 DB에서 이미지를 삭제합니다.")

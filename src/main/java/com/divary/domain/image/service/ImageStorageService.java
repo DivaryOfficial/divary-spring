@@ -40,7 +40,7 @@ public class ImageStorageService {
                     .build();
 
             s3Client.putObject(putObjectRequest, 
-                              RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+                            RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
             
             log.info("S3 업로드 완료: {}", s3Key);
         } catch (IOException e) {
@@ -125,25 +125,6 @@ public class ImageStorageService {
         return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, s3Key);
     }
 
-    // S3 이미지 URL 패턴 생성 
-    private String getS3ImageUrlPattern(String pathPattern) {
-        return String.format(
-            "https://%s\\.s3\\.%s\\.amazonaws\\.com/%s\\.(jpg|jpeg|png|gif|webp)",
-            java.util.regex.Pattern.quote(bucketName),
-            java.util.regex.Pattern.quote(region),
-            pathPattern
-        );
-    }
-
-    // temp 이미지 URL 패턴 생성
-    public String getTempImageUrlPattern() {
-        return getS3ImageUrlPattern("users/\\d+/temp/.*?");
-    }
-
-    // 모든 이미지 URL 패턴 생성 (temp + permanent)
-    public String getAllImageUrlPattern() {
-        return getS3ImageUrlPattern("[^\\\\s\"'<>]+");
-    }
 
     // S3 URL에서 S3 키 추출
     public String extractS3KeyFromUrl(String imageUrl) {

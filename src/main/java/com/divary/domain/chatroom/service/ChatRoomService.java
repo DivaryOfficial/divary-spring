@@ -17,6 +17,8 @@ import com.divary.global.exception.ErrorCode;
 import com.divary.common.converter.TypeConverter;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -166,7 +168,7 @@ public class ChatRoomService {
     
     
     // 이미지 업로드 처리
-    private void processImageUpload(HashMap<String, Object> messageData, org.springframework.web.multipart.MultipartFile image, Long userId, String chatRoomId) {
+    private void processImageUpload(HashMap<String, Object> messageData, MultipartFile image, Long userId, String chatRoomId) {
         if (image != null && !image.isEmpty()) {
             ImageResponse imageResponse = imageService.uploadImageByType(
                 ImageType.USER_CHAT,
