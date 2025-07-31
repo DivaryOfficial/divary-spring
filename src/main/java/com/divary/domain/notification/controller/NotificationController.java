@@ -36,8 +36,8 @@ public class NotificationController {
     @Operation(summary = "알림 열람 여부 변경", description = "알림 열람 여부를 변경합니다.")
     @ApiSuccessResponse(dataType = Void.class)
     @ApiErrorExamples(value = {ErrorCode.NOTIFICAITION_NOT_FOUND})
-    public void readNotification(@Valid @RequestBody NotificationPatchRequestDTO requestDTO) {
-        notificationService.patchIsRead(requestDTO);
+    public void readNotification(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @Valid @RequestBody NotificationPatchRequestDTO requestDTO) {
+        notificationService.patchIsRead(userPrincipal.getId(), requestDTO);
     }
 
     @PostMapping("/temp")

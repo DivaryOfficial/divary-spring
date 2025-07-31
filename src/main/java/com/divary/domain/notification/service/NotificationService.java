@@ -38,9 +38,9 @@ public class NotificationService {
     }
 
     @Transactional
-    public void patchIsRead(NotificationPatchRequestDTO patchRequestDTO) {
+    public void patchIsRead(Long userId, NotificationPatchRequestDTO patchRequestDTO) {
 
-        Notification notification = notificationRepository.findById(patchRequestDTO.getId())
+        Notification notification = notificationRepository.findByReceiverIdAndNotificationId(userId, patchRequestDTO.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOTIFICAITION_NOT_FOUND));
 
         notification.setIsRead(true);

@@ -5,7 +5,9 @@ import com.divary.domain.notification.entity.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
-    List<Notification> findByReceiverId(Long Id);
+    List<Notification> findByReceiverId(Long id);
+    Optional<Notification> findByReceiverIdAndNotificationId(Long receiverId, Long notificationId);
 }
