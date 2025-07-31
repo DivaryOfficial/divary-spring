@@ -15,11 +15,12 @@ import com.divary.domain.logbase.logbook.dto.response.LogBaseListResultDTO;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import jakarta.validation.Valid;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -77,7 +78,6 @@ public class LogBookService {
                         .name(logBaseInfo.getName())
                         .date(logBaseInfo.getDate())
                         .iconType(logBaseInfo.getIconType())
-                        .saveStatus(logBaseInfo.getSaveStatus())
                         .LogBaseInfoId(logBaseInfo.getId())
                         .build())
                 .collect(Collectors.toList());
@@ -108,7 +108,7 @@ public class LogBookService {
     @Transactional
     public LogDetailCreateResultDTO createLogDetail(Long logBaseInfoId, Long userId) {
 
-        LogBaseInfo base = logBaseInfoRepository.findByIdAndMemberId(logBaseInfoId, userId)
+        LogBaseInfo base = logBaseInfoRepository.findById(logBaseInfoId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
 
         // 연결된 기존의 로그북 개수 확인

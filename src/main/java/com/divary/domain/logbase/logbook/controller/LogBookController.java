@@ -1,8 +1,14 @@
 package com.divary.domain.logbase.logbook.controller;
 
 import com.divary.common.response.ApiResponse;
-import com.divary.domain.logbase.logbook.dto.request.*;
-import com.divary.domain.logbase.logbook.dto.response.*;
+import com.divary.domain.logbase.logbook.dto.request.LogBaseCreateRequestDTO;
+import com.divary.domain.logbase.logbook.dto.request.LogDetailPutRequestDTO;
+import com.divary.domain.logbase.logbook.dto.request.LogNameUpdateRequestDTO;
+import com.divary.domain.logbase.logbook.dto.response.LogBaseCreateResultDTO;
+import com.divary.domain.logbase.logbook.dto.response.LogBaseListResultDTO;
+import com.divary.domain.logbase.logbook.dto.response.LogBookDetailResultDTO;
+import com.divary.domain.logbase.logbook.dto.response.LogDetailCreateResultDTO;
+import com.divary.domain.logbase.logbook.dto.response.LogDetailPutResultDTO;
 import com.divary.domain.logbase.logbook.enums.SaveStatus;
 import com.divary.domain.logbase.logbook.service.LogBookService;
 import com.divary.global.config.SwaggerConfig.ApiErrorExamples;
@@ -16,16 +22,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/logs")

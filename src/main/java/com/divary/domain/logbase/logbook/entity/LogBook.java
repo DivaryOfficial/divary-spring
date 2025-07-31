@@ -1,5 +1,6 @@
 package com.divary.domain.logbase.logbook.entity;
 
+
 import com.divary.common.entity.BaseEntity;
 import com.divary.domain.logbase.LogBaseInfo;
 import com.divary.domain.logbase.logbook.enums.DiveMethod;
