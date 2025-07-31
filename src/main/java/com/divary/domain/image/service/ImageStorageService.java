@@ -9,7 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.io.IOException;
 import java.util.List;
@@ -160,6 +163,26 @@ public class ImageStorageService {
     public String generateS3Key(String uploadPath, String fileName) {
         String normalizedPath = uploadPath.endsWith("/") ? uploadPath : uploadPath + "/";
         return normalizedPath + fileName;
+    }
+
+    // S3에서 temp 경로의 모든 파일 목록 조회
+    public List<String> listTempFiles(String tempPrefix) {
+        try {
+            ListObjectsV2Request request = ListObjectsV2Request.builder()
+                    .bucket(bucketName)
+                    .prefix(tempPrefix)
+                    .build();
+            
+            ListObjectsV2Response response = s3Client.listObjectsV2(request);
+            
+            return response.contents().stream()
+                    .map(S3Object::key)
+                    .toList();
+                    
+        } catch (Exception e) {
+            log.error("S3 temp 파일 목록 조회 실패: prefix={}", tempPrefix, e);
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
     }
 
     private String getFileExtension(String filename) {
