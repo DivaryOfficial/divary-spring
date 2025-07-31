@@ -67,7 +67,7 @@ public class DiaryService {
     private LogBaseInfo getLogBaseInfoWithAuth(Long logBaseInfoId, Long userId) {
         // 로그북 베이스가 존재하는지 확인
         LogBaseInfo logBaseInfo = logBaseInfoRepository.findById(logBaseInfoId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.LOG_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
 
         // 로그북 베이스를 작성한 유저가 일기 작성 요청을 보내는 유저인지 확인
         if (!logBaseInfo.getMember().getId().equals(userId)) {
