@@ -33,7 +33,7 @@ public class DiaryController {
     @ApiSuccessResponse(dataType = DiaryResponse.class)
     @ApiErrorExamples({
             ErrorCode.DIARY_ALREADY_EXISTS,
-            ErrorCode.LOG_NOT_FOUND,
+            ErrorCode.LOG_BASE_NOT_FOUND,
             ErrorCode.INVALID_JSON_FORMAT,
             ErrorCode.DIARY_FORBIDDEN_ACCESS
     })
