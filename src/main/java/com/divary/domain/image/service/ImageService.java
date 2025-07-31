@@ -93,7 +93,7 @@ public class ImageService {
         }
     }
 
-    // 본문에서 temp 이미지 URL을 찾아서 permanent URL로 변환 (다른 서비스에서 사용해야하는 메서드)
+    // 본문에서 temp 이미지 URL을 찾아서 permanent URL로 변환 
     @Transactional
     public String processContentAndMigrateImages(String content, ImageType imageType, Long userId, Long postId) {
         if (content == null || content.trim().isEmpty()) {
@@ -118,7 +118,7 @@ public class ImageService {
         return imagePathService.replaceTempUrls(content, urlMappings);
     }
     
-    // 게시글 수정 시 삭제된 이미지 처리 (다른 서비스에서 사용해야하는 메서드)
+    // 게시글 수정 시 삭제된 이미지 처리 
     @Transactional
     public void processDeletedImagesAfterPostUpdate(ImageType imageType, Long postId, String newContent) {
         // 현재 게시글에 연결된 이미지 목록 조회
@@ -149,6 +149,30 @@ public class ImageService {
                 log.error("이미지 삭제 실패: imageId={}, postId={}", imageToDelete.getId(), postId, e);
             }
         }
+    }
+
+    // 통합 이미지 처리 메서드 - 게시글 생성/수정 시 사용 (다른 서비스에서 사용해야하는 메서드)
+    @Transactional
+    public String processContentAndUpdateImages(String content, ImageType imageType, Long userId, Long postId, String previousContent) {
+        if (content == null || content.trim().isEmpty()) {
+            // 컨텐츠가 비어있지만 이전 컨텐츠가 있다면 기존 이미지들 삭제
+            if (previousContent != null && !previousContent.trim().isEmpty()) {
+                processDeletedImagesAfterPostUpdate(imageType, postId, "");
+            }
+            return content;
+        }
+
+        // 새로 추가된 임시 이미지를 영구 경로로 마이그레이션
+        String updatedContent = processContentAndMigrateImages(content, imageType, userId, postId);
+        
+        // 기존 이미지 중 더 이상 사용되지 않는 것들 삭제 (수정 시에만)
+        if (previousContent != null) {
+            processDeletedImagesAfterPostUpdate(imageType, postId, updatedContent);
+        }
+        
+        log.info("통합 이미지 처리 완료: postId={}, imageType={}, userId={}", postId, imageType, userId);
+        
+        return updatedContent;
     }
     
     // 이미지 업로드 메인 로직
