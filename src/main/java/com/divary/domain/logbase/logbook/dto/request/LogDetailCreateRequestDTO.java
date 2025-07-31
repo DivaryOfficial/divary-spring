@@ -11,15 +11,13 @@ import com.divary.domain.logbase.logbook.enums.Tide;
 import com.divary.domain.logbase.logbook.enums.Wave;
 import com.divary.domain.logbase.logbook.enums.WeatherType;
 import com.divary.domain.logbase.logbook.enums.Wind;
-import com.divary.domain.logbook.enums.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @Builder
 @Getter

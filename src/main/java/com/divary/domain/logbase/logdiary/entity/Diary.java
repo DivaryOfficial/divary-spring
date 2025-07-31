@@ -28,7 +28,7 @@ public class Diary extends BaseEntity {
     }
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "logBaseInfo_id", nullable = false, unique = true)
+    @JoinColumn(name = "log_base_info_id", nullable = false, unique = true)
     private LogBaseInfo logBaseInfo;
 
     @Column(name = "content_json", columnDefinition = "LONGTEXT")
