@@ -1,4 +1,4 @@
-package com.divary.domain.mypage.dto.requestDTO;
+package com.divary.domain.member.dto.requestDTO;
 
 import com.divary.domain.member.enums.Levels;
 import io.swagger.v3.oas.annotations.media.Schema;
