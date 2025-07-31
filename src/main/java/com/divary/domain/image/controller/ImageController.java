@@ -1,10 +1,9 @@
 package com.divary.domain.image.controller;
 
 import com.divary.common.response.ApiResponse;
-import com.divary.domain.image.dto.request.ImageUploadRequest;
 import com.divary.domain.image.dto.response.ImageResponse;
 import com.divary.domain.image.dto.response.MultipleImageUploadResponse;
-import com.divary.domain.image.entity.ImageType;
+import com.divary.domain.image.enums.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.config.SwaggerConfig.ApiErrorExamples;
@@ -25,7 +24,7 @@ import java.util.List;
 @Tag(name = "Image", description = "이미지 업로드 및 관리")
 @Slf4j
 @RestController
-@RequestMapping("images")
+@RequestMapping("/images")
 @RequiredArgsConstructor
 public class ImageController {
 
@@ -46,28 +45,6 @@ public class ImageController {
         
         MultipleImageUploadResponse response = imageService.uploadTempImages(files, userPrincipal.getId());
         return ApiResponse.success("임시 이미지 업로드가 완료되었습니다. 24시간 내에 사용하지 않으면 자동 삭제됩니다.", response);
-    }
-
-    @Operation(summary = "이미지 업로드", description = "S3에 이미지를 업로드하고 정보를 저장합니다.")
-    @ApiErrorExamples({
-            ErrorCode.VALIDATION_ERROR,
-            ErrorCode.INTERNAL_SERVER_ERROR
-    })
-    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ApiResponse<ImageResponse> uploadImage(
-            @Parameter(description = "업로드할 이미지 파일", required = true,
-                      content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE))
-            @RequestPart("file") MultipartFile file,
-            
-            @Parameter(description = "S3 업로드 경로", required = true, example = "users/1/chat/10/")
-            @RequestParam("uploadPath") String uploadPath) {
-        ImageUploadRequest request = ImageUploadRequest.builder()
-                .file(file)
-                .uploadPath(uploadPath)
-                .build();
-
-        ImageResponse response = imageService.uploadImage(request);
-        return ApiResponse.success("이미지 업로드가 완료되었습니다.", response);
     }
 
     @Operation(summary = "이미지 삭제", description = "S3와 DB에서 이미지를 삭제합니다.")
@@ -113,14 +90,14 @@ public class ImageController {
             @Parameter(description = "사용자 ID (USER 타입의 경우 필수)", example = "1")
             @RequestParam(required = false) Long userId,
             
-            @Parameter(description = "추가 경로 (선택사항)", example = "additional/path")
-            @RequestParam(required = false) String additionalPath
+            @Parameter(description = "추가 경로 (선택사항)", example = "1")
+            @RequestParam(required = false) Long postId
     ) {
-        ImageResponse response = imageService.uploadImageByType(imageType, file, userId, additionalPath);
+        ImageResponse response = imageService.uploadImageByType(imageType, file, userId, postId);
         return ApiResponse.success("타입별 이미지 업로드가 완료되었습니다.", response);
     }
 
-    @Operation(summary = "이미지 타입별 상세 정보 조회", description = "ImageType을 기준으로 해당 타입의 이미지 상세 정보를 조회합니다.")
+    @Operation(summary = "이미지 타입별 상세 정보 조회", description = "ImageType을 기준으로 해당 타입의 이미지 상세 정보를 조회합니다. 시스템 타입은 추가 경로 없이 조회 가능합니다.")
     @ApiErrorExamples({
             ErrorCode.INVALID_INPUT_VALUE,
             ErrorCode.INTERNAL_SERVER_ERROR
@@ -131,10 +108,10 @@ public class ImageController {
             @PathVariable ImageType imageType,
             @Parameter(description = "사용자 ID (USER 타입의 경우 필수)", example = "1")
             @RequestParam(required = false) Long userId,
-            @Parameter(description = "추가 경로 (선택사항)", example = "additional/path")
-            @RequestParam(required = false) String additionalPath
+            @Parameter(description = "추가 경로 (선택사항)", example = "1")
+            @RequestParam(required = false) Long postId
     ) {
-        List<ImageResponse> images = imageService.getImagesByType(imageType, userId, additionalPath);
+        List<ImageResponse> images = imageService.getImagesByType(imageType, userId, postId);
         return ApiResponse.success("이미지 타입별 상세 정보를 조회했습니다.", images);
     }
 } 

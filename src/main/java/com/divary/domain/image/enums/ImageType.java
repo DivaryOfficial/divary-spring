@@ -1,4 +1,4 @@
-package com.divary.domain.image.entity;
+package com.divary.domain.image.enums;
 
 import lombok.Getter;
 
