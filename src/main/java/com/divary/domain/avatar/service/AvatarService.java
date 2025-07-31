@@ -10,6 +10,4 @@ public interface AvatarService {
     void upsertAvatar(Long userId, AvatarRequestDTO avatarRequestDTO);
 
     AvatarResponseDTO getAvatar(Long userId);
-
-    void createDefaultAvatarForMember(Member member);
 }

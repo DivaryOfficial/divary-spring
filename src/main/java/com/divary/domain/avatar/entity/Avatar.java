@@ -19,7 +19,8 @@ public class Avatar extends BaseEntity {
     private Member user;
 
     @Column(length = 20)
-    private String name;
+    @Builder.Default
+    private String name = "버디";
 
     @Builder.Default
     @Column(nullable = false,name = "body_color")

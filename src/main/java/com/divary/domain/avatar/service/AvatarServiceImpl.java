@@ -21,11 +21,17 @@ public class AvatarServiceImpl implements AvatarService {
     @Override
     public void upsertAvatar(Long userId, AvatarRequestDTO avatarRequestDTO) {
 
-        Member user = memberService.findById(userId);
-        Avatar avatar = avatarRepository.findByUser(user)
-                .orElse(Avatar.builder()
-                        .user(user)
-                        .build());
+        Avatar avatar;
+
+        avatar = avatarRepository.findByUserId(userId);
+
+        if (avatar == null) {
+            Member user = memberService.findById(userId);
+            avatar = Avatar.builder()
+                    .user(user)
+                    .build();
+        }
+
 
         avatar.setName(avatarRequestDTO.getName());
         avatar.setTank(avatarRequestDTO.getTank());
@@ -45,15 +51,13 @@ public class AvatarServiceImpl implements AvatarService {
 
         avatarRepository.save(avatar);
 
-        avatarRepository.save(avatar);
 
     }
 
     @Override
     public AvatarResponseDTO getAvatar(Long userId){
-        Member user = memberService.findById(userId);
 
-        Avatar avatar = avatarRepository.findByUser(user).orElseThrow(()-> new BusinessException(ErrorCode.AVATAR_NOT_FOUND)); //로그인  merge되면 MemberNotFound로 변경
+        Avatar avatar = avatarRepository.findByUserId(userId);
 
         BuddyPetInfoDTO buddyPetInfo = BuddyPetInfoDTO.builder()
                 .budyPet(avatar.getBudyPet())
@@ -75,14 +79,5 @@ public class AvatarServiceImpl implements AvatarService {
                 .regulator(avatar.getRegulator())
                 .theme(avatar.getTheme())
                 .build();
-    }
-
-    public void createDefaultAvatarForMember(Member member) {
-        Avatar avatar = Avatar.builder()
-                .user(member)
-                .name("")
-                .build();
-
-        avatarRepository.save(avatar);
     }
 }
