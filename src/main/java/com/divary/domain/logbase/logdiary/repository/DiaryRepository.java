@@ -14,12 +14,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     })
     boolean existsByLogBaseInfoId(Long logBaseInfoId);
 
-    @Query("""
-                SELECT d FROM Diary d
-                WHERE d.logBaseInfo.id = :logBaseInfoId
-                AND d.logBaseInfo.member.id = :memberId
-            """)
-    Optional<Diary> findByLogBaseInfoIdAndMemberId(@Param("logBaseInfoId") Long logBaseInfoId,
-                                                   @Param("memberId") Long memberId);
+    @Query("SELECT d FROM Diary d WHERE d.logBaseInfo.id = :logBaseInfoId")
+    Optional<Diary> findByLogBaseInfoId(@Param("logBaseInfoId") Long logBaseInfoId);
 
 }
