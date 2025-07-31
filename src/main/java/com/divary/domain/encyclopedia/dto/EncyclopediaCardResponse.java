@@ -1,14 +1,9 @@
 package com.divary.domain.encyclopedia.dto;
 
-import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
-import com.divary.domain.image.entity.Image;
-import com.divary.domain.image.entity.ImageType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Optional;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.util.List;
 
 @Getter
 @Builder
@@ -47,32 +42,5 @@ public class EncyclopediaCardResponse {
 
     @Schema(description = "특이사항 정보")
     private SignificantResponse significant;
-
-    public static EncyclopediaCardResponse from(EncyclopediaCard card) {
-        return EncyclopediaCardResponse.builder()
-                .id(card.getId())
-                .name(card.getName())
-                .type(card.getType().getDescription())
-                .size(card.getSize())
-                .appearPeriod(card.getAppearPeriod())
-                .place(card.getPlace())
-                .imageUrls(
-                        card.getImages().stream()
-                                .filter(img -> img.getType() == ImageType.SYSTEM_DOGAM)
-                                .map(Image::getS3Key)
-                                .toList()
-                )
-                .appearance(Optional.ofNullable(card.getAppearance())
-                        .map(AppearanceResponse::from)
-                        .orElse(null))
-                .personality(Optional.ofNullable(card.getPersonality())
-                        .map(PersonalityResponse::from)
-                        .orElse(null))
-                .significant(Optional.ofNullable(card.getSignificant())
-                        .map(SignificantResponse::from)
-                        .orElse(null))
-                .build();
-    }
-
 
 }

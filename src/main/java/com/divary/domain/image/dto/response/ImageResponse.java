@@ -1,14 +1,14 @@
 package com.divary.domain.image.dto.response;
 
 import com.divary.domain.image.entity.Image;
-import com.divary.domain.image.entity.ImageType;
+import com.divary.domain.image.enums.ImageType;
+
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -43,6 +43,9 @@ public class ImageResponse {
     
     @Schema(description = "사용자 ID", example = "1")
     private Long userId;
+
+    @Schema(description = "S3 저장 키", example = "system/dogam_profile/1/filename.jpg")
+    private String s3Key;
     
     public static ImageResponse from(Image image, String fileUrl) {
         return ImageResponse.builder()
@@ -55,6 +58,7 @@ public class ImageResponse {
                 .createdAt(image.getCreatedAt())
                 .updatedAt(image.getUpdatedAt())
                 .userId(image.getUserId())
+                .s3Key(image.getS3Key())
                 .build();
     }
 } 

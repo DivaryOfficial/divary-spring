@@ -4,11 +4,8 @@ import com.divary.domain.Member.entity.Member;
 import com.divary.domain.Member.service.MemberServiceImpl;
 import com.divary.domain.logbook.dto.request.CompanionRequestDTO;
 import com.divary.domain.logbook.dto.request.LogBaseCreateRequestDTO;
-import com.divary.domain.logbook.dto.request.LogDetailCreateRequestDTO;
-import com.divary.domain.logbook.dto.response.LogBaseListResultDTO;
-import com.divary.domain.logbook.dto.response.LogBaseCreateResultDTO;
-import com.divary.domain.logbook.dto.response.LogBookDetailResultDTO;
-import com.divary.domain.logbook.dto.response.LogDetailCreateResultDTO;
+import com.divary.domain.logbook.dto.request.LogDetailPutRequestDTO;
+import com.divary.domain.logbook.dto.response.*;
 import com.divary.domain.logbook.entity.Companion;
 import com.divary.domain.logbook.entity.LogBaseInfo;
 import com.divary.domain.logbook.entity.LogBook;
@@ -22,8 +19,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,9 +32,10 @@ public class LogBookService {
     private final MemberServiceImpl memberService;
 
     @Transactional
-    public LogBaseCreateResultDTO createLogBase(@Valid LogBaseCreateRequestDTO request) {
+    public LogBaseCreateResultDTO createLogBase
+            (@Valid LogBaseCreateRequestDTO request, Long userId) {
 
-        Member member = memberService.findById(1L);//임시로 데이터 넣음
+        Member member = memberService.findById(userId);
 
         LogBaseInfo logBaseInfo = LogBaseInfo.builder()
                 .iconType(request.getIconType())
@@ -64,15 +60,17 @@ public class LogBookService {
     }
 
     @Transactional
-    public List<LogBaseListResultDTO> getLogBooksByYearAndStatus(int year, SaveStatus status) {
+    public List<LogBaseListResultDTO> getLogBooksByYearAndStatus(int year, SaveStatus status, Long userId) {
 
         List<LogBaseInfo> logBaseInfoList;
 
+        Member member = memberService.findById(userId);
+
         if (status == null) {
             // 쿼리스트링 없을 경우 전체 조회
-            logBaseInfoList = logBaseInfoRepository.findByYear(year);
+            logBaseInfoList = logBaseInfoRepository.findByYearAndMember(year,member);
         } else {
-            logBaseInfoList = logBaseInfoRepository.findByYearAndStatus(year,status);
+            logBaseInfoList = logBaseInfoRepository.findByYearAndStatusAndMember(year,status,member);
         }
 
         return logBaseInfoList.stream()
@@ -80,6 +78,7 @@ public class LogBookService {
                         .name(logBaseInfo.getName())
                         .date(logBaseInfo.getDate())
                         .iconType(logBaseInfo.getIconType())
+                        .saveStatus(logBaseInfo.getSaveStatus())
                         .LogBaseInfoId(logBaseInfo.getId())
                         .build())
                 .collect(Collectors.toList());
@@ -108,15 +107,81 @@ public class LogBookService {
     }
 
     @Transactional
-    public LogDetailCreateResultDTO createLogDetail(LogDetailCreateRequestDTO dto, Long logBaseInfoId) {
+    public LogDetailCreateResultDTO createLogDetail(Long logBaseInfoId, Long userId) {
 
-        LogBaseInfo base = logBaseInfoRepository.findById(logBaseInfoId)
+        LogBaseInfo base = logBaseInfoRepository.findByIdAndMemberId(logBaseInfoId, userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
 
         // 연결된 기존의 로그북 개수 확인
         if (logBookRepository.countByLogBaseInfo(base) >= 3) {
             throw new BusinessException(ErrorCode.LOG_LIMIT_EXCEEDED);
         }//하루 최대 3개 넘으면 에러 던지기
+
+        Member member = memberService.findById(userId);
+        int accumulation = logBookRepository.countByLogBaseInfoMember(member)+1;
+        //누적횟수 계산
+
+        LogBook logBook = LogBook.builder()
+                .logBaseInfo(base)
+                .accumulation(accumulation)
+                .build();
+
+        logBookRepository.save(logBook);
+
+        return new LogDetailCreateResultDTO(logBook.getId(),"세부 로그북 생성 완료");
+    }
+
+    @Transactional
+    public void deleteLog(Long logBaseId,Long userId) {
+
+        LogBaseInfo logBaseInfo = logBaseInfoRepository.findByIdAndMemberId(logBaseId, userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
+
+
+        if (logBaseInfo.getLogBooks() == null || logBaseInfo.getLogBooks().isEmpty()) {
+            throw new BusinessException(ErrorCode.LOG_NOT_FOUND);
+        }
+
+        logBaseInfoRepository.delete(logBaseInfo);
+    }
+
+    @Transactional
+    public LogDetailPutResultDTO updateLogBook(Long userId, Long logBookId, LogDetailPutRequestDTO dto) {
+
+        LogBook logBook = logBookRepository.findByIdAndLogBaseInfoMemberId(logBookId, userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.LOG_NOT_FOUND));
+
+
+        // 모든 필드 덮어쓰기 (null도 그대로 반영)
+        logBook.setPlace(dto.getPlace());
+        logBook.setSaveStatus(dto.getSaveStatus());
+        logBook.setDivePoint(dto.getDivePoint());
+        logBook.setDiveMethod(dto.getDiveMethod());
+        logBook.setDivePurpose(dto.getDivePurpose());
+        logBook.setSuitType(dto.getSuitType());
+        logBook.setEquipment(dto.getEquipment());
+        logBook.setWeight(dto.getWeight());
+        logBook.setPerceivedWeight(dto.getPerceivedWeight());
+        logBook.setDiveTime(dto.getDiveTime());
+        logBook.setMaxDepth(dto.getMaxDepth());
+        logBook.setAvgDepth(dto.getAvgDepth());
+        logBook.setDecompressDepth(dto.getDecompressDepth());
+        logBook.setDecompressTime(dto.getDecompressTime());
+        logBook.setStartPressure(dto.getStartPressure());
+        logBook.setFinishPressure(dto.getFinishPressure());
+        logBook.setConsumption(dto.getConsumption());
+        logBook.setWeatherType(dto.getWeather());
+        logBook.setWind(dto.getWind());
+        logBook.setTide(dto.getTide());
+        logBook.setWave(dto.getWave());
+        logBook.setTemperature(dto.getTemperature());
+        logBook.setWaterTemperature(dto.getWaterTemperature());
+        logBook.setPerceivedTemp(dto.getPerceivedTemp());
+        logBook.setSight(dto.getSight());
+
+
+        LogBaseInfo base = logBaseInfoRepository.findById(dto.getLogBaseInfoId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
 
         if (dto.getSaveStatus() == SaveStatus.TEMP){
             base.setSaveStatus(SaveStatus.TEMP);
@@ -128,53 +193,30 @@ public class LogBookService {
             logBaseInfoRepository.save(base);
         }//처음 로그북 추가할 때의 날짜를 다시 변경하는 경우, 로그베이스의 날짜까지 다시 수정
 
-        Member member = memberService.findById(1L);//임시로 데이터 넣음
-        int accumulation = logBookRepository.countByLogBaseInfoMember(member)+1;
-        //누적횟수 계산
-
-        LogBook logBook = LogBook.builder()
-                .logBaseInfo(base)
-                .accumulation(accumulation)
-                .place(dto.getPlace())
-                .divePoint(dto.getDivePoint())
-                .diveMethod(dto.getDiveMethod())
-                .divePurpose(dto.getDivePurpose())
-                .suitType(dto.getSuitType())
-                .equipment(dto.getEquipment())
-                .weight(dto.getWeight())
-                .perceivedWeight(dto.getPerceivedWeight())
-                .weatherType(dto.getWeather())
-                .wind(dto.getWind())
-                .tide(dto.getTide())
-                .wave(dto.getWave())
-                .temperature(dto.getTemperature())
-                .waterTemperature(dto.getWaterTemperature())
-                .perceivedTemp(dto.getPerceivedTemp())
-                .sight(dto.getSight())
-                .diveTime(dto.getDiveTime())
-                .maxDepth(dto.getMaxDepth())
-                .avgDepth(dto.getAvgDepth())
-                .decompressDepth(dto.getDecompressDepth())
-                .decompressTime(dto.getDecompressTime())
-                .startPressure(dto.getStartPressure())
-                .finishPressure(dto.getFinishPressure())
-                .consumption(dto.getConsumption())
-                .build();
-
-        logBookRepository.save(logBook);
-
+        // Companion 덮어쓰기 (기존 삭제 후 다시 저장)
+        companionRepository.deleteByLogBook(logBook);
         if (dto.getCompanions() != null) {
             for (CompanionRequestDTO c : dto.getCompanions()) {
                 Companion companion = Companion.builder()
-                        .name(c.getCompanion())
-                        .type(c.getType())
                         .logBook(logBook)
+                        .name(c.getName())
+                        .type(c.getType())
                         .build();
                 companionRepository.save(companion);
             }
         }
 
-        return new LogDetailCreateResultDTO(logBook.getId(),"로그 세부내용 저장 완료");
+        return new LogDetailPutResultDTO(logBook.getId(), "로그북이 수정되었습니다.");
+    }
+
+    @Transactional
+    public void updateLogName(Long logBaseInfoId, Long userId, String name){
+
+        LogBaseInfo logBaseInfo = logBaseInfoRepository.findByIdAndMemberId(logBaseInfoId, userId)
+                .orElseThrow(()->new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
+
+        logBaseInfo.updateName(name);
+
     }
 
 

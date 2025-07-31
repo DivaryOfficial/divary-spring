@@ -10,13 +10,15 @@ import com.divary.domain.chatroom.dto.response.OpenAIResponse;
 import com.divary.domain.chatroom.entity.ChatRoom;
 import com.divary.domain.chatroom.repository.ChatRoomRepository;
 import com.divary.domain.image.dto.response.ImageResponse;
-import com.divary.domain.image.entity.ImageType;
+import com.divary.domain.image.enums.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import com.divary.common.converter.TypeConverter;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,8 +40,7 @@ public class ChatRoomService {
 
     // 채팅방 메시지 전송 (새 채팅방 생성 또는 기존 채팅방에 메시지 추가)
     @Transactional
-    public ChatRoomMessageResponse sendChatRoomMessage(ChatRoomMessageRequest request) {
-        Long userId = getCurrentUserId();
+    public ChatRoomMessageResponse sendChatRoomMessage(ChatRoomMessageRequest request, Long userId) {
         ChatRoom chatRoom;
         List<String> newMessageIds = new java.util.ArrayList<>();
         
@@ -89,7 +90,7 @@ public class ChatRoomService {
             String firstMessageId = (String) metadata.get("lastMessageId");
             HashMap<String, Object> userMessage = TypeConverter.castToHashMap(messages.get(firstMessageId));
 
-            processImageUpload(userMessage, request.getImage(), userId, savedChatRoom.getId().toString());
+            processImageUpload(userMessage, request.getImage(), userId, savedChatRoom.getId());
 
             messages.put(firstMessageId, userMessage);
             savedChatRoom.updateMessages(messages);
@@ -106,13 +107,13 @@ public class ChatRoomService {
         validateChatRoomOwnership(chatRoom, userId);
         
         // 새 메시지 추가
-        addUserMessageToChatRoom(chatRoom, request);
+        addUserMessageToChatRoom(chatRoom, request, userId);
         
         return chatRoom;
     }
     
     // 사용자 메시지를 채팅방에 추가
-    private void addUserMessageToChatRoom(ChatRoom chatRoom, ChatRoomMessageRequest request) {
+    private void addUserMessageToChatRoom(ChatRoom chatRoom, ChatRoomMessageRequest request, Long userId) {
         HashMap<String, Object> messages = chatRoom.getMessages();
         String newMessageId = messageFactory.generateNextMessageId(messages);
 
@@ -120,7 +121,7 @@ public class ChatRoomService {
         HashMap<String, Object> messageData = messageFactory.createUserMessageData(request.getMessage(), null);
 
         // 이미지 처리
-        processImageUpload(messageData, request.getImage(), getCurrentUserId(), chatRoom.getId().toString());
+        processImageUpload(messageData, request.getImage(), userId, chatRoom.getId());
 
         messages.put(newMessageId, messageData);
 
@@ -157,24 +158,17 @@ public class ChatRoomService {
         
         return nextMessageId;
     }
-
-    // 현재 사용자 ID 가져오기
-    private Long getCurrentUserId() {
-        // TODO: 사용자 ID를 Authorization 헤더에서 가져오도록 수정
-        return 1L;
-    }
     
     // 채팅방 소유자 권한 확인
     private void validateChatRoomOwnership(ChatRoom chatRoom, Long userId) {
-        // TODO: 채팅방 소유자 확인 로직 - 현재는 하드코딩으로 처리
         if (!chatRoom.getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+            throw new BusinessException(ErrorCode.CHAT_ROOM_ACCESS_DENIED);
         }
     }
     
     
     // 이미지 업로드 처리
-    private void processImageUpload(HashMap<String, Object> messageData, org.springframework.web.multipart.MultipartFile image, Long userId, String chatRoomId) {
+    private void processImageUpload(HashMap<String, Object> messageData, MultipartFile image, Long userId, Long chatRoomId) {
         if (image != null && !image.isEmpty()) {
             ImageResponse imageResponse = imageService.uploadImageByType(
                 ImageType.USER_CHAT,
