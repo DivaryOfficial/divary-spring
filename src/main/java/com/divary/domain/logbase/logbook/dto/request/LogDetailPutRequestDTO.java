@@ -14,7 +14,6 @@ import com.divary.domain.logbase.logbook.enums.Wind;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.util.List;
-import com.divary.domain.logbase.logbook.enums.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
