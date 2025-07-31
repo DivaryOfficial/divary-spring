@@ -24,9 +24,8 @@ public class NotificationService {
     public List<NotificationResponseDTO> getNotification(Long userId) {
 
 
-        Member receiver = memberService.findById(userId);
 
-        List<Notification> notifications = notificationRepository.findByReceiver(receiver);
+        List<Notification> notifications = notificationRepository.findByReceiverId(userId);
 
         if (notifications.isEmpty()) {
             throw new BusinessException(ErrorCode.NOTIFICAITION_NOT_FOUND);
