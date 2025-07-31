@@ -1,11 +1,11 @@
 package com.divary.domain.logbase.logdiary.service;
 
+import com.divary.domain.logbase.LogBaseInfo;
+import com.divary.domain.logbase.LogBaseInfoService;
 import com.divary.domain.logbase.logdiary.dto.DiaryRequest;
 import com.divary.domain.logbase.logdiary.dto.DiaryResponse;
 import com.divary.domain.logbase.logdiary.entity.Diary;
 import com.divary.domain.logbase.logdiary.repository.DiaryRepository;
-import com.divary.domain.logbase.LogBaseInfo;
-import com.divary.domain.logbase.LogBaseInfoRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,13 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class DiaryService {
 
     private final DiaryRepository diaryRepository;
-    private final LogBaseInfoRepository logBaseInfoRepository;
+    private final LogBaseInfoService logBaseInfoService;
     private final ObjectMapper objectMapper;
 
     @Transactional
     public DiaryResponse createDiary(Long userId, Long logBaseInfoId, DiaryRequest request) {
         // 로그베이스의 존재와 접근 권한 확인
-        LogBaseInfo logBaseInfo = getLogBaseInfoWithAuth(logBaseInfoId, userId);
+        LogBaseInfo logBaseInfo = logBaseInfoService.validateAccess(logBaseInfoId, userId);
 
         // 이후 다이어리 중복 여부 확인
         if (diaryRepository.existsByLogBaseInfoId(logBaseInfoId)) {
@@ -66,18 +66,6 @@ public class DiaryService {
         }
     }
 
-    private LogBaseInfo getLogBaseInfoWithAuth(Long logBaseInfoId, Long userId) {
-        // 다이어리를 post 할때, 로그북 베이스가 존재하는지 확인
-        LogBaseInfo logBaseInfo = logBaseInfoRepository.findById(logBaseInfoId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
-
-        // 다이어리를 post 할때, 로그북 베이스에 일기를 작성할 권한이 있는지 확인
-        if (!logBaseInfo.getMember().getId().equals(userId)) {
-            throw new BusinessException(ErrorCode.DIARY_FORBIDDEN_ACCESS);
-        }
-
-        return logBaseInfo;
-    }
 
     private Diary getDiaryWithAuth(Long logBaseInfoId, Long userId) {
         // 다이어리를 update 하거나 get 할때, 로그북 베이스에 일기가 존재하는지 확인
