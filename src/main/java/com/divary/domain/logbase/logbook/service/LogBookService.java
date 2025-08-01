@@ -78,6 +78,7 @@ public class LogBookService {
                         .name(logBaseInfo.getName())
                         .date(logBaseInfo.getDate())
                         .iconType(logBaseInfo.getIconType())
+                        .saveStatus(logBaseInfo.getSaveStatus())
                         .LogBaseInfoId(logBaseInfo.getId())
                         .build())
                 .collect(Collectors.toList());
