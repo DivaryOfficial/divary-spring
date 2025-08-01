@@ -10,10 +10,12 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LogDetailPutResultDTO {
+public class LogExistResultDTO {
 
-    private Long logBookId;
+    @Schema(description = "로그북베이스 존재 여부")
+    private boolean exists;
 
-    private String message;
+    @Schema(description = "로그북베이스 id")
+    private Long logBaseInfoId;
+
 }
-
