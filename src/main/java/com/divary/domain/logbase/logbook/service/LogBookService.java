@@ -109,7 +109,7 @@ public class LogBookService {
     @Transactional
     public LogDetailCreateResultDTO createLogDetail(Long logBaseInfoId, Long userId) {
 
-        LogBaseInfo base = logBaseInfoRepository.findById(logBaseInfoId)
+        LogBaseInfo base = logBaseInfoRepository.findByIdAndMemberId(logBaseInfoId,userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
 
         // 연결된 기존의 로그북 개수 확인
