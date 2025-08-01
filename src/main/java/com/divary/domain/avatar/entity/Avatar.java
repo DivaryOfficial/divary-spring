@@ -1,7 +1,7 @@
 package com.divary.domain.avatar.entity;
 
 import com.divary.common.entity.BaseEntity;
-import com.divary.domain.Member.entity.Member;
+import com.divary.domain.member.entity.Member;
 import com.divary.domain.avatar.enums.*;
 import jakarta.persistence.*;
 import lombok.*;

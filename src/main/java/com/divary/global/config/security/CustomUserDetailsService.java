@@ -1,7 +1,7 @@
 package com.divary.global.config.security;
 
-import com.divary.domain.Member.entity.Member;
-import com.divary.domain.Member.repository.MemberRepository;
+import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.repository.MemberRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

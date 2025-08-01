@@ -1,9 +1,8 @@
 package com.divary.domain.notification.entity;
 
 import com.divary.common.entity.BaseEntity;
-import com.divary.domain.Member.entity.Member;
+import com.divary.domain.member.entity.Member;
 import com.divary.domain.notification.enums.NotificationType;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
