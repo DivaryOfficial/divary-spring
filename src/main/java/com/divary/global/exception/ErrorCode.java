@@ -35,7 +35,6 @@ public enum ErrorCode {
 
     //로그베이스 관련 에러코드
     LOG_BASE_FORBIDDEN_ACCESS(HttpStatus.FORBIDDEN, "LOGBASE_001", "로그 베이스에 접근 권한이 없습니다."),
-    LOG_BASE_ALREADY_EXIST(HttpStatus.FORBIDDEN,"LOGBASE_002","해당 날짜에 이미 로그 베이스가 존재합니다."),
 
     //맴버 관련
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_001", "이메일을 찾을 수 없습니다."),

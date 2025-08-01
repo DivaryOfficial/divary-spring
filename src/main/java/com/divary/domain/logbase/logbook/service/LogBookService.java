@@ -39,12 +39,6 @@ public class LogBookService {
 
         Member member = memberService.findById(userId);
 
-        Optional<LogBaseInfo> logBase = logBaseInfoRepository.findByDateAndMemberId(request.getDate(),userId);
-
-        if (logBase.isPresent()){
-            throw new BusinessException(ErrorCode.LOG_BASE_ALREADY_EXIST);
-        }
-
         LogBaseInfo logBaseInfo = LogBaseInfo.builder()
                 .iconType(request.getIconType())
                 .name(request.getName())
