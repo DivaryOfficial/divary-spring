@@ -8,6 +8,10 @@ target/
 .gradle/
 build/
 
+### Eclipse ###
+bin/
+.metadata
+
 ### STS ###
 .apt_generated
 .classpath

@@ -63,6 +63,7 @@ public enum ErrorCode {
     IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "IMAGE_001", "이미지 업로드에 실패했습니다."),
     IMAGE_SIZE_TOO_LARGE(HttpStatus.BAD_REQUEST, "IMAGE_002", "이미지 크기와 용량이 너무 큽니다."),
     IMAGE_FORMAT_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "IMAGE_003", "지원하지 않는 이미지 형식입니다."),
+    IMAGE_URL_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "IMAGE_004", "올바르지 않은 이미지 URL 형식입니다."),
     
     // 인증 관련 에러코드 강화
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_001", "토큰이 유효하지 않습니다."),

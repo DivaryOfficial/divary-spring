@@ -1,6 +1,8 @@
 package com.divary.domain.image.entity;
 
 import com.divary.common.entity.BaseEntity;
+import com.divary.domain.image.enums.ImageType;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -40,14 +42,19 @@ public class Image extends BaseEntity {
     @Schema(description = "업로드한 사용자 ID", example = "1")
     private Long userId;
 
+    @Column(name = "post_id")
+    @Schema(description = "연결된 게시글 ID", example = "123")
+    private Long postId;
+
     @Builder
-    public Image(String s3Key, ImageType type, String originalFilename, Long width, Long height, Long userId) {
+    public Image(String s3Key, ImageType type, String originalFilename, Long width, Long height, Long userId, Long postId) {
         this.s3Key = s3Key;
         this.type = type;
         this.originalFilename = originalFilename;
         this.width = width;
         this.height = height;
         this.userId = userId;
+        this.postId = postId;
     }
 
     // 이미지 정보 업데이트
@@ -63,5 +70,10 @@ public class Image extends BaseEntity {
     // S3 키 업데이트
     public void updateS3Key(String s3Key) {
         this.s3Key = s3Key;
+    }
+
+    // 게시글 ID 업데이트 (temp → permanent 변환 시)
+    public void updatePostId(Long postId) {
+        this.postId = postId;
     }
 }
