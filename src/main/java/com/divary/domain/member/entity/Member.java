@@ -4,9 +4,11 @@ import com.divary.common.entity.BaseEntity;
 import com.divary.domain.member.enums.Levels;
 import com.divary.domain.member.enums.Role;
 import com.divary.common.enums.SocialType;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
 import lombok.*;
 
 @Entity
@@ -31,4 +33,5 @@ public class Member extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private Levels level;
+    
 }
