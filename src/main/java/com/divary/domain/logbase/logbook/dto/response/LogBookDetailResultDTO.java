@@ -2,8 +2,7 @@ package com.divary.domain.logbase.logbook.dto.response;
 
 import com.divary.domain.logbase.logbook.entity.Companion;
 import com.divary.domain.logbase.logbook.entity.LogBook;
-import com.divary.domain.logbase.logbook.enums.IconType;
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.divary.domain.logbase.logbook.enums.SaveStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,10 +16,12 @@ import java.util.List;
 @AllArgsConstructor
 public class LogBookDetailResultDTO {
 
+    private Long LogBookId;
     private String name;
     private String icon;
     private LocalDate date;
 
+    private SaveStatus saveStatus;
     private int accumulation;
 
     private String place;
@@ -55,8 +56,10 @@ public class LogBookDetailResultDTO {
 
     public static LogBookDetailResultDTO from(LogBook logBook, List<Companion> companions) {
         return LogBookDetailResultDTO.builder()
+                .LogBookId(logBook.getId())
                 .name(logBook.getLogBaseInfo().getName())
                 .icon(logBook.getLogBaseInfo().getIconType().name())
+                .saveStatus(logBook.getSaveStatus())
                 .accumulation(logBook.getAccumulation())
                 .date(logBook.getLogBaseInfo().getDate())
                 .place(logBook.getPlace())
@@ -87,28 +90,5 @@ public class LogBookDetailResultDTO {
                 .finishPressure(logBook.getFinishPressure())
                 .consumption(logBook.getConsumption())
                 .build();
-    }
-
-    @Builder
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class LogBaseCreateResultDTO {
-
-        @Schema(description = "로그 제목", example = "해양일지")
-        private String name;
-
-        @Schema(description = "날짜", example = "2022-01-23")
-        private LocalDate date;
-
-        @Schema(description = "아이콘 타입", example = "CLOWNFISH")
-        private IconType iconType;
-
-        @Schema(description = "누적 횟수")
-        private int accumulation;
-
-        @Schema(description = "로그북베이스 id")
-        private Long LogBaseInfoId;
-
     }
 }

@@ -17,7 +17,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class LogBaseCreateRequestDTO {
 
-
     @NotNull
     @Schema(description = "아이콘 타입", example = "CLOWNFISH")
     private IconType iconType;

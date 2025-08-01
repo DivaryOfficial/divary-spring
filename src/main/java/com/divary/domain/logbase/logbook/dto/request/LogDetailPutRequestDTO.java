@@ -23,7 +23,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LogDetailCreateRequestDTO {
+public class LogDetailPutRequestDTO {
+
+    @Schema(description = "로그북베이스정보 id")
+    private Long logBaseInfoId;
 
     @Schema(description = "다이빙 날짜", example = "2025-07-25")
     private LocalDate date;
@@ -79,7 +82,7 @@ public class LogDetailCreateRequestDTO {
     @Schema(description = "체감 온도", example = "COLD")
     private PerceiveTemp perceivedTemp;
 
-    @Schema(description = "시야 거리", example = "3M")
+    @Schema(description = "시야", example = "GOOD")
     private Sight sight;
 
     @Schema(description = "총 다이빙 시간(분 단위)", example = "45")

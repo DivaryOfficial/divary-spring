@@ -6,6 +6,7 @@ import com.divary.domain.logbase.logbook.enums.DiveMethod;
 import com.divary.domain.logbase.logbook.enums.DivePurpose;
 import com.divary.domain.logbase.logbook.enums.PerceiveTemp;
 import com.divary.domain.logbase.logbook.enums.PerceiveWeight;
+import com.divary.domain.logbase.logbook.enums.SaveStatus;
 import com.divary.domain.logbase.logbook.enums.Sight;
 import com.divary.domain.logbase.logbook.enums.SuitType;
 import com.divary.domain.logbase.logbook.enums.Tide;
@@ -21,11 +22,15 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Schema(description = "다이빙 로그 세부정보")
@@ -33,12 +38,21 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Entity
+@Setter
 public class LogBook extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "log_base_info_id")
     @Schema(description = "로그북의 기본정보 외래키", example = "1")
     private LogBaseInfo logBaseInfo;
+
+    @OneToMany(mappedBy = "logBook", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Schema(description = "동행자 리스트")
+    private List<Companion> companions = new ArrayList<>();
+
+    @Column(name = "save_status")
+    @Schema(description = "각 로그북의 저장 상태", example = "TEMP")
+    private SaveStatus saveStatus;
 
     @Column(name = "accumulation",nullable = false)
     @Schema(description = "누적 횟수", example = "3")
@@ -53,7 +67,7 @@ public class LogBook extends BaseEntity {
     private String divePoint;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "dive_type")
+    @Column(name = "dive_method")
     @Schema(description = "다이빙 방식", example = "보트")
     private DiveMethod diveMethod;
 

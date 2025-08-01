@@ -1,7 +1,7 @@
 package com.divary.domain.logbase.logbook.dto.request;
 
-import com.divary.domain.logbase.logbook.enums.CompanionType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,10 +11,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CompanionRequestDTO {
-    @Schema(description = "동반자 이름", example = "김버디")
+public class LogNameUpdateRequestDTO {
+    @Schema(description = "수정할 로그 이름", example = "해양일지")
+    @NotBlank
     private String name;
-
-    @Schema(description = "동반자 타입", example = "LEADER")
-    private CompanionType type;
 }
