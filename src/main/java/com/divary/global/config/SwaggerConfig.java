@@ -2,7 +2,8 @@ package com.divary.global.config;
 
 import com.divary.global.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
-import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.examples.Example;
@@ -17,11 +18,13 @@ import lombok.Getter;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -35,12 +38,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Configuration
-@SecurityScheme(
-        name = "JWT", // 아래에서 사용할 이름
-        type = SecuritySchemeType.HTTP,
-        scheme = "bearer",
-        bearerFormat = "JWT"
-)
 public class SwaggerConfig {
 
     @Autowired
@@ -48,12 +45,36 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI openAPI() {
+        String key = "Access Token (Bearer)";
+        String refreshKey = "Refresh Token";
+
+        SecurityRequirement securityRequirement = new SecurityRequirement()
+                .addList(key)
+                .addList(refreshKey);
+
+        SecurityScheme accessTokenSecurityScheme = new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT")
+                .in(SecurityScheme.In.HEADER)
+                .name(HttpHeaders.AUTHORIZATION);
+
+        SecurityScheme refreshTokenSecurityScheme = new SecurityScheme()
+                .type(SecurityScheme.Type.APIKEY)
+                .in(SecurityScheme.In.HEADER)
+                .name("refreshToken");
+
+        Components components = new Components()
+                .addSecuritySchemes(key, accessTokenSecurityScheme)
+                .addSecuritySchemes(refreshKey, refreshTokenSecurityScheme);
+
         return new OpenAPI()
                 .info(new Info()
                         .title("Divary API")
                         .description("다이빙 서포트 앱 Divary의 REST API 문서")
                         .version("v1.0.0"))
-                .addSecurityItem(new SecurityRequirement().addList("JWT"));
+                .addSecurityItem(securityRequirement)
+                .components(components);
     }
 
     @Bean
