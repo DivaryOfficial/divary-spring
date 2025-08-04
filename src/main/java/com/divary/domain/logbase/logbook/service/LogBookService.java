@@ -1,7 +1,7 @@
 package com.divary.domain.logbase.logbook.service;
 
-import com.divary.domain.Member.entity.Member;
-import com.divary.domain.Member.service.MemberServiceImpl;
+import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.service.MemberServiceImpl;
 import com.divary.domain.logbase.LogBaseInfo;
 import com.divary.domain.logbase.LogBaseInfoRepository;
 import com.divary.domain.logbase.logbook.dto.request.*;

@@ -1,6 +1,6 @@
 package com.divary.domain.logbase.logbook.repository;
 
-import com.divary.domain.Member.entity.Member;
+import com.divary.domain.member.entity.Member;
 import com.divary.domain.logbase.LogBaseInfo;
 import com.divary.domain.logbase.logbook.entity.LogBook;
 import org.springframework.data.jpa.repository.JpaRepository;

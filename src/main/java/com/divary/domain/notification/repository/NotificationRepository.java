@@ -1,6 +1,6 @@
 package com.divary.domain.notification.repository;
 
-import com.divary.domain.Member.entity.Member;
+import com.divary.domain.member.entity.Member;
 import com.divary.domain.notification.entity.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 

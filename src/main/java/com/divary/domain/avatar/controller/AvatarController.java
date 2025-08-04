@@ -23,7 +23,6 @@ public class AvatarController {
 
     @GetMapping
     public  ApiResponse<AvatarResponseDTO> getAvatar(){
-        //TODO buddypet json으로 변경할수도 있음
         return ApiResponse.success("아바타 조회에 성공했습니다.", avatarService.getAvatar());
     }
 }
