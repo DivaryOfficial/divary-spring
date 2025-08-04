@@ -122,7 +122,7 @@ public class LogBookController {
 
     @GetMapping("/exists")
     @Operation(summary = "특정 날짜 로그베이스 존재 여부", description = "해당 날짜에 로그가 존재하는지 확인합니다.")
-    @ApiSuccessResponse(dataType = Void.class)
+    @ApiSuccessResponse(dataType = LogExistResultDTO.class)
     @ApiErrorExamples(value = {ErrorCode.LOG_ACCESS_DENIED, ErrorCode.LOG_BASE_NOT_FOUND, ErrorCode.AUTHENTICATION_REQUIRED})
     public ApiResponse<LogExistResultDTO> checkLogExists(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,

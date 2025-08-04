@@ -221,7 +221,6 @@ public class LogBookService {
 
     }
 
-    @Transactional
     public LogExistResultDTO checkLogExists(LocalDate date, Long userId) {
 
         Optional<LogBaseInfo> logBase = logBaseInfoRepository.findByDateAndMemberId(date, userId);
