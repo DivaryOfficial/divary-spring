@@ -117,7 +117,7 @@ public class SystemController {
             null, 
             Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
         );
-        String token = jwtTokenProvider.generateToken(auth);
+        String token = jwtTokenProvider.generateAccessToken(auth);
         return ApiResponse.success(token);
     }
 

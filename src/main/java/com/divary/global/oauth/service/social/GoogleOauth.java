@@ -4,8 +4,9 @@ import com.divary.common.enums.SocialType;
 import com.divary.domain.Member.entity.Member;
 import com.divary.domain.Member.enums.Role;
 import com.divary.domain.Member.service.MemberService;
-import com.divary.domain.avatar.entity.Avatar;
 import com.divary.domain.avatar.service.AvatarService;
+import com.divary.domain.refresh.entity.RefreshToken;
+import com.divary.domain.refresh.repository.RefreshTokenRepository;
 import com.divary.global.config.security.jwt.JwtTokenProvider;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
@@ -16,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -32,6 +32,8 @@ public class GoogleOauth implements SocialOauth {
     private final JwtTokenProvider jwtTokenProvider;
     private static final String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
     private final RestTemplate restTemplate;
+    private final RefreshTokenRepository refeshTokenRepository;
+
 
     private Map<String, Object> requestUserInfo(String accessToken) {
 
@@ -88,10 +90,15 @@ public class GoogleOauth implements SocialOauth {
         );
 
         // JWT 토큰 발급
-        String accessToken = jwtTokenProvider.generateToken(authentication);
+        String accessToken = jwtTokenProvider.generateAccessToken(authentication);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
+
+
+        refeshTokenRepository.save(new RefreshToken(refreshToken));
 
         // 3. 응답 생성
-        return LoginResponseDTO.builder().token(accessToken).build();
+        return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
     }
+
 }
