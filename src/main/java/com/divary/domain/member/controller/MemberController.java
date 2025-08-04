@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import com.divary.domain.member.service.MemberService;
 import org.springframework.web.multipart.MultipartFile;
 
-@RestController("/member")
+@RestController
+@RequestMapping("/member")
 @RequiredArgsConstructor
 public class MemberController {
     private final MemberService memberService;

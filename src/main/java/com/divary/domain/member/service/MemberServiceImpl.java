@@ -40,7 +40,6 @@ public class MemberServiceImpl implements MemberService {
 
 
 
-    @jakarta.transaction.Transactional
     public void updateLevel(Long userId, MyPageLevelRequestDTO requestDTO) {
         Levels level = EnumValidator.validateEnum(Levels.class, requestDTO.getLevel().name());
 
