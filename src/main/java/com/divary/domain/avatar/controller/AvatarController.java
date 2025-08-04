@@ -30,12 +30,11 @@ public class AvatarController {
     }
 
     @GetMapping
-    public  ApiResponse<AvatarResponseDTO> getAvatar(){
-        return ApiResponse.success("아바타 조회에 성공했습니다.", avatarService.getAvatar());
     @Operation(summary = "아바타 조회", description = "아바타를 조회합니다")
     @SwaggerConfig.ApiSuccessResponse(dataType = AvatarResponseDTO.class)
     @SwaggerConfig.ApiErrorExamples(value = {ErrorCode.AVATAR_NOT_FOUND, ErrorCode.AUTHENTICATION_REQUIRED})
-    public  ApiResponse<AvatarResponseDTO> getAvatar(@AuthenticationPrincipal CustomUserPrincipal userPrincipal){
+    public ApiResponse<AvatarResponseDTO> getAvatar (@AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
         return ApiResponse.success("아바타 조회에 성공했습니다.", avatarService.getAvatar(userPrincipal.getId()));
+
     }
 }

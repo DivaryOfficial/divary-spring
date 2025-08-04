@@ -37,9 +37,11 @@ public class AvatarServiceImpl implements AvatarService {
         avatar.setTank(avatarRequestDTO.getTank());
         avatar.setBodyColor(avatarRequestDTO.getBodyColor());
 
-        avatar.setBudyPet(avatarRequestDTO.getBuddyPetInfo().getBudyPet());
-        avatar.setPetRotation(avatarRequestDTO.getBuddyPetInfo().getRotation());
-        avatar.setPetScale(avatarRequestDTO.getBuddyPetInfo().getScale());
+        if (avatarRequestDTO.getBuddyPetInfo() != null) {
+            avatar.setBudyPet(avatarRequestDTO.getBuddyPetInfo().getBudyPet());
+            avatar.setPetRotation(avatarRequestDTO.getBuddyPetInfo().getRotation());
+            avatar.setPetScale(avatarRequestDTO.getBuddyPetInfo().getScale());
+        }
 
         avatar.setBubbleText(avatarRequestDTO.getBubbleText());
         avatar.setCheekColor(avatarRequestDTO.getCheekColor());

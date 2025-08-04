@@ -22,7 +22,6 @@ public class AvatarRequestDTO {
     private String name;
 
     @Schema(description = "탱크 색깔", example = "YELLOW")
-    @NotNull
     private Tank tank;
 
     @Schema(description = "몸 색상", example = "IVORY")
@@ -30,32 +29,26 @@ public class AvatarRequestDTO {
     private BodyColor bodyColor;
 
     @Schema(description = "버디펫 정보 리스트")
-    @NotNull
     private BuddyPetInfoDTO buddyPetInfo;
 
 
     @Schema(description = "말풍선 텍스트", example = "Hi i'm buddy")
-    @NotNull
-    private String bubbleText; //말풍선 없을시 공백
+    private String bubbleText;
 
     @Schema(description = "볼 색상", example = "PINK")
     @NotNull
     private CheekColor cheekColor;
 
-    @Schema(description = "말풍선 타입", example = "NONE")
-    @NotNull
+    @Schema(description = "말풍선 타입", example = "OVAL_TAILED")
     private SpeechBubble speechBubble;
 
     @Schema(description = "마스크 샐깔", example = "WHITE")
-    @NotNull
     private Mask mask;
 
     @Schema(description = "핀 색깔", example = "WHITE")
-    @NotNull
     private Pin pin;
 
-    @Schema(description = "레귤레이터 색깔", example = "BLACK")
-    @NotNull
+    @Schema(description = "레귤레이터 색깔", example = "WHITE")
     private Regulator regulator;
 
     @Schema(description = "테마", example = "CORAL_FOREST")

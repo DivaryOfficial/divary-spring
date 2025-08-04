@@ -27,47 +27,50 @@ public class Avatar extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private BodyColor bodyColor = BodyColor.IVORY;
 
-    @Column(name = "buble_text")
+    @Column(nullable = true, name = "buble_text")
     private String bubbleText;
 
-    @Builder.Default
-    @Column(nullable = false, name = "speechBubble")
-    @Enumerated(EnumType.STRING)
-    private SpeechBubble speechBubble = SpeechBubble.NONE;
 
-    @Builder.Default
+    @Column(nullable = true, name = "speechBubble")
+    @Enumerated(EnumType.STRING)
+    private SpeechBubble speechBubble;
+
+
     @Column(nullable = false, name = "cheek_color")
     @Enumerated(EnumType.STRING)
-    private CheekColor cheekColor = CheekColor.NONE;
+    private CheekColor cheekColor;
 
-    @Builder.Default
+
     @Enumerated(EnumType.STRING)
-    private Mask mask = Mask.NONE;
+    @Column(nullable = true, name = "mask")
+    private Mask mask;
 
-    @Builder.Default
+
     @Enumerated(EnumType.STRING)
-    private Regulator regulator = Regulator.NONE;
+    @Column(nullable = true, name = "regulator")
+    private Regulator regulator;
 
-    @Builder.Default
     @Enumerated(EnumType.STRING)
-    private Pin pin = Pin.NONE;
+    @Column(nullable = true, name = "pin")
+    private Pin pin;
 
-    @Builder.Default
     @Enumerated(EnumType.STRING)
-    private Tank tank = Tank.NONE;
+    @Column(nullable = true, name = "tank")
+    private Tank tank;
 
-    @Builder.Default
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "budy_pet")
-    private BudyPet budyPet = BudyPet.NONE;
+    @Column(nullable = true, name = "budy_pet")
+    private BudyPet budyPet;
 
-    @Column(name = "pet_rotation")
+    @Column(nullable = true, name = "pet_rotation")
     private Double petRotation;
 
-    @Column(name = "pet_scale")
+    @Column(nullable = true, name = "pet_scale")
     private Double petScale;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "theme")
     private Theme theme = Theme.CORAL_FOREST;
 }
