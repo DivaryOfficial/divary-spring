@@ -36,7 +36,7 @@ public class AvatarRequestDTO {
 
     @Schema(description = "말풍선 텍스트", example = "Hi i'm buddy")
     @NotNull
-    private String bubbleText;
+    private String bubbleText; //말풍선 없을시 공백
 
     @Schema(description = "볼 색상", example = "PINK")
     @NotNull
