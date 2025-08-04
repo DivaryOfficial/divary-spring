@@ -1,8 +1,7 @@
 package com.divary.domain.avatar.enums;
 
 public enum Regulator {
-    NONE,
-    BLACK,
+    WHITE,
     YELLOW,
     PINK
 }

@@ -11,8 +11,10 @@ public class AvatarResponseDTO {
     private Tank tank;
     private BodyColor bodyColor;
     private BudyPet budyPet;
+    private String bubbleText;
     private CheekColor cheekColor;
     private SpeechBubble speechBubble;
+    private BuddyPetInfoDTO buddyPetInfo;
     private Mask mask;
     private Pin pin;
     private Regulator regulator;

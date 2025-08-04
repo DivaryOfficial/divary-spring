@@ -19,45 +19,58 @@ public class Avatar extends BaseEntity {
     private Member user;
 
     @Column(length = 20)
-    private String name;
+    @Builder.Default
+    private String name = "버디";
 
     @Builder.Default
-    @Column(nullable = false, name = "body_color")
+    @Column(nullable = false,name = "body_color")
     @Enumerated(EnumType.STRING)
     private BodyColor bodyColor = BodyColor.IVORY;
 
-    @Builder.Default
-    @Column(nullable = false, name = "eye_color")
-    @Enumerated(EnumType.STRING)
-    private SpeechBubble speechBubble = SpeechBubble.NONE;
+    @Column(nullable = true, name = "buble_text")
+    private String bubbleText;
 
-    @Builder.Default
+
+    @Column(nullable = true, name = "speechBubble")
+    @Enumerated(EnumType.STRING)
+    private SpeechBubble speechBubble;
+
+
     @Column(nullable = false, name = "cheek_color")
     @Enumerated(EnumType.STRING)
-    private CheekColor cheekColor = CheekColor.NONE;
+    private CheekColor cheekColor;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true, name = "mask")
+    private Mask mask;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true, name = "regulator")
+    private Regulator regulator;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true, name = "pin")
+    private Pin pin;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true, name = "tank")
+    private Tank tank;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true, name = "budy_pet")
+    private BudyPet budyPet;
+
+    @Column(nullable = true, name = "pet_rotation")
+    private Double petRotation;
+
+    @Column(nullable = true, name = "pet_scale")
+    private Double petScale;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    private Mask mask = Mask.NONE;
-
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    private Regulator regulator = Regulator.NONE;
-
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    private Pin pin = Pin.NONE;
-
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    private Tank tank = Tank.NONE;
-
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    @Column(name = "budy_pet")
-    private BudyPet budyPet = BudyPet.NONE;
-
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "theme")
     private Theme theme = Theme.CORAL_FOREST;
 }
