@@ -5,6 +5,8 @@ import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.service.MemberService;
 import com.divary.domain.avatar.service.AvatarService;
+import com.divary.domain.refresh.entity.RefreshToken;
+import com.divary.domain.refresh.repository.RefreshTokenRepository;
 import com.divary.global.config.security.jwt.JwtTokenProvider;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
@@ -30,6 +32,8 @@ public class GoogleOauth implements SocialOauth {
     private final JwtTokenProvider jwtTokenProvider;
     private static final String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
     private final RestTemplate restTemplate;
+    private final RefreshTokenRepository refeshTokenRepository;
+
 
     private Map<String, Object> requestUserInfo(String accessToken) {
 
@@ -76,7 +80,7 @@ public class GoogleOauth implements SocialOauth {
                     .socialType(SocialType.GOOGLE)
                     .role(Role.USER)
                     .build());
-            
+
         }
 
 
@@ -86,10 +90,14 @@ public class GoogleOauth implements SocialOauth {
         );
 
         // JWT 토큰 발급
-        String accessToken = jwtTokenProvider.generateToken(authentication);
+        String accessToken = jwtTokenProvider.generateAccessToken(authentication);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
+
+
+        refeshTokenRepository.save(new RefreshToken(refreshToken));
 
         // 3. 응답 생성
-        return LoginResponseDTO.builder().token(accessToken).build();
+        return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
     }
 }
