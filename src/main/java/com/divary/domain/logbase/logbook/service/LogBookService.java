@@ -19,7 +19,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -216,6 +218,23 @@ public class LogBookService {
                 .orElseThrow(()->new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
 
         logBaseInfo.updateName(name);
+
+    }
+
+    public LogExistResultDTO checkLogExists(LocalDate date, Long userId) {
+
+        Optional<LogBaseInfo> logBase = logBaseInfoRepository.findByDateAndMemberId(date, userId);
+
+        if (logBase.isPresent()) {
+            return LogExistResultDTO.builder()
+                    .exists(true)
+                    .logBaseInfoId(logBase.get().getId())
+                    .build();
+        }
+        return LogExistResultDTO.builder()
+                .exists(false)
+                .logBaseInfoId(null)
+                .build();
 
     }
 

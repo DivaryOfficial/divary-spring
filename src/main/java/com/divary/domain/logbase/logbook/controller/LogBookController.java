@@ -4,11 +4,7 @@ import com.divary.common.response.ApiResponse;
 import com.divary.domain.logbase.logbook.dto.request.LogBaseCreateRequestDTO;
 import com.divary.domain.logbase.logbook.dto.request.LogDetailPutRequestDTO;
 import com.divary.domain.logbase.logbook.dto.request.LogNameUpdateRequestDTO;
-import com.divary.domain.logbase.logbook.dto.response.LogBaseCreateResultDTO;
-import com.divary.domain.logbase.logbook.dto.response.LogBaseListResultDTO;
-import com.divary.domain.logbase.logbook.dto.response.LogBookDetailResultDTO;
-import com.divary.domain.logbase.logbook.dto.response.LogDetailCreateResultDTO;
-import com.divary.domain.logbase.logbook.dto.response.LogDetailPutResultDTO;
+import com.divary.domain.logbase.logbook.dto.response.*;
 import com.divary.domain.logbase.logbook.enums.SaveStatus;
 import com.divary.domain.logbase.logbook.service.LogBookService;
 import com.divary.global.config.SwaggerConfig.ApiErrorExamples;
@@ -18,8 +14,11 @@ import com.divary.global.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -119,6 +118,20 @@ public class LogBookController {
         Long userId = userPrincipal.getId();
         logBookService.updateLogName(logBaseInfoId, userId, dto.getName());
         return ApiResponse.success(null);
+    }
+
+    @GetMapping("/exists")
+    @Operation(summary = "특정 날짜 로그베이스 존재 여부", description = "해당 날짜에 로그가 존재하는지 확인합니다.")
+    @ApiSuccessResponse(dataType = LogExistResultDTO.class)
+    @ApiErrorExamples(value = {ErrorCode.LOG_ACCESS_DENIED, ErrorCode.LOG_BASE_NOT_FOUND, ErrorCode.AUTHENTICATION_REQUIRED})
+    public ApiResponse<LogExistResultDTO> checkLogExists(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+
+        Long userId = userPrincipal.getId();
+
+        LogExistResultDTO response = logBookService.checkLogExists(date, userId);
+        return ApiResponse.success(response);
     }
 
 }
