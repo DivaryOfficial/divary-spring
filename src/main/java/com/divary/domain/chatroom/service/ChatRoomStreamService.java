@@ -1,7 +1,6 @@
 package com.divary.domain.chatroom.service;
 
 import com.divary.domain.chatroom.dto.request.ChatRoomMessageRequest;
-import com.divary.domain.chatroom.dto.response.ChatStreamResponseDto;
 import com.divary.domain.chatroom.repository.ChatRoomRepository;
 import com.divary.domain.image.service.ImageService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,6 +15,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +48,9 @@ public class ChatRoomStreamService {
         
         log.info("새 SSE 연결 생성: {} (활성 연결 수: {})", connectionId, activeConnections.size());
         
+        // 스트림 시작 이벤트 전송
+        sendStreamStartEvent(emitter, connectionId, request);
+        
         try {
             // OpenAI 스트림 호출 (재시도 및 타임아웃 설정)
             Flux<String> streamFlux = openAIService.sendMessageStreamRaw(
@@ -72,6 +76,7 @@ public class ChatRoomStreamService {
     // OpenAI SSE 스트림을 파싱하여 클라이언트에 전송
     private void processStreamEvents(Flux<String> streamFlux, SseEmitter emitter, String connectionId) {
         StringBuilder messageBuilder = new StringBuilder();
+        AtomicLong chunkCounter = new AtomicLong(0);
         
         streamFlux
             .filter(chunk -> !chunk.trim().isEmpty())
@@ -81,17 +86,10 @@ public class ChatRoomStreamService {
                         String content = parseSSEChunk(chunk);
                         if (content != null && !content.isEmpty()) {
                             messageBuilder.append(content);
+                            long chunkIndex = chunkCounter.incrementAndGet();
                             
-                            // 클라이언트에 진행상황 전송
-                            Map<String, Object> response = Map.of(
-                                "content", content,
-                                "isComplete", false,
-                                "accumulatedMessage", messageBuilder.toString()
-                            );
-                            
-                            emitter.send(SseEmitter.event()
-                                .name("message")
-                                .data(response));
+                            // 향상된 메시지 청크 이벤트 전송
+                            sendMessageChunkEvent(emitter, connectionId, content, messageBuilder.toString(), chunkIndex);
                         }
                     } catch (Exception e) {
                         log.error("SSE 이벤트 전송 오류 [{}]: {}", connectionId, e.getMessage());
@@ -113,16 +111,8 @@ public class ChatRoomStreamService {
                 },
                 () -> {
                     try {
-                        // 스트림 완료 시 최종 메시지 전송
-                        Map<String, Object> finalResponse = Map.of(
-                            "content", "",
-                            "isComplete", true,
-                            "accumulatedMessage", messageBuilder.toString()
-                        );
-                        
-                        emitter.send(SseEmitter.event()
-                            .name("complete")
-                            .data(finalResponse));
+                        // 향상된 스트림 완료 이벤트 전송
+                        sendStreamCompleteEvent(emitter, connectionId, messageBuilder.toString(), chunkCounter.get());
                         
                         emitter.complete();
                         log.info("스트림 정상 완료 [{}]", connectionId);
@@ -163,19 +153,132 @@ public class ChatRoomStreamService {
         }
     }
     
-    // 클라이언트에 에러 정보 전송
-    private void sendErrorToClient(SseEmitter emitter, String connectionId, String errorType, Throwable error) {
+    // 스트림 시작 이벤트 전송
+    private void sendStreamStartEvent(SseEmitter emitter, String connectionId, ChatRoomMessageRequest request) {
         try {
-            Map<String, Object> errorResponse = Map.of(
-                "error", true,
-                "errorType", errorType,
-                "message", error.getMessage() != null ? error.getMessage() : "알 수 없는 오류",
-                "timestamp", System.currentTimeMillis()
+            Map<String, Object> requestInfo = Map.of(
+                "messageLength", request.getMessage().length(),
+                "hasImage", request.getImage() != null,
+                "userMessage", request.getMessage()
+            );
+            
+            Map<String, Object> startEvent = Map.of(
+                "eventType", "stream_start",
+                "connectionId", connectionId,
+                "requestInfo", requestInfo,
+                "timestamp", System.currentTimeMillis(),
+                "status", "initializing"
             );
             
             emitter.send(SseEmitter.event()
-                .name("error")
-                .data(errorResponse));
+                .name("stream_start")
+                .data(startEvent));
+                
+            log.debug("스트림 시작 이벤트 전송 완료 [{}]", connectionId);
+        } catch (Exception e) {
+            log.error("스트림 시작 이벤트 전송 실패 [{}]: {}", connectionId, e.getMessage());
+        }
+    }
+    
+    // 메시지 청크 이벤트 전송
+    private void sendMessageChunkEvent(SseEmitter emitter, String connectionId, String chunkContent, 
+                                     String accumulatedMessage, long chunkIndex) {
+        try {
+            Map<String, Object> chunk = Map.of(
+                "content", chunkContent,
+                "index", chunkIndex
+            );
+            
+            Map<String, Object> message = Map.of(
+                "accumulated", accumulatedMessage,
+                "characterCount", accumulatedMessage.length(),
+                "chunkCount", chunkIndex
+            );
+            
+            Map<String, Object> metadata = Map.of(
+                "connectionId", connectionId
+            );
+            
+            Map<String, Object> chunkEvent = Map.of(
+                "eventType", "message_chunk",
+                "chunk", chunk,
+                "message", message,
+                "metadata", metadata,
+                "timestamp", System.currentTimeMillis(),
+                "status", "streaming"
+            );
+            
+            emitter.send(SseEmitter.event()
+                .name("message_chunk")
+                .data(chunkEvent));
+                
+        } catch (Exception e) {
+            log.error("메시지 청크 이벤트 전송 실패 [{}]: {}", connectionId, e.getMessage());
+            throw new RuntimeException("메시지 청크 이벤트 전송 실패", e);
+        }
+    }
+    
+    // 스트림 완료 이벤트 전송
+    private void sendStreamCompleteEvent(SseEmitter emitter, String connectionId, String finalMessage, long totalChunks) {
+        try {
+            String[] words = finalMessage.trim().split("\\s+");
+            int wordCount = finalMessage.trim().isEmpty() ? 0 : words.length;
+            
+            Map<String, Object> finalMessageInfo = Map.of(
+                "content", finalMessage,
+                "characterCount", finalMessage.length(),
+                "wordCount", wordCount,
+                "totalChunks", totalChunks
+            );
+            
+            Map<String, Object> metadata = Map.of(
+                "connectionId", connectionId,
+                "completedAt", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            );
+            
+            Map<String, Object> completeEvent = Map.of(
+                "eventType", "stream_complete",
+                "finalMessage", finalMessageInfo,
+                "metadata", metadata,
+                "timestamp", System.currentTimeMillis(),
+                "status", "completed"
+            );
+            
+            emitter.send(SseEmitter.event()
+                .name("stream_complete")
+                .data(completeEvent));
+                
+            log.debug("스트림 완료 이벤트 전송 완료 [{}]", connectionId);
+        } catch (Exception e) {
+            log.error("스트림 완료 이벤트 전송 실패 [{}]: {}", connectionId, e.getMessage());
+            throw new RuntimeException("스트림 완료 이벤트 전송 실패", e);
+        }
+    }
+    
+    // 클라이언트에 에러 정보 전송
+    private void sendErrorToClient(SseEmitter emitter, String connectionId, String errorType, Throwable error) {
+        try {
+            Map<String, Object> errorInfo = Map.of(
+                "type", errorType,
+                "message", error.getMessage() != null ? error.getMessage() : "알 수 없는 오류",
+                "retryable", isRetryableError(error)
+            );
+            
+            Map<String, Object> context = Map.of(
+                "connectionId", connectionId
+            );
+            
+            Map<String, Object> errorEvent = Map.of(
+                "eventType", "stream_error",
+                "error", errorInfo,
+                "context", context,
+                "timestamp", System.currentTimeMillis(),
+                "status", "error"
+            );
+            
+            emitter.send(SseEmitter.event()
+                .name("stream_error")
+                .data(errorEvent));
             
             log.info("에러 정보 전송 완료 [{}]: {}", connectionId, errorType);
         } catch (Exception e) {
@@ -188,6 +291,13 @@ public class ChatRoomStreamService {
             }
             cleanupConnection(connectionId);
         }
+    }
+    
+    // 재시도 가능한 에러인지 판단
+    private boolean isRetryableError(Throwable error) {
+        return error instanceof java.util.concurrent.TimeoutException ||
+                error instanceof java.net.ConnectException ||
+                error instanceof java.io.IOException;
     }
     
     // SSE 연결 정리 메서드
