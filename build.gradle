@@ -54,6 +54,9 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+	// WebFlux (WebClient for streaming)
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
 	//security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	testImplementation 'org.springframework.security:spring-security-test'

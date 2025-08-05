@@ -17,8 +17,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
 import java.util.List;
 
 @Slf4j
@@ -29,6 +32,7 @@ import java.util.List;
 public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
+    private final ChatRoomStreamService chatRoomStreamService;
 
     @PostMapping(consumes = "multipart/form-data")
     @Operation(summary = "채팅방 메시지 전송", description = "새 채팅방 생성 또는 기존 채팅방에 메시지 전송\n chatRoomId 없으면 새 채팅방 생성\n 보낸 메시지와 AI 응답만 반환")
@@ -40,6 +44,17 @@ public class ChatRoomController {
         
         ChatRoomMessageResponse response = chatRoomService.sendChatRoomMessage(request, userPrincipal.getId());
         return ApiResponse.success(response);
+    }
+
+    @PostMapping(value = "/stream", consumes = "multipart/form-data", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @Operation(summary = "채팅방 메시지 스트리밍 전송", description = "새 채팅방 생성 또는 기존 채팅방에 메시지 스트리밍 전송")
+    @ApiSuccessResponse(dataType = SseEmitter.class)
+    @ApiErrorExamples(value = {ErrorCode.CHAT_ROOM_ACCESS_DENIED, ErrorCode.AUTHENTICATION_REQUIRED})
+    public SseEmitter streamChatRoomMessage(
+            @Valid @ModelAttribute ChatRoomMessageRequest request,
+            @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+
+        return chatRoomService.streamChatRoomMessage(request, userPrincipal.getId());
     }
 
     @GetMapping("/{chatRoomId}")

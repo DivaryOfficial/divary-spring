@@ -13,6 +13,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,7 +25,6 @@ import java.util.Map;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 // TODO : 에러 처리 추가 필요 현재는 500 에러로만 처리
 public class OpenAIService {
 
@@ -38,6 +39,20 @@ public class OpenAIService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final WebClient webClient;
+    
+    public OpenAIService(@Value("${openai.api.key}") String apiKey, 
+                        @Value("${openai.api.url}") String apiUrl,
+                        @Value("${openai.api.model}") String model) {
+        this.apiKey = apiKey;
+        this.apiUrl = apiUrl;
+        this.model = model;
+        this.webClient = WebClient.builder()
+                .baseUrl(apiUrl)
+                .defaultHeader("Authorization", "Bearer " + apiKey)
+                .defaultHeader("Content-Type", "application/json")
+                .build();
+    }
 
     // 제목 생성 첫 메시지로부터 제목 자동 생성 (현우님이 주신 프롬프트양식 사용)
     public String generateTitle(String userMessage) {
