@@ -1,6 +1,7 @@
 package com.divary.domain.chatroom.service;
 
 import com.divary.domain.chatroom.dto.response.OpenAIResponse;
+import com.divary.domain.chatroom.dto.response.ChatStreamResponseDto;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -300,6 +301,71 @@ public class OpenAIService {
             ## ACTIVATION
             You are now DIVARY_MARINE_EXPERT. Use conversation history for context but only respond to the latest <USER_QUERY> tagged message. Respond naturally and professionally to marine biology questions in Korean.
             """;
+    }
+
+    // OpenAI 스트림 API 호출 - 원시 SSE 응답 반환
+    public Flux<String> sendMessageStreamRaw(String message, MultipartFile imageFile, List<Map<String, Object>> messageHistory) {
+        try {
+            Map<String, Object> requestBody = buildStreamRequestBody(message, imageFile, messageHistory);
+            
+            return webClient
+                    .post()
+                    .uri("/chat/completions")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToFlux(String.class)
+                    .doOnError(error -> log.error("OpenAI 스트림 API 오류: {}", error.getMessage()));
+                    
+        } catch (Exception e) {
+            log.error("스트림 요청 생성 오류: {}", e.getMessage());
+            return Flux.error(new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR));
+        }
+    }
+    
+    // 스트림 요청 바디 구성
+    private Map<String, Object> buildStreamRequestBody(String message, MultipartFile imageFile, List<Map<String, Object>> messageHistory) {
+        Map<String, Object> requestBody = new HashMap<>();
+        
+        requestBody.put("model", model);
+        requestBody.put("stream", true);
+        requestBody.put("max_tokens", 450);
+        requestBody.put("temperature", 0.7);
+        requestBody.put("stream_options", Map.of("include_usage", true));
+        
+        List<Map<String, Object>> messages = new java.util.ArrayList<>();
+        
+        // 시스템 메시지
+        messages.add(Map.of("role", "system", "content", getMarineBiologySystemPrompt()));
+        
+        // 히스토리 추가
+        if (messageHistory != null && !messageHistory.isEmpty()) {
+            messages.addAll(messageHistory);
+        }
+        
+        // 사용자 메시지
+        Map<String, Object> userMessage = new HashMap<>();
+        userMessage.put("role", "user");
+        
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String base64Image = encodeImageToBase64(imageFile);
+            String mimeType = imageFile.getContentType();
+            
+            List<Map<String, Object>> content = List.of(
+                Map.of("type", "text", "text", wrapUserMessage(message)),
+                Map.of("type", "image_url", "image_url", 
+                    Map.of("url", "data:" + mimeType + ";base64," + base64Image))
+            );
+            userMessage.put("content", content);
+        } else {
+            userMessage.put("content", wrapUserMessage(message));
+        }
+        
+        messages.add(userMessage);
+        requestBody.put("messages", messages);
+        
+        return requestBody;
     }
 
 }
