@@ -55,7 +55,7 @@ public class EncyclopediaCardService {
         }
 
         // 모든 도감 프로필 (도감 이모티콘) 한 번에 조회
-        List<ImageResponse> allDogamProfiles = imageService.getImagesByType(ImageType.SYSTEM_DOGAM_PROFILE, null, null);
+        List<ImageResponse> allDogamProfiles = imageService.getImagesByType(ImageType.SYSTEM_DOGAM_PROFILE, null, 0L);
 
         // cardId -> FileUrl 매핑
         Map<Long, String> dogamProfileMap = allDogamProfiles.stream()
