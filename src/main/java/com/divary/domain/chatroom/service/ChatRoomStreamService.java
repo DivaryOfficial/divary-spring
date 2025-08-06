@@ -1,8 +1,12 @@
 package com.divary.domain.chatroom.service;
 
 import com.divary.domain.chatroom.dto.request.ChatRoomMessageRequest;
+import com.divary.domain.chatroom.entity.ChatRoom;
 import com.divary.domain.chatroom.repository.ChatRoomRepository;
 import com.divary.domain.image.service.ImageService;
+import com.divary.global.exception.BusinessException;
+import com.divary.global.exception.ErrorCode;
+import com.divary.common.converter.TypeConverter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +16,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
 import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.time.Duration;
@@ -48,15 +55,21 @@ public class ChatRoomStreamService {
         
         log.info("새 SSE 연결 생성: {} (활성 연결 수: {})", connectionId, activeConnections.size());
         
-        // 스트림 시작 이벤트 전송
+        // 스트림 시작 이벤트 전송 (히스토리 정보 포함)
         sendStreamStartEvent(emitter, connectionId, request);
         
         try {
+            // 히스토리 처리 로직: chatRoomId가 있으면 기존 대화 내역을 OpenAI에 전달
+            List<Map<String, Object>> messageHistory = null;
+            if (request.getChatRoomId() != null) {
+                messageHistory = buildMessageHistoryForOpenAI(request.getChatRoomId());
+            }
+            
             // OpenAI 스트림 호출 (재시도 및 타임아웃 설정)
             Flux<String> streamFlux = openAIService.sendMessageStreamRaw(
                 request.getMessage(), 
                 request.getImage(), 
-                null // TODO: 히스토리 처리 로직 추가 예정
+                messageHistory
             )
             .timeout(Duration.ofMinutes(3)) // OpenAI 응답 대기 최대 3분
             .retry(2) // 네트워크 오류 시 최대 2회 재시도
@@ -156,10 +169,24 @@ public class ChatRoomStreamService {
     // 스트림 시작 이벤트 전송
     private void sendStreamStartEvent(SseEmitter emitter, String connectionId, ChatRoomMessageRequest request) {
         try {
+            // 히스토리 정보 확인
+            boolean isNewChatRoom = request.getChatRoomId() == null;
+            int historyCount = 0;
+            if (!isNewChatRoom) {
+                try {
+                    List<Map<String, Object>> messageHistory = buildMessageHistoryForOpenAI(request.getChatRoomId());
+                    historyCount = messageHistory.size();
+                } catch (Exception e) {
+                    log.warn("히스토리 확인 실패 [{}]: {}", connectionId, e.getMessage());
+                }
+            }
+            
             Map<String, Object> requestInfo = Map.of(
                 "messageLength", request.getMessage().length(),
                 "hasImage", request.getImage() != null,
-                "userMessage", request.getMessage()
+                "userMessage", request.getMessage(),
+                "isNewChatRoom", isNewChatRoom,
+                "historyMessageCount", historyCount
             );
             
             Map<String, Object> startEvent = Map.of(
@@ -174,7 +201,8 @@ public class ChatRoomStreamService {
                 .name("stream_start")
                 .data(startEvent));
                 
-            log.debug("스트림 시작 이벤트 전송 완료 [{}]", connectionId);
+            log.debug("스트림 시작 이벤트 전송 완료 [{}] - 새 채팅방: {}, 히스토리: {}개", 
+                     connectionId, isNewChatRoom, historyCount);
         } catch (Exception e) {
             log.error("스트림 시작 이벤트 전송 실패 [{}]: {}", connectionId, e.getMessage());
         }
@@ -329,5 +357,51 @@ public class ChatRoomStreamService {
             }
         }
         return false;
+    }
+    
+    // OpenAI API용 메시지 히스토리 구성 (최대 20개 메시지)
+    private List<Map<String, Object>> buildMessageHistoryForOpenAI(Long chatRoomId) {
+        try {
+            ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+            
+            HashMap<String, Object> messages = chatRoom.getMessages();
+            
+            // 메시지 ID로 정렬 (msg_001, msg_002, ...)
+            List<String> sortedMessageIds = messages.keySet().stream()
+                    .filter(key -> key.startsWith("msg_"))
+                    .sorted()
+                    .collect(java.util.stream.Collectors.toList());
+            
+            // 최근 20개 메시지만 선택 (현재 사용자 메시지 제외)
+            int maxMessages = 20;
+            int startIndex = Math.max(0, sortedMessageIds.size() - maxMessages);
+            List<String> recentMessageIds = sortedMessageIds.subList(startIndex, sortedMessageIds.size());
+            
+            List<Map<String, Object>> messageHistory = new ArrayList<>();
+            
+            for (String messageId : recentMessageIds) {
+                HashMap<String, Object> messageData = TypeConverter.castToHashMap(messages.get(messageId));
+                
+                String type = (String) messageData.get("type");
+                String content = (String) messageData.get("content");
+                
+                Map<String, Object> openAIMessage = new HashMap<>();
+                openAIMessage.put("role", "user".equals(type) ? "user" : "assistant");
+                openAIMessage.put("content", content);
+                
+                messageHistory.add(openAIMessage);
+            }
+            
+            log.debug("채팅방 {} 히스토리 구성 완료: {} 개 메시지", chatRoomId, messageHistory.size());
+            return messageHistory;
+            
+        } catch (BusinessException e) {
+            log.error("채팅방 조회 실패 - chatRoomId: {}, error: {}", chatRoomId, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("메시지 히스토리 구성 중 오류 발생 - chatRoomId: {}, error: {}", chatRoomId, e.getMessage());
+            return new ArrayList<>(); // 빈 히스토리 반환
+        }
     }
 }
