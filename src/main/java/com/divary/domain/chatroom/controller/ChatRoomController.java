@@ -7,6 +7,7 @@ import com.divary.domain.chatroom.dto.response.ChatRoomDetailResponse;
 import com.divary.domain.chatroom.dto.response.ChatRoomMessageResponse;
 import com.divary.domain.chatroom.dto.response.ChatRoomResponse;
 import com.divary.domain.chatroom.service.ChatRoomService;
+import com.divary.domain.chatroom.service.ChatRoomStreamService;
 import com.divary.global.config.SwaggerConfig.ApiErrorExamples;
 import com.divary.global.config.SwaggerConfig.ApiSuccessResponse;
 import com.divary.global.config.security.CustomUserPrincipal;
@@ -47,14 +48,37 @@ public class ChatRoomController {
     }
 
     @PostMapping(value = "/stream", consumes = "multipart/form-data", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    @Operation(summary = "채팅방 메시지 스트리밍 전송", description = "새 채팅방 생성 또는 기존 채팅방에 메시지 스트리밍 전송")
+    @Operation(
+        summary = "채팅방 메시지 스트리밍 전송 (SSE)", 
+        description = """
+            실시간 스트리밍 채팅 API (Server-Sent Events)
+            • OpenAI GPT-4o-mini 모델 기반 스트리밍 응답
+            • 메시지 청크 단위로 실시간 전송
+            • 이미지 업로드 지원 (multipart/form-data)
+            • chatRoomId 없으면 새 채팅방 생성, 있으면 기존 채팅방 사용
+            
+            **이벤트 타입:**
+            - stream_start: 스트림 시작 정보
+            - message_chunk: 실시간 메시지 청크
+            - stream_complete: 스트림 완료 및 통계
+            - stream_error: 오류 발생 시
+            
+            **iOS 호환:**
+            - EventSource API 지원
+            - 자동 재연결 지원
+            """
+    )
     @ApiSuccessResponse(dataType = SseEmitter.class)
-    @ApiErrorExamples(value = {ErrorCode.CHAT_ROOM_ACCESS_DENIED, ErrorCode.AUTHENTICATION_REQUIRED})
+    @ApiErrorExamples(value = {ErrorCode.CHAT_ROOM_ACCESS_DENIED, ErrorCode.AUTHENTICATION_REQUIRED, ErrorCode.INTERNAL_SERVER_ERROR})
     public SseEmitter streamChatRoomMessage(
             @Valid @ModelAttribute ChatRoomMessageRequest request,
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+        
+        log.info("스트리밍 채팅 요청 수신 - userId: {}, chatRoomId: {}, messageLength: {}", 
+                userPrincipal.getId(), request.getChatRoomId(), 
+                request.getMessage() != null ? request.getMessage().length() : 0);
 
-        return chatRoomService.streamChatRoomMessage(request, userPrincipal.getId());
+        return chatRoomStreamService.streamChatRoomMessage(request, userPrincipal.getId());
     }
 
     @GetMapping("/{chatRoomId}")

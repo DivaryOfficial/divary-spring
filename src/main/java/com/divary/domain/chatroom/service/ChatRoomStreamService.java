@@ -88,7 +88,7 @@ public class ChatRoomStreamService {
                             messageBuilder.append(content);
                             long chunkIndex = chunkCounter.incrementAndGet();
                             
-                            // 향상된 메시지 청크 이벤트 전송
+                            // 메시지 청크 이벤트 전송
                             sendMessageChunkEvent(emitter, connectionId, content, messageBuilder.toString(), chunkIndex);
                         }
                     } catch (Exception e) {
@@ -111,7 +111,7 @@ public class ChatRoomStreamService {
                 },
                 () -> {
                     try {
-                        // 향상된 스트림 완료 이벤트 전송
+                        // 스트림 완료 이벤트 전송
                         sendStreamCompleteEvent(emitter, connectionId, messageBuilder.toString(), chunkCounter.get());
                         
                         emitter.complete();
@@ -124,7 +124,7 @@ public class ChatRoomStreamService {
             );
     }
     
-    // OpenAI SSE 청크 파싱 - "data: {json}" 형태 처리
+    // OpenAI SSE 청크 파싱
     private String parseSSEChunk(String sseChunk) {
         try {
             if (sseChunk.startsWith("data: ")) {
