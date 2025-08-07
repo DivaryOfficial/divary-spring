@@ -26,7 +26,6 @@ import java.util.Map;
 
 @Slf4j
 @Service
-// TODO : 에러 처리 추가 필요 현재는 500 에러로만 처리
 public class OpenAIService {
 
     @Value("${openai.api.key}")
@@ -48,8 +47,11 @@ public class OpenAIService {
         this.apiKey = apiKey;
         this.apiUrl = apiUrl;
         this.model = model;
+        
+        // WebClient는 base URL만 사용 (경로 중복 방지)
+        String baseUrl = "https://api.openai.com/v1";
         this.webClient = WebClient.builder()
-                .baseUrl(apiUrl)
+                .baseUrl(baseUrl)
                 .defaultHeader("Authorization", "Bearer " + apiKey)
                 .defaultHeader("Content-Type", "application/json")
                 .build();
