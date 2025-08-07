@@ -56,6 +56,9 @@ dependencies {
 
 	// WebFlux (WebClient for streaming)
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	
+	// macOS DNS 최적화
+	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.108.Final:osx-aarch_64'
 
 	//security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
