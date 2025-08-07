@@ -1,7 +1,6 @@
 package com.divary.global.config.security.jwt;
 
-import com.divary.domain.refresh.repository.RefreshTokenRepository;
-import com.divary.global.config.properties.Constants;
+import com.divary.domain.token.repository.RefreshTokenRepository;
 import com.divary.global.config.properties.JwtProperties;
 import com.divary.global.config.security.CustomUserDetailsService;
 import com.divary.global.exception.BusinessException;
@@ -99,8 +98,8 @@ public class JwtTokenProvider {
 
 
     // RefreshToken 존재유무 확인
-    public boolean existsRefreshToken(String refreshToken) {
-        return refreshTokenRepository.existsByRefreshToken(refreshToken);
+    public boolean existsRefreshToken(String refreshToken, String deviceId) {
+        return refreshTokenRepository.existsByRefreshTokenAndDeviceId(refreshToken, deviceId);
     }
 
     public String getUserEmail(String token) {
@@ -117,8 +116,9 @@ public class JwtTokenProvider {
                 .map(auth -> auth.getAuthority())
                 .toList();
     }
-    public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
-        response.setHeader(Constants.AUTH_HEADER, Constants.TOKEN_PREFIX + accessToken);
+    public void setHeaderTokens(HttpServletResponse response, String accessToken, String refreshToken) {
+        response.setHeader("Authorization", "Bearer " + accessToken);
+        response.setHeader("refreshToken", "Bearer " + refreshToken);
     }
     public void deleteRefreshToken(String token) {
         refreshTokenRepository.deleteByRefreshToken(token);

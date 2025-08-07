@@ -4,7 +4,7 @@ import com.divary.common.enums.SocialType;
 import com.divary.global.oauth.dto.LoginResponseDTO;
 
 public interface SocialOauth {
-    LoginResponseDTO verifyAndLogin(String code);
+    LoginResponseDTO verifyAndLogin(String code, String deviceId);
     SocialType type = null;
 
     default SocialType type() {

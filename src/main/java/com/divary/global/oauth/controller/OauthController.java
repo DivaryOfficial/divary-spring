@@ -31,9 +31,10 @@ public class OauthController {
     public ApiResponse<LoginResponseDTO> login(@PathVariable(name = "socialLoginType") SocialType socialLoginType,
                                      @RequestBody LoginRequestDto loginRequestDto) {
         String accessToken = loginRequestDto.getAccessToken();
+        String deviceId = loginRequestDto.getDeviceId();
         log.info(">> 앱에서 받은 accessToken :: {}", accessToken);
 
-        LoginResponseDTO responseDto = oauthService.authenticateWithAccessToken(socialLoginType, accessToken);
+        LoginResponseDTO responseDto = oauthService.authenticateWithAccessToken(socialLoginType, accessToken, deviceId);
         return ApiResponse.success(responseDto);
     }
 }
