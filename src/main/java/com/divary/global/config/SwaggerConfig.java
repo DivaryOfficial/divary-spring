@@ -47,10 +47,12 @@ public class SwaggerConfig {
     public OpenAPI openAPI() {
         String key = "Access Token (Bearer)";
         String refreshKey = "Refresh Token";
+        String deviceKey = "Device ID";
 
         SecurityRequirement securityRequirement = new SecurityRequirement()
                 .addList(key)
-                .addList(refreshKey);
+                .addList(refreshKey)
+                .addList(deviceKey);
 
         SecurityScheme accessTokenSecurityScheme = new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP)
@@ -64,9 +66,15 @@ public class SwaggerConfig {
                 .in(SecurityScheme.In.HEADER)
                 .name("refreshToken");
 
+        SecurityScheme deviceIdSecurityScheme = new SecurityScheme()
+                .type(SecurityScheme.Type.APIKEY)
+                .in(SecurityScheme.In.HEADER)
+                .name("Device-Id");
+
         Components components = new Components()
                 .addSecuritySchemes(key, accessTokenSecurityScheme)
-                .addSecuritySchemes(refreshKey, refreshTokenSecurityScheme);
+                .addSecuritySchemes(refreshKey, refreshTokenSecurityScheme)
+                .addSecuritySchemes(deviceKey, deviceIdSecurityScheme);
 
         return new OpenAPI()
                 .info(new Info()

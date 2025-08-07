@@ -25,12 +25,12 @@ public class OauthService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
     }
 
-    public LoginResponseDTO authenticateWithAccessToken(SocialType socialLoginType, String accessToken) {
+    public LoginResponseDTO authenticateWithAccessToken(SocialType socialLoginType, String accessToken, String deviceId) {
         SocialOauth socialOauth = this.findSocialOauthByType(socialLoginType);
         if (socialOauth == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        return socialOauth.verifyAndLogin(accessToken);
+        return socialOauth.verifyAndLogin(accessToken, deviceId);
     }
 }
