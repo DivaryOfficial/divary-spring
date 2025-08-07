@@ -182,8 +182,7 @@ public class LogBookService {
         logBook.setSight(dto.getSight());
 
 
-        LogBaseInfo base = logBaseInfoRepository.findById(dto.getLogBaseInfoId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
+        LogBaseInfo base = logBook.getLogBaseInfo();
 
         if (dto.getSaveStatus() == SaveStatus.TEMP){
             base.setSaveStatus(SaveStatus.TEMP);
