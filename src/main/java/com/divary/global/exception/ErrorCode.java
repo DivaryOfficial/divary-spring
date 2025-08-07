@@ -67,7 +67,7 @@ public enum ErrorCode {
     IMAGE_URL_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "IMAGE_004", "올바르지 않은 이미지 URL 형식입니다."),
     
     // 인증 관련 에러코드 강화
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_001", "토큰이 유효하지 않습니다."),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_001", "토큰 또는 deviceID가 유효하지 않습니다."),
     ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH_002", "액세스 토큰이 만료되었습니다."), // TODO: 토큰 만료 시 401 에러 처리 필요
     INVALID_USER_CONTEXT(HttpStatus.UNAUTHORIZED, "AUTH_003", "사용자 인증 정보가 유효하지 않습니다."),
     AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "AUTH_004", "인증이 필요합니다."),

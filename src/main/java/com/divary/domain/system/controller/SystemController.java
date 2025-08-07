@@ -98,7 +98,6 @@ public class SystemController {
         if (memberRepository.findByEmail(email).isEmpty()) {
             Member testUser = Member.builder()
                     .email(email)
-                    .socialType(SocialType.GOOGLE)
                     .role(Role.USER)
                     .build();
             memberRepository.save(testUser);

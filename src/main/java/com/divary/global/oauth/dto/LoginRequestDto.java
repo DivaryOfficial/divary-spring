@@ -7,4 +7,5 @@ import lombok.Setter;
 @Setter
 public class LoginRequestDto {
     private String accessToken;
+    private String deviceId;
 }

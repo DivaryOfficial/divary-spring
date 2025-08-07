@@ -5,8 +5,8 @@ import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.service.MemberService;
 import com.divary.domain.avatar.service.AvatarService;
-import com.divary.domain.refresh.entity.RefreshToken;
-import com.divary.domain.refresh.repository.RefreshTokenRepository;
+import com.divary.domain.token.entity.RefreshToken;
+import com.divary.domain.token.repository.RefreshTokenRepository;
 import com.divary.global.config.security.jwt.JwtTokenProvider;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
@@ -62,11 +62,10 @@ public class GoogleOauth implements SocialOauth {
     }
 
     @Override
-    public LoginResponseDTO verifyAndLogin(String googleAccessToken) {
+    public LoginResponseDTO verifyAndLogin(String googleAccessToken, String deviceId) {
         // accessToken으로 사용자 정보 요청
         Map<String, Object> userInfo = requestUserInfo(googleAccessToken);
         String email = (String) userInfo.get("email");
-        String name = (String)userInfo.get("name");
 
         Member member;
 
@@ -77,7 +76,6 @@ public class GoogleOauth implements SocialOauth {
         } catch (BusinessException e) {
             member = memberService.saveMember(Member.builder()
                     .email(email)
-                    .socialType(SocialType.GOOGLE)
                     .role(Role.USER)
                     .build());
 
@@ -94,7 +92,12 @@ public class GoogleOauth implements SocialOauth {
         String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
 
-        refeshTokenRepository.save(new RefreshToken(refreshToken));
+        refeshTokenRepository.save(RefreshToken.builder()
+                        .user(member)
+                        .deviceId(deviceId)
+                        .socialType(SocialType.GOOGLE)
+                        .refreshToken(refreshToken)
+                .build());
 
         // 3. 응답 생성
         return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();

@@ -2,6 +2,9 @@ package com.divary.global.config.security.jwt;
 
 import com.divary.common.response.ApiResponse;
 import com.divary.domain.member.enums.Role;
+import com.divary.domain.token.entity.RefreshToken;
+import com.divary.domain.token.repository.RefreshTokenRepository;
+import com.divary.domain.token.service.RefreshTokenService;
 import com.divary.global.config.properties.Constants;
 import com.divary.global.config.security.CustomUserDetailsService;
 import com.divary.global.config.security.CustomUserPrincipal;
@@ -17,17 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -37,6 +35,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
     private final CustomUserDetailsService customUserDetailsService;
+    private final RefreshTokenService refreshTokenService;
+
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -50,8 +50,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String accessToken = resolveAccessToken(request);
             String refreshToken = resolveRefreshToken(request);
+            String deviceId = request.getHeader("Device-Id");
             log.debug("AccessToken: {}", accessToken != null ? "존재" : "없음");
             log.debug("RefreshToken: {}", refreshToken != null ? "존재" : "없음");
+            log.debug("DeviceId: {}", deviceId != null ? "존재" : "없음");
 
             if(StringUtils.hasText(accessToken) && jwtTokenProvider.validateToken(accessToken)) {
                 Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
@@ -61,23 +63,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // accessToken이 만료 && refreshToken 존재 시 재발급
             else if (!jwtTokenProvider.validateToken(accessToken) && StringUtils.hasText(refreshToken)) {
                 boolean validateRefreshToken = jwtTokenProvider.validateToken(refreshToken);
-                boolean existsRefreshToken = jwtTokenProvider.existsRefreshToken(refreshToken);
+                boolean existsRefreshToken = jwtTokenProvider.existsRefreshToken(refreshToken, deviceId);
 
                 if (validateRefreshToken && existsRefreshToken) {
                     String email = jwtTokenProvider.getUserEmail(refreshToken);
-                    List<String> roles = jwtTokenProvider.getRoles(email);
 
-                    List<GrantedAuthority> authorities = roles.stream()
-                            .map(SimpleGrantedAuthority::new)
-                            .collect(Collectors.toList());
 
                     CustomUserPrincipal principal = (CustomUserPrincipal) customUserDetailsService.loadUserByUsername(email);
                     Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
 
                     String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
+                    String newRefreshToken = jwtTokenProvider.generateRefreshToken(authentication); // access토큰 발급할때마다 refresh도 새로 발급(RTR)
 
+                    Long userId = principal.getId();
+
+                    refreshTokenService.updateRefreshToken(userId, deviceId, newAccessToken);
                     // 새 토큰 헤더에 추가
-                    jwtTokenProvider.setHeaderAccessToken(response, newAccessToken);
+                    jwtTokenProvider.setHeaderTokens(response, newAccessToken, newRefreshToken);
+
 
                     // 인증 객체 설정
                     SecurityContextHolder.getContext().setAuthentication(authentication);
