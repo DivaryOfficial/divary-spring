@@ -268,8 +268,26 @@ public class ImageService {
         Image savedImage = imageRepository.findById(response.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR));
         savedImage.updateType(imageType);
-        
+
         // 업데이트된 이미지로 응답 생성
+        return ImageResponse.from(savedImage, response.getFileUrl());
+    }
+
+    @Transactional
+    public ImageResponse uploadSystemImage(ImageType imageType, MultipartFile file, Long postId) {
+        String uploadPath = imagePathService.generateSystemUploadPath(imageType, postId.toString());
+
+        ImageUploadRequest request = ImageUploadRequest.builder()
+                .file(file)
+                .uploadPath(uploadPath)
+                .build();
+
+        ImageResponse response = uploadImage(request);
+
+        Image savedImage = imageRepository.findById(response.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR));
+        savedImage.updateType(imageType);
+        savedImage.updatePostId(postId);
         return ImageResponse.from(savedImage, response.getFileUrl());
     }
 

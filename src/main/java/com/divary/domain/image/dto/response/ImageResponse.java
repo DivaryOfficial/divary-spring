@@ -46,6 +46,9 @@ public class ImageResponse {
 
     @Schema(description = "S3 저장 키", example = "system/dogam_profile/1/filename.jpg")
     private String s3Key;
+
+    @Schema(description = "연결된 게시글(카드) ID", example = "123")
+    private Long postId;
     
     public static ImageResponse from(Image image, String fileUrl) {
         return ImageResponse.builder()
@@ -59,6 +62,7 @@ public class ImageResponse {
                 .updatedAt(image.getUpdatedAt())
                 .userId(image.getUserId())
                 .s3Key(image.getS3Key())
+                .postId(image.getPostId())
                 .build();
     }
 } 
