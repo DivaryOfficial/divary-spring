@@ -52,7 +52,7 @@ public class ChatRoomStreamService {
         SseEmitter emitter = new SseEmitter(300_000L); // 5분 타임아웃
 
         try {
-            // 1. 채팅방 준비 (조회 또는 생성) 및 사용자 메시지 저장
+            // 채팅방 준비 (조회 또는 생성) 및 사용자 메시지 저장
             ChatRoom chatRoom = prepareChatRoomAndSaveUserMessage(request, userId);
 
             activeConnections.put(connectionId, emitter);
@@ -62,10 +62,10 @@ public class ChatRoomStreamService {
 
             log.info("새 SSE 연결 생성: {} (채팅방 ID: {})", connectionId, chatRoom.getId());
 
-            // 2. 스트림 시작 이벤트 전송
+            // 스트림 시작 이벤트 전송
             sendStreamStartEvent(emitter, connectionId, request);
 
-            // 3. 메시지 히스토리 구성 및 스트림 처리
+            // 메시지 히스토리 구성 및 스트림 처리
             List<Map<String, Object>> messageHistory = buildMessageHistoryForOpenAI(chatRoom);
             Flux<String> streamFlux = openAIStreamService.sendMessageStream(
                     request.getMessage(),
@@ -96,7 +96,7 @@ public class ChatRoomStreamService {
         }
     }
 
-    // 새 채팅방 생성 로직 (ChatRoomService 참조)
+    // 새 채팅방 생성 로직 
     private ChatRoom createNewChatRoom(Long userId, ChatRoomMessageRequest request) {
         String title = openAIService.generateTitle(request.getMessage());
 
