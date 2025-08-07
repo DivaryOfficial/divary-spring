@@ -3,7 +3,6 @@ package com.divary.domain.chatroom.service;
 import com.divary.domain.chatroom.dto.request.ChatRoomMessageRequest;
 import com.divary.domain.chatroom.entity.ChatRoom;
 import com.divary.domain.chatroom.repository.ChatRoomRepository;
-import com.divary.domain.image.service.ImageService;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import com.divary.common.converter.TypeConverter;
@@ -32,8 +31,6 @@ public class ChatRoomStreamService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final OpenAIService openAIService;
-    private final MessageFactory messageFactory;
-    private final ImageService imageService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     // SSE 연결 상태 관리
@@ -41,13 +38,9 @@ public class ChatRoomStreamService {
     private final AtomicLong connectionIdGenerator = new AtomicLong(0);
 
     public SseEmitter streamChatRoomMessage(ChatRoomMessageRequest request, Long userId) {
-        // 고유 연결 ID 생성
         String connectionId = "conn_" + userId + "_" + connectionIdGenerator.incrementAndGet();
         
-        // 5분 타임아웃으로 SseEmitter 생성
         SseEmitter emitter = new SseEmitter(300_000L);
-        
-        // 연결 추가 및 정리 콜백 설정
         activeConnections.put(connectionId, emitter);
         emitter.onCompletion(() -> cleanupConnection(connectionId));
         emitter.onTimeout(() -> cleanupConnection(connectionId));
@@ -90,20 +83,43 @@ public class ChatRoomStreamService {
     private void processStreamEvents(Flux<String> streamFlux, SseEmitter emitter, String connectionId) {
         StringBuilder messageBuilder = new StringBuilder();
         AtomicLong chunkCounter = new AtomicLong(0);
+        StringBuilder sseBuffer = new StringBuilder(); // SSE 청크 버퍼 추가
         
         streamFlux
             .filter(chunk -> !chunk.trim().isEmpty())
             .subscribe(
                 chunk -> {
                     try {
-                        String content = parseSSEChunk(chunk);
-                        if (content != null && !content.isEmpty()) {
-                            messageBuilder.append(content);
-                            long chunkIndex = chunkCounter.incrementAndGet();
-                            
-                            // 메시지 청크 이벤트 전송
-                            sendMessageChunkEvent(emitter, connectionId, content, messageBuilder.toString(), chunkIndex);
+                        
+                        // SSE 버퍼에 청크 추가
+                        sseBuffer.append(chunk);
+                        
+                        // 완전한 SSE 이벤트들을 파싱
+                        String[] lines = sseBuffer.toString().split("\\n");
+                        StringBuilder incompleteBuffer = new StringBuilder();
+                        
+                        for (String line : lines) {
+                            // OpenAI는 직접 JSON을 보내므로 data: 접두사 확인 불필요
+                            if (line.trim().startsWith("{")) {
+                                String content = parseOpenAIJSON(line, connectionId);
+                                if (content != null && !content.isEmpty()) {
+                                    messageBuilder.append(content);
+                                    long chunkIndex = chunkCounter.incrementAndGet();
+                                    
+                                    
+                                    // 메시지 청크 이벤트 전송
+                                    sendMessageChunkEvent(emitter, connectionId, content, messageBuilder.toString(), chunkIndex);
+                                }
+                            } else if (!line.trim().isEmpty()) {
+                                // 불완전한 데이터는 다음 청크를 위해 보관
+                                incompleteBuffer.append(line).append("\n");
+                            }
                         }
+                        
+                        // 불완전한 데이터는 다음 청크를 위해 보관
+                        sseBuffer.setLength(0);
+                        sseBuffer.append(incompleteBuffer.toString());
+                        
                     } catch (Exception e) {
                         log.error("SSE 이벤트 전송 오류 [{}]: {}", connectionId, e.getMessage());
                         sendErrorToClient(emitter, connectionId, "이벤트 전송 실패", e);
@@ -137,31 +153,44 @@ public class ChatRoomStreamService {
             );
     }
     
-    // OpenAI SSE 청크 파싱
-    private String parseSSEChunk(String sseChunk) {
+    // OpenAI JSON 직접 파싱 (SSE 형식 아님)
+    private String parseOpenAIJSON(String jsonLine, String connectionId) {
         try {
-            if (sseChunk.startsWith("data: ")) {
-                String jsonData = sseChunk.substring(6).trim();
-                
-                if ("[DONE]".equals(jsonData)) {
+            String jsonData = jsonLine.trim();
+            
+            if ("[DONE]".equals(jsonData)) {
                     return null; // 스트림 종료 신호
-                }
+            }
+            
+            // 빈 데이터 라인 처리
+            if (jsonData.isEmpty()) {
+                return null;
+            }
+            
+            JsonNode jsonNode = objectMapper.readTree(jsonData);
+            
+            JsonNode choices = jsonNode.path("choices");
+            
+            if (choices.isArray() && choices.size() > 0) {
+                JsonNode firstChoice = choices.get(0);
+                JsonNode delta = firstChoice.path("delta");
                 
-                JsonNode jsonNode = objectMapper.readTree(jsonData);
-                JsonNode choices = jsonNode.path("choices");
-                
-                if (choices.isArray() && choices.size() > 0) {
-                    JsonNode delta = choices.get(0).path("delta");
+                if (!delta.isMissingNode()) {
                     JsonNode content = delta.path("content");
                     
                     if (!content.isMissingNode() && content.isTextual()) {
-                        return content.asText();
+                        String contentText = content.asText();
+                        return contentText;
+                    } else {
                     }
+                } else {
                 }
+            } else {
             }
+            
             return null;
         } catch (Exception e) {
-            log.error("SSE 청크 파싱 오류: {}", e.getMessage());
+            log.error("OpenAI JSON 파싱 오류 [{}] - JSON: '{}', 오류: {}", connectionId, jsonLine, e.getMessage());
             return null;
         }
     }
@@ -201,8 +230,6 @@ public class ChatRoomStreamService {
                 .name("stream_start")
                 .data(startEvent));
                 
-            log.debug("스트림 시작 이벤트 전송 완료 [{}] - 새 채팅방: {}, 히스토리: {}개", 
-                     connectionId, isNewChatRoom, historyCount);
         } catch (Exception e) {
             log.error("스트림 시작 이벤트 전송 실패 [{}]: {}", connectionId, e.getMessage());
         }
@@ -240,6 +267,7 @@ public class ChatRoomStreamService {
                 .name("message_chunk")
                 .data(chunkEvent));
                 
+                
         } catch (Exception e) {
             log.error("메시지 청크 이벤트 전송 실패 [{}]: {}", connectionId, e.getMessage());
             throw new RuntimeException("메시지 청크 이벤트 전송 실패", e);
@@ -276,7 +304,6 @@ public class ChatRoomStreamService {
                 .name("stream_complete")
                 .data(completeEvent));
                 
-            log.debug("스트림 완료 이벤트 전송 완료 [{}]", connectionId);
         } catch (Exception e) {
             log.error("스트림 완료 이벤트 전송 실패 [{}]: {}", connectionId, e.getMessage());
             throw new RuntimeException("스트림 완료 이벤트 전송 실패", e);
@@ -393,7 +420,6 @@ public class ChatRoomStreamService {
                 messageHistory.add(openAIMessage);
             }
             
-            log.debug("채팅방 {} 히스토리 구성 완료: {} 개 메시지", chatRoomId, messageHistory.size());
             return messageHistory;
             
         } catch (BusinessException e) {
