@@ -3,8 +3,10 @@ package com.divary.domain.logbase.logdiary.dto;
 import com.divary.domain.logbase.logdiary.entity.Diary;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
@@ -17,17 +19,20 @@ public class DiaryResponse {
     private Long logId;
     private List<Map<String, Object>> contents;
 
-    public static DiaryResponse from(Diary diary) {
-        ObjectMapper objectMapper = new ObjectMapper();
+    public static DiaryResponse from(Diary diary, String processedContentJson, ObjectMapper objectMapper) {
         List<Map<String, Object>> contents;
-        try {
-            contents = objectMapper.readValue(
-                    diary.getContentJson(),
-                    new TypeReference<>() {
-                    }
-            );
-        } catch (Exception e) {
-            throw new BusinessException(ErrorCode.INVALID_JSON_FORMAT);
+        if (processedContentJson == null || processedContentJson.trim().isEmpty()) {
+            contents = Collections.emptyList();
+        } else {
+            try {
+                contents = objectMapper.readValue(
+                        processedContentJson,
+                        new TypeReference<>() {
+                        }
+                );
+            } catch (JsonProcessingException e) {
+                throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+            }
         }
 
         return DiaryResponse.builder()
