@@ -1,7 +1,6 @@
 package com.divary.domain.avatar.enums;
 
 public enum BudyPet {
-    NONE,           // 없음
     HERMIT_CRAB,    // 소라게
     SEAHORSE,       // 아기해마
     AXOLOTL,        // 우파루파

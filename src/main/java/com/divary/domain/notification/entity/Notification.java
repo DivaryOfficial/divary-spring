@@ -1,8 +1,9 @@
 package com.divary.domain.notification.entity;
 
 import com.divary.common.entity.BaseEntity;
-import com.divary.domain.Member.entity.Member;
+import com.divary.domain.member.entity.Member;
 import com.divary.domain.notification.enums.NotificationType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,6 +11,7 @@ import lombok.*;
 @Entity
 @Getter
 @Builder
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Notification extends BaseEntity {

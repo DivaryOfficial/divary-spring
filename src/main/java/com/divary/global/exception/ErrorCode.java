@@ -17,16 +17,25 @@ public enum ErrorCode {
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "VALIDATION_001", "입력값 검증에 실패했습니다."),
     REQUIRED_FIELD_MISSING(HttpStatus.BAD_REQUEST, "VALIDATION_002", "필수 필드가 누락되었습니다."),
 
-
+    // 해양도감 관련 에러코드
     CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_001", "해당 카드에 대한 정보를 찾을 수 없습니다."),
     TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "ENCYCLOPEDIA_002", "존재하지 않는 종류입니다."),
+
+    // 다이어리 관련 에러코드
+    DIARY_NOT_FOUND(HttpStatus.NOT_FOUND, "DIARY_001", "해당 로그의 다이어리를 찾을 수 없습니다."),
+    DIARY_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "DIARY_002", "해당 로그는 이미 다이어리가 존재합니다."),
+    INVALID_JSON_FORMAT(HttpStatus.BAD_REQUEST, "DIARY_003", "다이어리 콘텐츠의 JSON 구조가 잘못되었습니다."),
+    DIARY_FORBIDDEN_ACCESS(HttpStatus.FORBIDDEN, "DIARY_004", "다이어리에 접근 권한이 없습니다."),
 
     //로그북 관련 에러코드
     LOG_BASE_NOT_FOUND(HttpStatus.NOT_FOUND, "LOGBOOK_001", "해당 날짜에는 로그북을 찾을 수 없습니다."),
     LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "LOGBOOK_002", "해당 로그북의 세부 정보를 찾을 수 없습니다."),
     LOG_LIMIT_EXCEEDED(HttpStatus.NOT_FOUND, "LOGBOOK_003", "로그북은 하루에 최대 3개까지만 생성할 수 있습니다."),
     LOG_ACCESS_DENIED(HttpStatus.FORBIDDEN,"LOGBOOK_004","로그북에 접근 권한이 없습니다."),
-  
+
+    //로그베이스 관련 에러코드
+    LOG_BASE_FORBIDDEN_ACCESS(HttpStatus.FORBIDDEN, "LOGBASE_001", "로그 베이스에 접근 권한이 없습니다."),
+
     //맴버 관련
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_001", "이메일을 찾을 수 없습니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_002", "유저를 찾을 수 없습니다."),
@@ -60,7 +69,8 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_001", "토큰이 유효하지 않습니다."),
     ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH_002", "액세스 토큰이 만료되었습니다."), // TODO: 토큰 만료 시 401 에러 처리 필요
     INVALID_USER_CONTEXT(HttpStatus.UNAUTHORIZED, "AUTH_003", "사용자 인증 정보가 유효하지 않습니다."),
-    AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "AUTH_004", "인증이 필요합니다.");
+    AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "AUTH_004", "인증이 필요합니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH_005", "접근이 거절되었습니다.");
 
     // TODO: 비즈니스 로직 개발하면서 필요한 에러코드들 추가
     private final HttpStatus status;

@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,27 +45,43 @@ public class EncyclopediaCardService {
     @Transactional(readOnly = true)
     public List<EncyclopediaCardSummaryResponse> getCards(String description) {
         List<EncyclopediaCard> cards;
-        if (description == null) {
-            cards = encyclopediaCardRepository.findAll();
-        } else {
-            if (!isValidDescription(description)) {
-                throw new BusinessException(ErrorCode.TYPE_NOT_FOUND);
-            }
+        if (description == null) cards = encyclopediaCardRepository.findAll();
+
+        else {
+            if (!isValidDescription(description)) throw new BusinessException(ErrorCode.TYPE_NOT_FOUND);
             Type typeEnum = convertDescriptionToEnum(description);
             cards = encyclopediaCardRepository.findAllByType(typeEnum);
         }
 
-        // 모든 도감 프로필 (도감 이모티콘) 한 번에 조회
-        List<ImageResponse> allDogamProfiles = imageService.getImagesByType(ImageType.SYSTEM_DOGAM_PROFILE, null, null);
+        // 도감 프로필 전부 불러오기
+        String pathPattern = "system/dogam_profile/";
+        List<ImageResponse> allProfileImages = imageService.getImagesByPath(pathPattern);
 
-        // cardId -> FileUrl 매핑
-        Map<Long, String> dogamProfileMap = allDogamProfiles.stream()
-                .collect(
-                        Collectors.toMap(img ->
-                                Long.valueOf(img.getS3Key().split("/")[2]),
-                                ImageResponse::getFileUrl,
-                                (v1, v2) -> v1 ) // 혹시라도 동일 cardId에 도감 프로필이 여러 개 있을 경우, 첫 번째 값만 사용
-                );
+        Map<Long, String> profileImageMap;
+        if (description == null) {
+            // 필터링이 없을 때
+            profileImageMap = allProfileImages.stream()
+                    .filter(image -> image.getPostId() != null)
+                    .collect(Collectors.toMap(
+                            ImageResponse::getPostId,
+                            ImageResponse::getFileUrl,
+                            (existingUrl, newUrl) -> existingUrl
+                    ));
+        } else {
+            // 필터링이 있을 때: 조회된 카드 ID 목록을 먼저 추출
+            Set<Long> cardIds = cards.stream()
+                    .map(EncyclopediaCard::getId)
+                    .collect(Collectors.toSet());
+
+            // 해당 카드 ID를 가진 이미지들만 필터링하여
+            profileImageMap = allProfileImages.stream()
+                    .filter(image -> image.getPostId() != null && cardIds.contains(image.getPostId()))
+                    .collect(Collectors.toMap(
+                            ImageResponse::getPostId,
+                            ImageResponse::getFileUrl,
+                            (existingUrl, newUrl) -> existingUrl
+                    ));
+        }
 
         return cards.stream()
                 .map(card ->
@@ -72,7 +89,7 @@ public class EncyclopediaCardService {
                                 .id(card.getId())
                                 .name(card.getName())
                                 .type(card.getType().getDescription())
-                                .dogamProfileUrl(dogamProfileMap.get(card.getId()))
+                                .dogamProfileUrl(profileImageMap.get(card.getId()))
                                 .build())
                 .toList();
     }

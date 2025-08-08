@@ -1,10 +1,9 @@
 package com.divary.global.oauth.service.social;
 
 import com.divary.common.enums.SocialType;
-import com.divary.domain.Member.entity.Member;
-import com.divary.domain.Member.enums.Role;
-import com.divary.domain.Member.service.MemberService;
-import com.divary.domain.avatar.entity.Avatar;
+import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.enums.Role;
+import com.divary.domain.member.service.MemberService;
 import com.divary.domain.avatar.service.AvatarService;
 import com.divary.global.config.security.jwt.JwtTokenProvider;
 import com.divary.global.exception.BusinessException;
@@ -16,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -78,7 +76,7 @@ public class GoogleOauth implements SocialOauth {
                     .socialType(SocialType.GOOGLE)
                     .role(Role.USER)
                     .build());
-            avatarService.createDefaultAvatarForMember(member); // 추후 upsert로 바꿔볼 예정
+            
         }
 
 

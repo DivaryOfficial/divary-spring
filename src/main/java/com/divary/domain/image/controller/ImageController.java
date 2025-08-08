@@ -47,6 +47,30 @@ public class ImageController {
         return ApiResponse.success("임시 이미지 업로드가 완료되었습니다. 24시간 내에 사용하지 않으면 자동 삭제됩니다.", response);
     }
 
+    @Operation(summary = "시스템 이미지 업로드", description = "지정된 타입과 postId에 연결되는 시스템 이미지를 1개 업로드합니다.")
+    @ApiErrorExamples({
+            ErrorCode.REQUIRED_FIELD_MISSING,
+            ErrorCode.IMAGE_SIZE_TOO_LARGE,
+            ErrorCode.IMAGE_FORMAT_NOT_SUPPORTED,
+            ErrorCode.AUTHENTICATION_REQUIRED
+    })
+    @PostMapping(value = "/upload/system", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ImageResponse> uploadSystemImage(
+            @Parameter(description = "업로드할 이미지 파일 (1개)", required = true)
+            @RequestPart("file") MultipartFile file,
+
+            @Parameter(description = "이미지의 용도 (예: SYSTEM_DOGAM_PROFILE)", required = true)
+            @RequestParam("imageType") ImageType imageType,
+
+            @Parameter(description = "이미지를 연결할 부모 엔티티의 ID (예: 도감 카드 ID)", required = true)
+            @RequestParam("postId") Long postId,
+
+            @AuthenticationPrincipal CustomUserPrincipal userPrincipal) { // 시스템 이미지 업로드 권한 확인용
+
+        ImageResponse response = imageService.uploadSystemImage(imageType, file, postId);
+        return ApiResponse.success("시스템 이미지가 성공적으로 업로드되었습니다.", response);
+    }
+
     @Operation(summary = "이미지 삭제", description = "S3와 DB에서 이미지를 삭제합니다.")
     @ApiErrorExamples({
             ErrorCode.INTERNAL_SERVER_ERROR
