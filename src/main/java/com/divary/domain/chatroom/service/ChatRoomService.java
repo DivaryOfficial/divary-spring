@@ -60,8 +60,8 @@ public class ChatRoomService {
         // AI 응답 생성
         OpenAIResponse aiResponse;
         if (request.getChatRoomId() == null) {
-            // 새 채팅방 - 새 메세지만 전달
-            aiResponse = openAIService.sendMessage(request.getMessage(), request.getImage());
+            // 새 채팅방 - 히스토리 없이 메시지 전달
+            aiResponse = openAIService.sendMessageWithHistory(request.getMessage(), request.getImage(), null);
         } else {
             // 기존 채팅방 - 기존 메세지 최대 20개 포함해서 전달
             List<Map<String, Object>> messageHistory = buildMessageHistoryForOpenAI(chatRoom);
