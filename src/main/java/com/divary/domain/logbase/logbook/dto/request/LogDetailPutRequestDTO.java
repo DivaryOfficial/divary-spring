@@ -25,9 +25,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LogDetailPutRequestDTO {
 
-    @Schema(description = "로그북베이스정보 id")
-    private Long logBaseInfoId;
-
     @Schema(description = "다이빙 날짜", example = "2025-07-25")
     private LocalDate date;
 
