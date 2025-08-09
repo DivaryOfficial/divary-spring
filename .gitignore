@@ -51,6 +51,7 @@ Desktop.ini
 ### Logs ###
 *.log
 logs/
+nohup.out
 
 ### Runtime data ###
 pids
