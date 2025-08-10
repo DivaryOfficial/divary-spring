@@ -9,6 +9,7 @@ import com.divary.domain.encyclopedia.entity.EncyclopediaCard;
 import com.divary.domain.encyclopedia.enums.Type;
 import com.divary.domain.encyclopedia.repository.EncyclopediaCardRepository;
 import com.divary.domain.image.dto.response.ImageResponse;
+import com.divary.domain.image.enums.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
@@ -98,10 +99,11 @@ public class EncyclopediaCardService {
         EncyclopediaCard card = encyclopediaCardRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));
 
-        String pathPattern = "system/dogam/" + id + "/";
-
-        List<String> imageUrls = imageService.getImagesByPath(pathPattern)
-                .stream()
+        List<String> imageUrls = imageService.getImagesByType(
+                        ImageType.SYSTEM_DOGAM,
+                        null,
+                        card.getId()
+                ).stream()
                 .map(ImageResponse::getFileUrl)
                 .toList();
 

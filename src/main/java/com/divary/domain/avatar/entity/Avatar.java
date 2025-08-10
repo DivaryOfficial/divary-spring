@@ -66,11 +66,8 @@ public class Avatar extends BaseEntity {
     @Column(nullable = true, name = "pet_rotation")
     private Double petRotation;
 
-    @Column(nullable = true, name = "pet_width")
-    private Double petWidth;
-
-    @Column(nullable = true, name = "pet_height")
-    private Double petHeight;
+    @Column(nullable = true, name = "pet_scale")
+    private Double petScale;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)

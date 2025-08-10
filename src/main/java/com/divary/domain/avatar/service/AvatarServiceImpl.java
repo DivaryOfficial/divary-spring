@@ -38,14 +38,9 @@ public class AvatarServiceImpl implements AvatarService {
         avatar.setBodyColor(avatarRequestDTO.getBodyColor());
 
         if (avatarRequestDTO.getBuddyPetInfo() != null) {
-            var petInfo = avatarRequestDTO.getBuddyPetInfo();
-            avatar.setBudyPet(petInfo.getBudyPet());
-            avatar.setPetRotation(petInfo.getRotation());
-
-            if (petInfo.getOffset() != null) {
-                avatar.setPetHeight(petInfo.getOffset().getHeight());
-                avatar.setPetWidth(petInfo.getOffset().getWidth());
-            }
+            avatar.setBudyPet(avatarRequestDTO.getBuddyPetInfo().getBudyPet());
+            avatar.setPetRotation(avatarRequestDTO.getBuddyPetInfo().getRotation());
+            avatar.setPetScale(avatarRequestDTO.getBuddyPetInfo().getScale());
         }
 
         avatar.setBubbleText(avatarRequestDTO.getBubbleText());
@@ -69,10 +64,7 @@ public class AvatarServiceImpl implements AvatarService {
         BuddyPetInfoDTO buddyPetInfo = BuddyPetInfoDTO.builder()
                 .budyPet(avatar.getBudyPet())
                 .rotation(avatar.getPetRotation())
-                .offset(BuddyPetInfoDTO.Offset.builder()
-                        .width(avatar.getPetWidth())
-                        .height(avatar.getPetHeight())
-                        .build())
+                .scale(avatar.getPetScale())
                 .build();
 
         return AvatarResponseDTO.builder()
