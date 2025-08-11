@@ -25,9 +25,6 @@ public class LogBaseCreateResultDTO {
     @Schema(description = "아이콘 타입", example = "CLOWNFISH")
     private IconType iconType;
 
-    @Schema(description = "누적 횟수")
-    private int accumulation;
-
     @Schema(description = "로그북베이스 id")
     private Long LogBaseInfoId;
 
