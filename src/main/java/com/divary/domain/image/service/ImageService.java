@@ -58,10 +58,10 @@ public class ImageService {
         return MultipleImageUploadResponse.of(uploadedImages);
     }
 
-    // 단일 임시 이미지 업로드
+    // 단일 임시 미디어 업로드 (이미지 + 동영상)
     private ImageResponse uploadSingleTempImage(MultipartFile file, Long userId) {
         try {
-            ImageMetadata metadata = extractImageMetadata(file);
+            MediaMetadata metadata = extractMediaMetadata(file);
             
             // temp 경로 생성
             String tempPath = imagePathService.generateTempPath(userId);
@@ -71,13 +71,15 @@ public class ImageService {
             // S3 업로드
             imageStorageService.uploadToS3(tempS3Key, file);
             
-            // DB 저장 (temp 이미지는 postId null)
+            // DB 저장 (temp 미디어는 postId null)
             Image tempImage = Image.builder()
                     .s3Key(tempS3Key)
                     .type(null)
                     .originalFilename(file.getOriginalFilename())
                     .width(metadata.width)
                     .height(metadata.height)
+                    .duration(metadata.duration)
+                    .fileSize(metadata.fileSize)
                     .userId(userId)
                     .postId(null)
                     .build();
@@ -88,7 +90,7 @@ public class ImageService {
             return ImageResponse.from(savedImage, tempUrl);
             
         } catch (IOException e) {
-            log.error("이미지 처리 중 오류 발생: {}", e.getMessage());
+            log.error("미디어 처리 중 오류 발생: {}", e.getMessage());
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
@@ -175,15 +177,16 @@ public class ImageService {
         return updatedContent;
     }
     
-    // 이미지 업로드 메인 로직
+    // 미디어 업로드 메인 로직 (이미지 + 동영상)
     @Transactional
     public ImageResponse uploadImage(ImageUploadRequest request) {
         imageValidationService.validateUploadRequest(request);
         
         try {
-            ImageMetadata metadata = extractImageMetadata(request.getFile());
+            MediaMetadata metadata = extractMediaMetadata(request.getFile());
             
-            log.debug("이미지 크기 - width: {}, height: {}", metadata.width, metadata.height);
+            log.debug("미디어 크기 - width: {}, height: {}, duration: {}, fileSize: {}", 
+                     metadata.width, metadata.height, metadata.duration, metadata.fileSize);
             
             // 파일명 생성
             String fileName = imageStorageService.generateUniqueFileName(request.getFile().getOriginalFilename());
@@ -201,6 +204,8 @@ public class ImageService {
                     .originalFilename(request.getFile().getOriginalFilename())
                     .width(metadata.width)
                     .height(metadata.height)
+                    .duration(metadata.duration)
+                    .fileSize(metadata.fileSize)
                     .userId(imagePathService.extractUserIdFromPath(request.getUploadPath()))
                     .postId(null)
                     .build();
@@ -211,7 +216,7 @@ public class ImageService {
             return ImageResponse.from(savedImage, fileUrl);
             
         } catch (IOException e) {
-            log.error("이미지 업로드 중 오류 발생: {}", e.getMessage());
+            log.error("미디어 업로드 중 오류 발생: {}", e.getMessage());
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
@@ -353,22 +358,38 @@ public class ImageService {
     }
     
     
-    // 이미지 메타데이터 추출
-    private ImageMetadata extractImageMetadata(MultipartFile file) throws IOException {
-        BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
-        Long width = bufferedImage != null ? (long) bufferedImage.getWidth() : null;
-        Long height = bufferedImage != null ? (long) bufferedImage.getHeight() : null;
-        return new ImageMetadata(width, height);
+    // 미디어 메타데이터 추출 
+    private MediaMetadata extractMediaMetadata(MultipartFile file) throws IOException {
+        String contentType = file.getContentType();
+        
+        if (contentType != null && contentType.startsWith("image/")) {
+            BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
+            Long width = bufferedImage != null ? (long) bufferedImage.getWidth() : null;
+            Long height = bufferedImage != null ? (long) bufferedImage.getHeight() : null;
+            return new MediaMetadata(width, height, null, file.getSize());
+        } else if (contentType != null && contentType.startsWith("video/")) {
+            // 동영상 메타데이터는 기본값으로 처리 (추후 FFmpeg 통합 시 개선)
+            return new MediaMetadata(null, null, null, file.getSize());
+        } else if (contentType != null && contentType.startsWith("audio/")) {
+            // 오디오 메타데이터는 기본값으로 처리 (추후 메타데이터 추출 시 개선)
+            return new MediaMetadata(null, null, null, file.getSize());
+        }
+        
+        throw new BusinessException(ErrorCode.IMAGE_FORMAT_NOT_SUPPORTED);
     }
     
-    // 이미지 메타데이터 내부 클래스
-    private static class ImageMetadata {
+    // 미디어 메타데이터 내부 클래스
+    private static class MediaMetadata {
         final Long width;
         final Long height;
+        final Long duration;
+        final Long fileSize;
         
-        ImageMetadata(Long width, Long height) {
+        MediaMetadata(Long width, Long height, Long duration, Long fileSize) {
             this.width = width;
             this.height = height;
+            this.duration = duration;
+            this.fileSize = fileSize;
         }
     }
 

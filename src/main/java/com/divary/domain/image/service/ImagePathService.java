@@ -86,10 +86,10 @@ public class ImagePathService {
         return null;
     }
 
-    // S3 이미지 URL 패턴 생성 
+    // S3 미디어 URL 패턴 생성 (이미지 + 동영상 + 오디오)
     private String getS3ImageUrlPattern(String pathPattern) {
         return String.format(
-                "https://%s\\.s3\\.%s\\.amazonaws\\.com/%s\\.(jpg|jpeg|png|gif|webp)",
+                "https://%s\\.s3\\.%s\\.amazonaws\\.com/%s\\.(jpg|jpeg|png|gif|webp|mp4|avi|mov|mp3|wav|m4a)",
                 java.util.regex.Pattern.quote(bucketName),
                 java.util.regex.Pattern.quote(region),
                 pathPattern);
