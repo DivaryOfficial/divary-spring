@@ -57,7 +57,7 @@ public class LogBook extends BaseEntity {
 
     @Column(name = "accumulation",nullable = false)
     @Schema(description = "누적 횟수", example = "3")
-    private int accumulation;
+    private Integer accumulation;
 
     @Column(name = "place",length = 50)
     @Schema(description = "다이빙 지역", example = "제주도 서귀포시")

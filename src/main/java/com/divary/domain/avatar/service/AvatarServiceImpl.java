@@ -61,6 +61,10 @@ public class AvatarServiceImpl implements AvatarService {
 
         Avatar avatar = avatarRepository.findByUserId(userId);
 
+        if (avatar == null) {
+            return AvatarResponseDTO.builder().build(); //처음 아바타 생성전 조회시 그냥 빈 avatar 반환
+        }
+
         BuddyPetInfoDTO buddyPetInfo = BuddyPetInfoDTO.builder()
                 .budyPet(avatar.getBudyPet())
                 .rotation(avatar.getPetRotation())

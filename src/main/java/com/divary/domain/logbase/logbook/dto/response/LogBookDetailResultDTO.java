@@ -8,7 +8,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Builder
 @Getter
@@ -21,8 +23,8 @@ public class LogBookDetailResultDTO {
     private String icon;
     private LocalDate date;
 
-    private SaveStatus saveStatus;
-    private int accumulation;
+    private String saveStatus;
+    private Integer accumulation;
 
     private String place;
     private String divePoint;
@@ -33,54 +35,55 @@ public class LogBookDetailResultDTO {
 
     private String suitType;
     private String equipment;
-    private int weight;
+    private Integer weight;
     private String perceivedWeight;
 
     private String weather;
     private String wind;
     private String tide;
     private String wave;
-    private int temperature;
-    private int waterTemperature;
+    private Integer temperature;
+    private Integer waterTemperature;
     private String perceivedTemp;
     private String sight;
 
-    private int diveTime;
-    private int maxDepth;
-    private int avgDepth;
-    private int decompressDepth;
-    private int decompressTime;
-    private int startPressure;
-    private int finishPressure;
-    private int consumption;
+    private Integer diveTime;
+    private Integer maxDepth;
+    private Integer avgDepth;
+    private Integer decompressDepth;
+    private Integer decompressTime;
+    private Integer startPressure;
+    private Integer finishPressure;
+    private Integer consumption;
 
     public static LogBookDetailResultDTO from(LogBook logBook, List<Companion> companions) {
         return LogBookDetailResultDTO.builder()
                 .LogBookId(logBook.getId())
                 .name(logBook.getLogBaseInfo().getName())
                 .icon(logBook.getLogBaseInfo().getIconType().name())
-                .saveStatus(logBook.getSaveStatus())
+                .saveStatus(Optional.ofNullable(logBook.getSaveStatus()).map(Enum::name).orElse(null))
                 .accumulation(logBook.getAccumulation())
                 .date(logBook.getLogBaseInfo().getDate())
                 .place(logBook.getPlace())
                 .divePoint(logBook.getDivePoint())
-                .diveMethod(logBook.getDiveMethod().name())
-                .divePurpose(logBook.getDivePurpose().name())
-                .companions(companions.stream()
+                .diveMethod(Optional.ofNullable(logBook.getDiveMethod()).map(Enum::name).orElse(null))
+                .divePurpose(Optional.ofNullable(logBook.getDivePurpose()).map(Enum::name).orElse(null))
+                .companions(Optional.ofNullable(companions).orElse(Collections.emptyList())
+                        .stream()
                         .map(CompanionResultDTO::from)
                         .toList())
-                .suitType(logBook.getSuitType().name())
+                .suitType(Optional.ofNullable(logBook.getSuitType()).map(Enum::name).orElse(null))
                 .equipment(logBook.getEquipment())
                 .weight(logBook.getWeight())
-                .perceivedWeight(logBook.getPerceivedWeight().name())
-                .weather(logBook.getWeatherType().name())
-                .wind(logBook.getWind().name())
-                .tide(logBook.getTide().name())
-                .wave(logBook.getWave().name())
+                .perceivedWeight(Optional.ofNullable(logBook.getPerceivedWeight()).map(Enum::name).orElse(null))
+                .weather(Optional.ofNullable(logBook.getWeatherType()).map(Enum::name).orElse(null))
+                .wind(Optional.ofNullable(logBook.getWind()).map(Enum::name).orElse(null))
+                .tide(Optional.ofNullable(logBook.getTide()).map(Enum::name).orElse(null))
+                .wave(Optional.ofNullable(logBook.getWave()).map(Enum::name).orElse(null))
                 .temperature(logBook.getTemperature())
                 .waterTemperature(logBook.getWaterTemperature())
-                .perceivedTemp(logBook.getPerceivedTemp().name())
-                .sight(logBook.getSight().name())
+                .perceivedTemp(Optional.ofNullable(logBook.getPerceivedTemp()).map(Enum::name).orElse(null))
+                .sight(Optional.ofNullable(logBook.getSight()).map(Enum::name).orElse(null))
                 .diveTime(logBook.getDiveTime())
                 .maxDepth(logBook.getMaxDepth())
                 .avgDepth(logBook.getAvgDepth())
@@ -91,4 +94,5 @@ public class LogBookDetailResultDTO {
                 .consumption(logBook.getConsumption())
                 .build();
     }
+
 }

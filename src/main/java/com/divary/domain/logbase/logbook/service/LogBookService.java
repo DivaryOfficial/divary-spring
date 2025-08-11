@@ -49,14 +49,10 @@ public class LogBookService {
 
         LogBaseInfo saved = logBaseInfoRepository.save(logBaseInfo);
 
-        int accumulation = logBookRepository.countByLogBaseInfoMember(member)+1;
-        //그동안의 로그북 누적횟수 세기
-
         return LogBaseCreateResultDTO.builder()
                 .name(saved.getName())
                 .iconType(saved.getIconType())
                 .date(saved.getDate())
-                .accumulation(accumulation)
                 .LogBaseInfoId(saved.getId())
                 .build();
     }
