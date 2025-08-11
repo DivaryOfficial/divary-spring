@@ -52,7 +52,7 @@ public class DiaryController {
             ErrorCode.DIARY_FORBIDDEN_ACCESS
     })
     public ApiResponse<DiaryResponse> updateDiary(
-            @Parameter(description = "하나의 logBaseInfo당 하나의 diary가 매핑됩니다. diary 생성시 logBaseInfoId를 보내주세요. 수정시 본문에 '유지할 기존 이미지의 영구 URL'과 '새로 추가한 이미지의 temp URL'을 모두 포함한 최종본을 보내주세요.") @PathVariable  Long logBaseInfoId,
+            @Parameter(description = "하나의 logBaseInfo당 하나의 diary가 매핑됩니다. diary 생성시 logBaseInfoId를 보내주세요.") @PathVariable  Long logBaseInfoId,
             @RequestBody DiaryRequest request, @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
         return ApiResponse.success(diaryService.updateDiary(userPrincipal.getId(), logBaseInfoId, request));
     }

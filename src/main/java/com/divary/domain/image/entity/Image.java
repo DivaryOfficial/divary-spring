@@ -22,7 +22,7 @@ public class Image extends BaseEntity {
     private String s3Key;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", length = 50)
+    @Column(name = "type")
     @Schema(description = "이미지 타입", example = "DOGAM")
     private ImageType type;
 

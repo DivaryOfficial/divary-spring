@@ -8,7 +8,6 @@ public enum ImageType {
     USER_DIVING_LOG,
     USER_CHAT,
     USER_LICENSE,
-    USER_DIARY,
     
     // 테스트용 이미지 타입
     USER_TEST_POST,
