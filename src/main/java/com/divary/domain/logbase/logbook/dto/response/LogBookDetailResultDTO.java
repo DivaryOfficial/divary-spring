@@ -56,13 +56,13 @@ public class LogBookDetailResultDTO {
     private Integer finishPressure;
     private Integer consumption;
 
-    public static LogBookDetailResultDTO from(LogBook logBook, List<Companion> companions) {
+    public static LogBookDetailResultDTO from(LogBook logBook, List<Companion> companions, Integer accumulation) {
         return LogBookDetailResultDTO.builder()
                 .LogBookId(logBook.getId())
                 .name(logBook.getLogBaseInfo().getName())
                 .icon(logBook.getLogBaseInfo().getIconType().name())
                 .saveStatus(Optional.ofNullable(logBook.getSaveStatus()).map(Enum::name).orElse(null))
-                .accumulation(logBook.getAccumulation())
+                .accumulation(accumulation)
                 .date(logBook.getLogBaseInfo().getDate())
                 .place(logBook.getPlace())
                 .divePoint(logBook.getDivePoint())
