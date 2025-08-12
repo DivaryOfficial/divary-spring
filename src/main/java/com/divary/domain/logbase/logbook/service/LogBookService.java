@@ -101,10 +101,7 @@ public class LogBookService {
 
         // 각 로그북에 대해 companion 함께 매핑하여 DTO 변환
         return logBooks.stream()
-                .map(logBook -> {
-                    List<Companion> companions = companionRepository.findByLogBook(logBook);
-                    return LogBookDetailResultDTO.from(logBook, companions, accumulation);
-                })
+                .map(logBook -> LogBookDetailResultDTO.from(logBook, logBook.getCompanions(), accumulation))
                 .collect(Collectors.toList());
     }
 
