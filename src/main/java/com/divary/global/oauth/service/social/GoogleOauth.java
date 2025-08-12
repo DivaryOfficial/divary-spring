@@ -5,12 +5,12 @@ import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.service.MemberService;
 import com.divary.domain.avatar.service.AvatarService;
-import com.divary.domain.token.entity.RefreshToken;
-import com.divary.domain.token.repository.RefreshTokenRepository;
+import com.divary.domain.token.service.RefreshTokenService;
+import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.config.security.jwt.JwtTokenProvider;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
-import com.divary.global.oauth.dto.LoginResponseDTO;
+import com.divary.global.oauth.dto.response.LoginResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +32,7 @@ public class GoogleOauth implements SocialOauth {
     private final JwtTokenProvider jwtTokenProvider;
     private static final String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
     private final RestTemplate restTemplate;
-    private final RefreshTokenRepository refeshTokenRepository;
+    private final RefreshTokenService refreshTokenService;
 
 
     private Map<String, Object> requestUserInfo(String accessToken) {
@@ -71,7 +71,7 @@ public class GoogleOauth implements SocialOauth {
 
         try {
             member = memberService.findMemberByEmail(email);
-
+            throw new BusinessException(ErrorCode.MEMBER_ALREADY_EXISTS); //이미 가입된 이메일처리
 
         } catch (BusinessException e) {
             member = memberService.saveMember(Member.builder()
@@ -81,9 +81,10 @@ public class GoogleOauth implements SocialOauth {
 
         }
 
+        CustomUserPrincipal principal = new CustomUserPrincipal(member);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                email, null,
+                principal, null,
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_" + Role.USER.name()))  // 권한을 설정 일시적으로 일반 유저 권한만
         );
 
@@ -91,16 +92,13 @@ public class GoogleOauth implements SocialOauth {
         String accessToken = jwtTokenProvider.generateAccessToken(authentication);
         String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
-
-        refeshTokenRepository.save(RefreshToken.builder()
-                        .user(member)
-                        .deviceId(deviceId)
-                        .socialType(SocialType.GOOGLE)
-                        .refreshToken(refreshToken)
-                .build());
+        refreshTokenService.saveToken(member, accessToken, refreshToken, deviceId, SocialType.GOOGLE);
 
         // 3. 응답 생성
         return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
+    }
+    public void logout(String deviceId, Long userId) {
+        refreshTokenService.removeRefreshToken(deviceId, userId);
     }
 }

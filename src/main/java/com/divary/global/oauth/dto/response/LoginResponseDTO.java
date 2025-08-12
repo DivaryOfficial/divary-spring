@@ -1,4 +1,4 @@
-package com.divary.global.oauth.dto;
+package com.divary.global.oauth.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
