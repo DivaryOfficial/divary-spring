@@ -41,6 +41,7 @@ public class LogBookController {
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal)
     {
         Long userId = userPrincipal.getId();
+
         LogBaseCreateResultDTO responseDto = logBookService.createLogBase(createDTO, userId);
         return ApiResponse.success(responseDto);
     }
@@ -55,6 +56,7 @@ public class LogBookController {
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
 
         Long userId = userPrincipal.getId();
+
         List<LogBaseListResultDTO> result = logBookService.getLogBooksByYearAndStatus(year, saveStatus, userId);
         return ApiResponse.success(result);
     }
@@ -64,8 +66,12 @@ public class LogBookController {
     @ApiErrorExamples(value = {ErrorCode.LOG_NOT_FOUND, ErrorCode.LOG_BASE_NOT_FOUND, ErrorCode.AUTHENTICATION_REQUIRED})
     @Operation(summary = "로그 상세조회", description = "특정 로그북의 상세 정보를 조회합니다.")
     public ApiResponse<List<LogBookDetailResultDTO>> getLogDetail
-            (@PathVariable Long logBaseInfoId) {
-        List<LogBookDetailResultDTO> resultDTOS = logBookService.getLogDetail(logBaseInfoId);
+            (@PathVariable Long logBaseInfoId,
+             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+
+        Long userId = userPrincipal.getId();
+
+        List<LogBookDetailResultDTO> resultDTOS = logBookService.getLogDetail(logBaseInfoId,userId);
         return ApiResponse.success(resultDTOS);
     }
 
@@ -76,7 +82,9 @@ public class LogBookController {
     public ApiResponse<LogDetailCreateResultDTO> createLogDetail
             (@PathVariable Long logBaseInfoId,
              @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+
         Long userId = userPrincipal.getId();
+
         LogDetailCreateResultDTO result = logBookService.createLogDetail(logBaseInfoId, userId);
         return ApiResponse.success(result);
     }
@@ -88,7 +96,9 @@ public class LogBookController {
     public ApiResponse<Void> deleteLogBase
             (@PathVariable @Valid Long logBaseInfoId,
              @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+
         Long userId= userPrincipal.getId();
+
         logBookService.deleteLog(logBaseInfoId, userId);
         return ApiResponse.success(null);
     }
@@ -116,6 +126,7 @@ public class LogBookController {
             @RequestBody @Valid LogNameUpdateRequestDTO dto){
 
         Long userId = userPrincipal.getId();
+
         logBookService.updateLogName(logBaseInfoId, userId, dto.getName());
         return ApiResponse.success(null);
     }

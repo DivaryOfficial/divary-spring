@@ -56,10 +56,6 @@ public class LogBook extends BaseEntity {
     @Schema(description = "각 로그북의 저장 상태", example = "TEMP")
     private SaveStatus saveStatus;
 
-    @Column(name = "accumulation",nullable = false)
-    @Schema(description = "누적 횟수", example = "3")
-    private Integer accumulation;
-
     @Column(name = "place",length = 50)
     @Schema(description = "다이빙 지역", example = "제주도 서귀포시")
     private String place;
