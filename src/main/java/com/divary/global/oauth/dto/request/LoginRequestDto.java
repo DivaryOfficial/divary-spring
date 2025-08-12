@@ -1,4 +1,4 @@
-package com.divary.global.oauth.dto;
+package com.divary.global.oauth.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,4 +8,5 @@ import lombok.Setter;
 public class LoginRequestDto {
     private String accessToken;
     private String deviceId;
+    private Boolean rememberLogin;
 }

@@ -1,8 +1,12 @@
 package com.divary.global.config.security.jwt;
 
+import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.repository.MemberRepository;
+import com.divary.domain.member.service.MemberService;
 import com.divary.domain.token.repository.RefreshTokenRepository;
 import com.divary.global.config.properties.JwtProperties;
 import com.divary.global.config.security.CustomUserDetailsService;
+import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
@@ -31,16 +35,18 @@ public class JwtTokenProvider {
     private final JwtProperties jwtProperties;
     private final CustomUserDetailsService userDetailsService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final MemberService memberService;
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtProperties.getSecretKey().getBytes());
     }
 
     public String generateAccessToken(Authentication authentication) {
-        String email = authentication.getName();
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String userId = String.valueOf(principal.getId());
 
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(userId)
                 .claim("role", authentication.getAuthorities().iterator().next().getAuthority())
                 .claim("type", "access")
                 .setIssuedAt(new Date())
@@ -50,10 +56,11 @@ public class JwtTokenProvider {
     }
 
     public String generateRefreshToken(Authentication authentication) {
-        String email = authentication.getName();
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        String userId = String.valueOf(principal.getId());
 
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(userId)
                 .claim("role", authentication.getAuthorities().iterator().next().getAuthority())
                 .claim("type", "refresh")
                 .setIssuedAt(new Date())
@@ -84,16 +91,16 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)
                 .getBody();
 
-        String email = claims.getSubject();
-        
+        Long userId;
         try {
-            // CustomUserPrincipal을 통해 사용자 정보 로드
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-            return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
-        } catch (BusinessException e) {
-            // 사용자 정보를 찾을 수 없는 경우
-            throw new BusinessException(ErrorCode.INVALID_USER_CONTEXT);
+            userId = Long.parseLong(claims.getSubject());
+        } catch (NumberFormatException e) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
+        Member member = memberService.findById(userId);
+
+        CustomUserPrincipal principal = new CustomUserPrincipal(member);
+        return new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
     }
 
 

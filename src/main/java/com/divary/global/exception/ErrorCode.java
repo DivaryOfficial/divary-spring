@@ -40,6 +40,7 @@ public enum ErrorCode {
     //맴버 관련
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_001", "이메일을 찾을 수 없습니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_002", "유저를 찾을 수 없습니다."),
+    MEMBER_ALREADY_EXISTS(HttpStatus.NOT_FOUND, "MEMBER_003", "이미 가입된 이메일입니다."),
 
     //소셜 로그인 관련
     GOOGLE_BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "GOOGLE_001", "구글 유저를 찾을 수 없습니다"),

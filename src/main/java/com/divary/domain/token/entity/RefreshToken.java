@@ -2,7 +2,7 @@ package com.divary.domain.token.entity;
 
 import com.divary.common.entity.BaseEntity;
 import com.divary.common.enums.SocialType;
-import com.divary.domain.Member.entity.Member;
+import com.divary.domain.member.entity.Member;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
