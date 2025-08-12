@@ -36,7 +36,6 @@ public class AvatarRequestDTO {
     private String bubbleText;
 
     @Schema(description = "볼 색상", example = "PINK")
-    @NotNull
     private CheekColor cheekColor;
 
     @Schema(description = "말풍선 타입", example = "OVAL_TAILED")
