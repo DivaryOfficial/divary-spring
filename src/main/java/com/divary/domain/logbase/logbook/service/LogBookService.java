@@ -84,7 +84,7 @@ public class LogBookService {
     }//연도에 따라, 저장 상태(임시저장,완전저장)에 따라 로그북베이스정보 조회
 
     @Transactional
-    public List<LogBookDetailResultDTO> getLogDetail(Long logBaseInfoId) {
+    public List<LogBookDetailResultDTO> getLogDetail(Long logBaseInfoId, Long userId) {
 
         LogBaseInfo logBaseInfo = logBaseInfoRepository.findById(logBaseInfoId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
@@ -95,11 +95,15 @@ public class LogBookService {
             throw new BusinessException(ErrorCode.LOG_NOT_FOUND);
         }
 
+        Integer accumulation
+                = logBookRepository.countByLogBaseInfoMemberIdAndSaveStatus(userId,SaveStatus.COMPLETE);
+        //현재기준으로 총 로그북 누적횟수 계산
+
         // 각 로그북에 대해 companion 함께 매핑하여 DTO 변환
         return logBooks.stream()
                 .map(logBook -> {
                     List<Companion> companions = companionRepository.findByLogBook(logBook);
-                    return LogBookDetailResultDTO.from(logBook, companions);
+                    return LogBookDetailResultDTO.from(logBook, companions, accumulation);
                 })
                 .collect(Collectors.toList());
     }
@@ -115,13 +119,8 @@ public class LogBookService {
             throw new BusinessException(ErrorCode.LOG_LIMIT_EXCEEDED);
         }//하루 최대 3개 넘으면 에러 던지기
 
-        Member member = memberService.findById(userId);
-        int accumulation = logBookRepository.countByLogBaseInfoMember(member)+1;
-        //누적횟수 계산
-
         LogBook logBook = LogBook.builder()
                 .logBaseInfo(base)
-                .accumulation(accumulation)
                 .build();
 
         logBookRepository.save(logBook);
