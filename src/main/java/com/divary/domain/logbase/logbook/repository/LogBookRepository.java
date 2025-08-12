@@ -13,7 +13,7 @@ public interface LogBookRepository extends JpaRepository<LogBook,Long> {
     List<LogBook> findByLogBaseInfo(LogBaseInfo logBaseInfo);
     //로그베이스정보로 로그북들 찾기
 
-    int countByLogBaseInfoMemberAndSaveStatus(Member member, SaveStatus saveStatus);
+    int countByLogBaseInfoMemberIdAndSaveStatus(Long memberId, SaveStatus saveStatus);
 
     int countByLogBaseInfo(LogBaseInfo logBaseInfo);
 

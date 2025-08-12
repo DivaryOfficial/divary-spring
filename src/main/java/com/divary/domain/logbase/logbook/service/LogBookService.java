@@ -95,9 +95,8 @@ public class LogBookService {
             throw new BusinessException(ErrorCode.LOG_NOT_FOUND);
         }
 
-        Member member = memberService.findById(userId);
         Integer accumulation
-                = logBookRepository.countByLogBaseInfoMemberAndSaveStatus(member,SaveStatus.COMPLETE);
+                = logBookRepository.countByLogBaseInfoMemberIdAndSaveStatus(userId,SaveStatus.COMPLETE);
         //현재기준으로 총 로그북 누적횟수 계산
 
         // 각 로그북에 대해 companion 함께 매핑하여 DTO 변환
