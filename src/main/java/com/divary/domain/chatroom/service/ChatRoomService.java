@@ -19,6 +19,9 @@ import com.divary.common.converter.TypeConverter;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +43,10 @@ public class ChatRoomService {
 
     // 채팅방 메시지 전송 (새 채팅방 생성 또는 기존 채팅방에 메시지 추가)
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_CHATROOMS_BY_USER, key = "#userId"),
+        @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_CHATROOM_DETAIL, key = "#request.chatRoomId", condition = "#request.chatRoomId != null")
+    })
     public ChatRoomMessageResponse sendChatRoomMessage(ChatRoomMessageRequest request, Long userId) {
         ChatRoom chatRoom;
         List<String> newMessageIds = new java.util.ArrayList<>();
@@ -226,6 +233,7 @@ public class ChatRoomService {
     }
 
     // 사용자별 채팅방 목록 조회
+    @Cacheable(cacheNames = com.divary.global.config.CacheConfig.CACHE_CHATROOMS_BY_USER, key = "#userId")
     public List<ChatRoomResponse> getChatRoomsByUserId(Long userId) {
             List<ChatRoom> chatRooms = chatRoomRepository.findByUserIdOrderByUpdatedAtDesc(userId);
 
@@ -234,6 +242,7 @@ public class ChatRoomService {
                             .collect(Collectors.toList());
     }
     
+    @Cacheable(cacheNames = com.divary.global.config.CacheConfig.CACHE_CHATROOM_DETAIL, key = "#chatRoomId")
     public ChatRoomDetailResponse getChatRoomDetail(Long chatRoomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
@@ -299,6 +308,10 @@ public class ChatRoomService {
     
     // 채팅방 삭제
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_CHATROOM_DETAIL, key = "#chatRoomId"),
+        @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_CHATROOMS_BY_USER, key = "#userId")
+    })
     public void deleteChatRoom(Long chatRoomId, Long userId) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
@@ -310,6 +323,10 @@ public class ChatRoomService {
     
     // 채팅방 제목 변경
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_CHATROOM_DETAIL, key = "#chatRoomId"),
+        @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_CHATROOMS_BY_USER, key = "#userId")
+    })
     public void updateChatRoomTitle(Long chatRoomId, Long userId, String title) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
