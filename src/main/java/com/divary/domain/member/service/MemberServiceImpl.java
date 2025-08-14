@@ -8,6 +8,8 @@ import com.divary.domain.member.dto.response.MyPageImageResponseDTO;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.divary.domain.member.repository.MemberRepository;
@@ -29,17 +31,20 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Cacheable(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#id")
     public Member findById(Long id) {
         return  memberRepository.findById(id).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
     @Override
+    @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#member.id", condition = "#member.id != null")
     public Member saveMember(Member member) {
         return memberRepository.save(member);
     }
 
 
 
+    @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#userId")
     public void updateLevel(Long userId, MyPageLevelRequestDTO requestDTO) {
         Levels level = EnumValidator.validateEnum(Levels.class, requestDTO.getLevel().name());
 

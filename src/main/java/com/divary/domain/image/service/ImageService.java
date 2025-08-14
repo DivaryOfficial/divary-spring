@@ -58,10 +58,10 @@ public class ImageService {
         return MultipleImageUploadResponse.of(uploadedImages);
     }
 
-    // 단일 임시 이미지 업로드
+    // 단일 임시 미디어 업로드 (이미지 + 동영상)
     private ImageResponse uploadSingleTempImage(MultipartFile file, Long userId) {
         try {
-            ImageMetadata metadata = extractImageMetadata(file);
+            MediaMetadata metadata = extractMediaMetadata(file);
             
             // temp 경로 생성
             String tempPath = imagePathService.generateTempPath(userId);
@@ -71,13 +71,15 @@ public class ImageService {
             // S3 업로드
             imageStorageService.uploadToS3(tempS3Key, file);
             
-            // DB 저장 (temp 이미지는 postId null)
+            // DB 저장 (temp 미디어는 postId null)
             Image tempImage = Image.builder()
                     .s3Key(tempS3Key)
                     .type(null)
                     .originalFilename(file.getOriginalFilename())
                     .width(metadata.width)
                     .height(metadata.height)
+                    .duration(metadata.duration)
+                    .fileSize(metadata.fileSize)
                     .userId(userId)
                     .postId(null)
                     .build();
@@ -88,7 +90,7 @@ public class ImageService {
             return ImageResponse.from(savedImage, tempUrl);
             
         } catch (IOException e) {
-            log.error("이미지 처리 중 오류 발생: {}", e.getMessage());
+            log.error("미디어 처리 중 오류 발생: {}", e.getMessage());
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
@@ -128,16 +130,31 @@ public class ImageService {
             return;
         }
 
-        // 새 컨텐츠에서 이미지 URL 추출
-        List<String> newImageUrls = imagePathService.extractAllImageUrls(newContent);
+		// 새 컨텐츠에서 이미지 URL 추출 후 S3 키로 정규화
+		List<String> extractedUrls = imagePathService.extractAllImageUrls(newContent);
+		Set<String> newImageS3Keys = new HashSet<>();
+		for (String url : extractedUrls) {
+			try {
+				String s3Key = imageStorageService.extractS3KeyFromUrl(url);
+				if (s3Key != null && !s3Key.trim().isEmpty()) {
+					newImageS3Keys.add(s3Key);
+				}
+			} catch (BusinessException e) {
+				// URL 형식 오류 등은 무시하고 다음 항목 처리
+			}
+		}
 
-        // 삭제할 이미지 찾기 (현재 DB에는 있지만 새 컨텐츠에는 없는 이미지)
-        List<Image> imagesToDelete = currentImages.stream()
-                .filter(image -> {
-                    String imageUrl = imageStorageService.generatePublicUrl(image.getS3Key());
-                    return !newImageUrls.contains(imageUrl);
-                })
-                .collect(Collectors.toList());
+		// 진단 로그: 본문에서 추출된 S3 키들과 현재 이미지의 S3 키 비교 출력
+		List<String> currentImageS3Keys = currentImages.stream()
+				.map(Image::getS3Key)
+				.collect(Collectors.toList());
+		log.info("[이미지 삭제 진단] 본문 추출 S3 키 개수: {}, keys: {}", newImageS3Keys.size(), newImageS3Keys);
+		log.info("[이미지 삭제 진단] 현재 이미지 S3 키 개수: {}, keys: {}", currentImageS3Keys.size(), currentImageS3Keys);
+
+		// 삭제할 이미지 찾기 (현재 DB에는 있지만 새 컨텐츠에는 해당 S3 키가 없는 이미지)
+		List<Image> imagesToDelete = currentImages.stream()
+				.filter(image -> !newImageS3Keys.contains(image.getS3Key()))
+				.collect(Collectors.toList());
 
         // 삭제 처리
         for (Image imageToDelete : imagesToDelete) {
@@ -175,15 +192,16 @@ public class ImageService {
         return updatedContent;
     }
     
-    // 이미지 업로드 메인 로직
+    // 미디어 업로드 메인 로직 (이미지 + 동영상)
     @Transactional
     public ImageResponse uploadImage(ImageUploadRequest request) {
         imageValidationService.validateUploadRequest(request);
         
         try {
-            ImageMetadata metadata = extractImageMetadata(request.getFile());
+            MediaMetadata metadata = extractMediaMetadata(request.getFile());
             
-            log.debug("이미지 크기 - width: {}, height: {}", metadata.width, metadata.height);
+            log.debug("미디어 크기 - width: {}, height: {}, duration: {}, fileSize: {}", 
+                     metadata.width, metadata.height, metadata.duration, metadata.fileSize);
             
             // 파일명 생성
             String fileName = imageStorageService.generateUniqueFileName(request.getFile().getOriginalFilename());
@@ -201,6 +219,8 @@ public class ImageService {
                     .originalFilename(request.getFile().getOriginalFilename())
                     .width(metadata.width)
                     .height(metadata.height)
+                    .duration(metadata.duration)
+                    .fileSize(metadata.fileSize)
                     .userId(imagePathService.extractUserIdFromPath(request.getUploadPath()))
                     .postId(null)
                     .build();
@@ -211,7 +231,7 @@ public class ImageService {
             return ImageResponse.from(savedImage, fileUrl);
             
         } catch (IOException e) {
-            log.error("이미지 업로드 중 오류 발생: {}", e.getMessage());
+            log.error("미디어 업로드 중 오류 발생: {}", e.getMessage());
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
@@ -353,22 +373,38 @@ public class ImageService {
     }
     
     
-    // 이미지 메타데이터 추출
-    private ImageMetadata extractImageMetadata(MultipartFile file) throws IOException {
-        BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
-        Long width = bufferedImage != null ? (long) bufferedImage.getWidth() : null;
-        Long height = bufferedImage != null ? (long) bufferedImage.getHeight() : null;
-        return new ImageMetadata(width, height);
+    // 미디어 메타데이터 추출 
+    private MediaMetadata extractMediaMetadata(MultipartFile file) throws IOException {
+        String contentType = file.getContentType();
+        
+        if (contentType != null && contentType.startsWith("image/")) {
+            BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
+            Long width = bufferedImage != null ? (long) bufferedImage.getWidth() : null;
+            Long height = bufferedImage != null ? (long) bufferedImage.getHeight() : null;
+            return new MediaMetadata(width, height, null, file.getSize());
+        } else if (contentType != null && contentType.startsWith("video/")) {
+            // 동영상 메타데이터는 기본값으로 처리 (추후 FFmpeg 통합 시 개선)
+            return new MediaMetadata(null, null, null, file.getSize());
+        } else if (contentType != null && contentType.startsWith("audio/")) {
+            // 오디오 메타데이터는 기본값으로 처리 (추후 메타데이터 추출 시 개선)
+            return new MediaMetadata(null, null, null, file.getSize());
+        }
+        
+        throw new BusinessException(ErrorCode.IMAGE_FORMAT_NOT_SUPPORTED);
     }
     
-    // 이미지 메타데이터 내부 클래스
-    private static class ImageMetadata {
+    // 미디어 메타데이터 내부 클래스
+    private static class MediaMetadata {
         final Long width;
         final Long height;
+        final Long duration;
+        final Long fileSize;
         
-        ImageMetadata(Long width, Long height) {
+        MediaMetadata(Long width, Long height, Long duration, Long fileSize) {
             this.width = width;
             this.height = height;
+            this.duration = duration;
+            this.fileSize = fileSize;
         }
     }
 

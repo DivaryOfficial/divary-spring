@@ -7,11 +7,12 @@ import org.springframework.stereotype.Service;
 
 import com.divary.domain.image.enums.ImageType;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -24,9 +25,10 @@ public class ImagePathService {
     @Value("${cloud.aws.region.static}")
     private String region;
 
-    private static Pattern tempUrlPattern = null;
+    // base prefix 방식 사용으로 정규식 캐시 제거
     
     private final ImageValidationService imageValidationService;
+        private final ObjectMapper objectMapper;
 
     // 유저 이미지 업로드 경로 생성
     public String generateUserUploadPath(ImageType imageType, Long userId, String additionalPath) {
@@ -86,45 +88,12 @@ public class ImagePathService {
         return null;
     }
 
-    // S3 이미지 URL 패턴 생성 
-    private String getS3ImageUrlPattern(String pathPattern) {
-        return String.format(
-                "https://%s\\.s3\\.%s\\.amazonaws\\.com/%s\\.(jpg|jpeg|png|gif|webp)",
-                java.util.regex.Pattern.quote(bucketName),
-                java.util.regex.Pattern.quote(region),
-                pathPattern);
-    }
-    
-    // temp 이미지 URL 패턴 생성
-    public String getTempImageUrlPattern() {
-        return getS3ImageUrlPattern("users/\\d+/temp/.*?");
-    }
-
-    // 모든 이미지 URL 패턴 생성 (temp + permanent)
-    public String getAllImageUrlPattern() {
-        return getS3ImageUrlPattern("[^\\\\s\"'<>]+");
-    }
-
     // 본문에서 temp 이미지 URL 패턴 추출
     public List<String> extractTempImageUrls(String content) {
-        if (tempUrlPattern == null) {
-            String pattern = getTempImageUrlPattern();
-            log.info("temp URL 정규식 패턴: {}", pattern);
-            tempUrlPattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
-        }
-        
-        log.info("컨텐츠에서 temp URL 추출 시도: {}", content);
-        
-        Matcher matcher = tempUrlPattern.matcher(content);
-        List<String> tempUrls = new ArrayList<>();
-        while (matcher.find()) {
-            String foundUrl = matcher.group();
-            tempUrls.add(foundUrl);
-            log.info("temp URL 발견: {}", foundUrl);
-        }
-        
-        log.info("총 발견된 temp URL 개수: {}", tempUrls.size());
-        return tempUrls;
+        // JSON 파싱만 사용
+        List<String> urls = extractUrlsByJson(content, true);
+		log.info("총 발견된 temp URL 개수: {}", urls.size());
+		return urls;
     }
 
     // 컨텐츠에서 모든 이미지 URL 추출 (temp 이미지뿐만 아니라 permanent 이미지도)
@@ -132,19 +101,54 @@ public class ImagePathService {
         if (content == null || content.trim().isEmpty()) {
             return new ArrayList<>();
         }
-        
-        String allImagePattern = getAllImageUrlPattern();
-        Pattern pattern = Pattern.compile(allImagePattern, Pattern.CASE_INSENSITIVE);
-        
-        Matcher matcher = pattern.matcher(content);
-        List<String> imageUrls = new ArrayList<>();
-        while (matcher.find()) {
-            imageUrls.add(matcher.group());
-        }
-        
-        log.debug("컨텐츠에서 추출된 이미지 URL 개수: {}", imageUrls.size());
-        return imageUrls;
+        // JSON 파싱만 사용
+        List<String> urls = extractUrlsByJson(content, false);
+		log.debug("컨텐츠에서 추출된 이미지 URL 개수: {}", urls.size());
+		return urls;
     }
+
+    // JSON을 파싱하여 문자열 값들 중 base URL로 시작하는 항목을 수집
+    private List<String> extractUrlsByJson(String content, boolean tempOnly) {
+        List<String> results = new ArrayList<>();
+        try {
+            JsonNode root = objectMapper.readTree(content);
+            String base = getBaseUrl();
+            collectUrlsFromJsonNode(root, base, tempOnly, results);
+        } catch (Exception e) {
+            log.warn("JSON 파싱 기반 URL 추출 실패: {}", e.getMessage());
+        }
+        return results;
+    }
+
+    private void collectUrlsFromJsonNode(JsonNode node, String base, boolean tempOnly, List<String> results) {
+        if (node == null) return;
+        if (node.isTextual()) {
+            String text = node.asText();
+            if (text != null && text.startsWith(base)) {
+                if (!tempOnly || text.contains("/temp/")) {
+                    results.add(text);
+                }
+            }
+            return;
+        }
+        if (node.isArray()) {
+            for (JsonNode child : node) {
+                collectUrlsFromJsonNode(child, base, tempOnly, results);
+            }
+            return;
+        }
+        if (node.isObject()) {
+            Iterator<String> names = node.fieldNames();
+            while (names.hasNext()) {
+                String name = names.next();
+                collectUrlsFromJsonNode(node.get(name), base, tempOnly, results);
+            }
+        }
+    }
+
+	private String getBaseUrl() {
+		return String.format("https://%s.s3.%s.amazonaws.com/", bucketName, region);
+	}
 
     // 본문의 temp URL을 permanent URL로 교체
     public String replaceTempUrls(String content, Map<String, String> urlMappings) {

@@ -38,6 +38,14 @@ public class Image extends BaseEntity {
     @Schema(description = "이미지 높이", example = "1080")
     private Long height;
 
+    @Column(name = "duration")
+    @Schema(description = "동영상 길이(초)", example = "120")
+    private Long duration;
+
+    @Column(name = "file_size")
+    @Schema(description = "파일 크기(바이트)", example = "2048576")
+    private Long fileSize;
+
     @Column(name = "user_id")
     @Schema(description = "업로드한 사용자 ID", example = "1")
     private Long userId;
@@ -47,12 +55,15 @@ public class Image extends BaseEntity {
     private Long postId;
 
     @Builder
-    public Image(String s3Key, ImageType type, String originalFilename, Long width, Long height, Long userId, Long postId) {
+    public Image(String s3Key, ImageType type, String originalFilename, Long width, Long height, 
+                Long duration, Long fileSize, Long userId, Long postId) {
         this.s3Key = s3Key;
         this.type = type;
         this.originalFilename = originalFilename;
         this.width = width;
         this.height = height;
+        this.duration = duration;
+        this.fileSize = fileSize;
         this.userId = userId;
         this.postId = postId;
     }

@@ -30,7 +30,7 @@ public class ImageController {
 
     private final ImageService imageService;
 
-    @Operation(summary = "임시 이미지 업로드", description = "임시 경로에 다중 이미지를 업로드합니다. 24시간 후 자동 삭제됩니다.")
+    @Operation(summary = "임시 미디어 업로드", description = "임시 경로에 다중 미디어(이미지/동영상/오디오)를 업로드합니다. 24시간 후 자동 삭제됩니다.")
     @ApiErrorExamples({
             ErrorCode.REQUIRED_FIELD_MISSING,
             ErrorCode.IMAGE_SIZE_TOO_LARGE,
@@ -39,12 +39,12 @@ public class ImageController {
     })
     @PostMapping(value = "/upload/temp", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<MultipleImageUploadResponse> uploadTempImages(
-            @Parameter(description = "업로드할 이미지 파일들 (최대 10개)", required = true)
+            @Parameter(description = "업로드할 미디어 파일들 (이미지: 최대 10MB, 동영상/오디오: 최대 30MB, 최대 10개)", required = true)
             @RequestPart("files") List<MultipartFile> files,
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
         
         MultipleImageUploadResponse response = imageService.uploadTempImages(files, userPrincipal.getId());
-        return ApiResponse.success("임시 이미지 업로드가 완료되었습니다. 24시간 내에 사용하지 않으면 자동 삭제됩니다.", response);
+        return ApiResponse.success("임시 미디어 업로드가 완료되었습니다. 24시간 내에 사용하지 않으면 자동 삭제됩니다.", response);
     }
 
     @Operation(summary = "시스템 이미지 업로드", description = "지정된 타입과 postId에 연결되는 시스템 이미지를 1개 업로드합니다.")

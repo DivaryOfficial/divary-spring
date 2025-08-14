@@ -48,6 +48,10 @@ dependencies {
 	// WebP 이미지 지원 (Java ImageIO 확장)
 	implementation 'com.twelvemonkeys.imageio:imageio-webp:3.10.1'
 
+	// Cache (Spring Cache + Caffeine)
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
