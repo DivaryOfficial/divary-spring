@@ -181,10 +181,6 @@ public class LogBookService {
             logBaseInfoRepository.save(base);
         }//로그 세부내용이 임시저장 상태면 로그베이스 저장상태를 임시저장으로 변환
 
-        if (dto.getDate() != base.getDate()){
-            base.setDate(dto.getDate());
-            logBaseInfoRepository.save(base);
-        }//처음 로그북 추가할 때의 날짜를 다시 변경하는 경우, 로그베이스의 날짜까지 다시 수정
 
         // Companion 덮어쓰기 (기존 삭제 후 다시 저장)
         companionRepository.deleteByLogBook(logBook);
@@ -229,5 +225,16 @@ public class LogBookService {
 
     }
 
+    @Transactional
+    public void updateLogDate(Long logBaseInfoId, Long userId, LocalDate date) {
+
+        LogBaseInfo logBaseInfo = logBaseInfoRepository.findByIdAndMemberId(logBaseInfoId, userId)
+                .orElseThrow(()->new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
+
+        if (date != logBaseInfo.getDate()){
+            logBaseInfo.setDate(date);
+            logBaseInfoRepository.save(logBaseInfo);
+        }//처음 로그북 추가할 때의 날짜를 다시 변경하는 경우, 로그베이스의 날짜까지 다시 수정
+    }
 
 }

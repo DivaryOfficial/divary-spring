@@ -2,6 +2,7 @@ package com.divary.domain.logbase.logbook.controller;
 
 import com.divary.common.response.ApiResponse;
 import com.divary.domain.logbase.logbook.dto.request.LogBaseCreateRequestDTO;
+import com.divary.domain.logbase.logbook.dto.request.LogDateUpdateRequestDTO;
 import com.divary.domain.logbase.logbook.dto.request.LogDetailPutRequestDTO;
 import com.divary.domain.logbase.logbook.dto.request.LogNameUpdateRequestDTO;
 import com.divary.domain.logbase.logbook.dto.response.*;
@@ -116,7 +117,7 @@ public class LogBookController {
         return ApiResponse.success(result);
     }
 
-    @PatchMapping("/{logBaseInfoId}")
+    @PatchMapping("/{logBaseInfoId}/name")
     @Operation(summary = "로그북 이름 변경", description = "로그북의 이름을 변경합니다.")
     @ApiSuccessResponse(dataType = Void.class)
     @ApiErrorExamples(value = {ErrorCode.LOG_ACCESS_DENIED, ErrorCode.LOG_BASE_NOT_FOUND, ErrorCode.AUTHENTICATION_REQUIRED})
@@ -144,5 +145,22 @@ public class LogBookController {
         LogExistResultDTO response = logBookService.checkLogExists(date, userId);
         return ApiResponse.success(response);
     }
+
+    @PatchMapping("/{logBaseInfoId}/date")
+    @Operation(summary = "로그북 날짜 수정", description = "해당 로그북의 날짜를 수정합니다")
+    @ApiSuccessResponse(dataType = void.class)
+    @ApiErrorExamples(value = {ErrorCode.LOG_ACCESS_DENIED, ErrorCode.LOG_BASE_NOT_FOUND, ErrorCode.AUTHENTICATION_REQUIRED})
+    public ApiResponse<Void> updateLogDate(
+            @PathVariable Long logBaseInfoId,
+            @AuthenticationPrincipal CustomUserPrincipal userPrincipal,
+            @RequestBody @Valid LogDateUpdateRequestDTO dto) {
+
+        Long userId = userPrincipal.getId();
+
+        LocalDate localDate = dto.getDate();
+        logBookService.updateLogDate(logBaseInfoId, userId, localDate);
+        return ApiResponse.success(null);
+    }
+
 
 }
