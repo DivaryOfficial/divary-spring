@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -231,10 +232,18 @@ public class LogBookService {
         LogBaseInfo logBaseInfo = logBaseInfoRepository.findByIdAndMemberId(logBaseInfoId, userId)
                 .orElseThrow(()->new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
 
-        if (date != logBaseInfo.getDate()){
-            logBaseInfo.setDate(date);
-            logBaseInfoRepository.save(logBaseInfo);
-        }//처음 로그북 추가할 때의 날짜를 다시 변경하는 경우, 로그베이스의 날짜까지 다시 수정
+        if (Objects.equals(date,logBaseInfo.getDate())){
+            return;
+        }
+        Optional<LogBaseInfo> existing = logBaseInfoRepository.findByDateAndMemberId(date,userId);
+        if (existing.isPresent() && !existing.get().getId().equals(logBaseInfoId))
+        {
+            throw new BusinessException(ErrorCode.LOG_BASE_ALREADY_EXISTS);
+        }
+        logBaseInfo.setDate(date);
+        logBaseInfoRepository.save(logBaseInfo);
+        //처음 로그북 추가할 때의 날짜를 다시 변경하는 경우, 로그베이스의 날짜까지 다시 수정
+
     }
 
 }
