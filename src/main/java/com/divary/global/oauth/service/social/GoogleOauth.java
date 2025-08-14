@@ -7,11 +7,13 @@ import com.divary.domain.member.service.MemberService;
 import com.divary.domain.avatar.service.AvatarService;
 import com.divary.domain.token.service.RefreshTokenService;
 import com.divary.global.config.security.CustomUserPrincipal;
-import com.divary.global.config.security.jwt.JwtTokenProvider;
+import com.divary.global.config.jwt.JwtTokenProvider;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import com.divary.global.oauth.dto.response.LoginResponseDTO;
+//import com.divary.global.redis.service.TokenBlackListService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,10 +23,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class GoogleOauth implements SocialOauth {
 
     private final MemberService memberService;
@@ -33,6 +37,7 @@ public class GoogleOauth implements SocialOauth {
     private static final String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
     private final RestTemplate restTemplate;
     private final RefreshTokenService refreshTokenService;
+//    private final TokenBlackListService tokenBlackListService;
 
 
     private Map<String, Object> requestUserInfo(String accessToken) {
@@ -71,7 +76,6 @@ public class GoogleOauth implements SocialOauth {
 
         try {
             member = memberService.findMemberByEmail(email);
-            throw new BusinessException(ErrorCode.MEMBER_ALREADY_EXISTS); //이미 가입된 이메일처리
 
         } catch (BusinessException e) {
             member = memberService.saveMember(Member.builder()
@@ -98,7 +102,16 @@ public class GoogleOauth implements SocialOauth {
         return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
     }
-    public void logout(String deviceId, Long userId) {
-        refreshTokenService.removeRefreshToken(deviceId, userId);
-    }
+//    public void logout(String deviceId, Long userId, String accessToken, String refreshToken) {
+//         //토큰이 존재하지 않는 경우
+//            if (!tokenBlackListService.isContainToken(accessToken)) {
+//
+//                // [STEP5] BlackList를 추가합니다.
+//                tokenBlackListService.addTokenToList(accessToken);
+//                List<Object> blackList = tokenBlackListService.getTokenBlackList();      // BlackList를 조회합니다.
+//                log.debug("[+] blackList : " + blackList);
+//            }
+//
+//        refreshTokenService.removeRefreshToken(deviceId, userId);
+//    }
 }
