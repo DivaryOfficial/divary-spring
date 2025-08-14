@@ -25,9 +25,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LogDetailPutRequestDTO {
 
-    @Schema(description = "다이빙 날짜", example = "2025-07-25")
-    private LocalDate date;
-
     @Schema(description = "저장 상태(임시저장:TEMP, 최종저장:COMPLETE)", example = "TEMP")
     private SaveStatus saveStatus;
 
