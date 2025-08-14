@@ -17,7 +17,8 @@ import java.util.List;
 public class ImageValidationService {
 
     private static final int MAX_FILES_PER_UPLOAD = 10;
-    private static final long MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+    private static final long MAX_IMAGE_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+    private static final long MAX_VIDEO_FILE_SIZE_BYTES = 30 * 1024 * 1024; // 30MB
 
     public void validateUploadRequest(ImageUploadRequest request) {
         validateFile(request.getFile());
@@ -41,13 +42,25 @@ public class ImageValidationService {
             throw new BusinessException(ErrorCode.REQUIRED_FIELD_MISSING);
         }
         
-        if (file.getSize() > MAX_FILE_SIZE_BYTES) {
-            throw new BusinessException(ErrorCode.IMAGE_SIZE_TOO_LARGE);
+        String contentType = file.getContentType();
+        if (contentType == null) {
+            throw new BusinessException(ErrorCode.IMAGE_FORMAT_NOT_SUPPORTED);
         }
         
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
+        // 파일 크기 검증 - 이미지, 동영상, 오디오 구분
+        long maxSize;
+        if (contentType.startsWith("image/")) {
+            maxSize = MAX_IMAGE_FILE_SIZE_BYTES;
+        } else if (contentType.startsWith("video/")) {
+            maxSize = MAX_VIDEO_FILE_SIZE_BYTES;
+        } else if (contentType.startsWith("audio/")) {
+            maxSize = MAX_VIDEO_FILE_SIZE_BYTES; // 오디오도 동영상과 같은 크기 제한
+        } else {
             throw new BusinessException(ErrorCode.IMAGE_FORMAT_NOT_SUPPORTED);
+        }
+        
+        if (file.getSize() > maxSize) {
+            throw new BusinessException(ErrorCode.IMAGE_SIZE_TOO_LARGE);
         }
     }
 

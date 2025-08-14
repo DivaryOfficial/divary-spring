@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +43,7 @@ public class EncyclopediaCardService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = com.divary.global.config.CacheConfig.CACHE_ENCYCLOPEDIA_SUMMARY, key = "#description != null ? #description : 'ALL'")
     public List<EncyclopediaCardSummaryResponse> getCards(String description) {
         List<EncyclopediaCard> cards;
         if (description == null) cards = encyclopediaCardRepository.findAll();
@@ -94,6 +96,7 @@ public class EncyclopediaCardService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = com.divary.global.config.CacheConfig.CACHE_ENCYCLOPEDIA_DETAIL, key = "#id")
     public EncyclopediaCardResponse getDetail(Long id) {
         EncyclopediaCard card = encyclopediaCardRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CARD_NOT_FOUND));

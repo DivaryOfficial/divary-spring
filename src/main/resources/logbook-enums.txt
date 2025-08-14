@@ -1,0 +1,81 @@
+=== DIVARY 로그북 관련 ENUM 값들 (실제 파일 기준) ===
+
+1. WIND (바람)
+WEAK: 약함
+MODERATE: 보통
+STRONG: 강함
+STORM: 폭풍
+
+2. WEATHER_TYPE (날씨)
+SUNNY: 맑음
+LITTLE_CLOUDY: 구름 조금
+CLOUDY: 흐림
+RAINY: 비
+
+3. ICON_TYPE (아이콘 타입)
+CLOWNFISH: 흰동가리
+BUTTERFLYFISH: 나비고기
+OCTOPUS: 문어
+CLEANER_WRASSE: 청줄놀래기
+BLACK_ROCKFISH: 쏨배기
+SEA_HARE: 군소
+PUFFERFISH: 복어
+STRIPED_BEAKFISH: 돌돔
+NUDIBRANCH: 갯민숭달팽이
+MOON_JELLYFISH: 보름달물해파리
+YELLOWTAIL_SCAD: 줄전갱이
+MANTIS_SHRIMP: 끄덕새우
+SEA_TURTLE: 바다거북
+STARFISH: 불가사리
+RED_LIONFISH: 쏠배감펭
+SEA_URCHIN: 성게
+
+4. DIVE_PURPOSE (다이빙 목적)
+FUN: 재미
+TRAINING: 훈련
+
+5. DIVE_METHOD (다이빙 방법)
+SHORE: 쇼어
+BOAT: 보트
+ETC: 기타
+
+6. SUIT_TYPE (수트 타입)
+WETSUIT_3MM: 3mm 웻수트
+WETSUIT_5MM: 5mm 웻수트
+DRYSUIT: 드라이수트
+ETC: 기타
+
+7. PERCEIVE_TEMP (체감 온도)
+HOT: 덥다
+MEDIUM: 보통
+COLD: 춥다
+
+8. PERCEIVE_WEIGHT (체감 무게)
+LIGHT: 가볍다
+NORMAL: 보통
+HEAVY: 무겁다
+
+9. SIGHT (시야)
+GOOD: 좋음
+ORDINARY: 보통
+BAD: 나쁨
+
+10. TIDE (조류)
+NONE: 없음
+WEAK: 약함
+MODERATE: 보통
+STRONG: 강함
+
+11. WAVE (파도)
+CALM: 잔잔함
+MODERATE: 보통
+STRONG: 강함
+
+12. SAVE_STATUS (저장 상태)
+TEMP: 임시
+COMPLETE: 완료
+
+13. COMPANION_TYPE (동반자 타입)
+LEADER: 리더
+BUDDY: 버디
+COMPANION: 동반자
