@@ -87,8 +87,6 @@ public class LogBookService {
     @Transactional
     public List<LogBaseListResultDTO> getLogBooks(Long userId) {
 
-        Member member = memberService.findById(userId);
-
         List<LogBaseInfo> logBaseInfoList = logBaseInfoRepository.findByMemberId(userId);
 
         return logBaseInfoList.stream()
@@ -161,6 +159,30 @@ public class LogBookService {
     }
 
     @Transactional
+    public void calculateLogBaseStatus(LogBaseInfo base) {
+
+        // 1. 연결된 로그북들 중 TEMP가 하나라도 있으면 TEMP
+        boolean hasTemp = logBookRepository.existsByLogBaseInfoIdAndSaveStatus(base.getId(), SaveStatus.TEMP);
+        if (hasTemp) {
+            if (base.getSaveStatus() != SaveStatus.TEMP) {
+                base.setSaveStatus(SaveStatus.TEMP);
+            }
+            return; // 베이스를 TEMP로 맞췄으니 종료
+        }
+
+        // 2. 연결된 로그북들 모두 COMPLETE인지 확인
+        long total = logBookRepository.countByLogBaseInfoId(base.getId());
+        if (total > 0) {
+            long completeCount = logBookRepository.countByLogBaseInfoIdAndSaveStatus(base.getId(), SaveStatus.COMPLETE);
+            if (completeCount == total) {
+                if (base.getSaveStatus() != SaveStatus.COMPLETE) {
+                    base.setSaveStatus(SaveStatus.COMPLETE);
+                }
+            }
+        }
+    }
+
+    @Transactional
     public LogDetailPutResultDTO updateLogBook(Long userId, Long logBookId, LogDetailPutRequestDTO dto) {
 
         LogBook logBook = logBookRepository.findByIdAndLogBaseInfoMemberId(logBookId, userId)
@@ -197,10 +219,7 @@ public class LogBookService {
 
         LogBaseInfo base = logBook.getLogBaseInfo();
 
-        if (dto.getSaveStatus() == SaveStatus.TEMP){
-            base.setSaveStatus(SaveStatus.TEMP);
-            logBaseInfoRepository.save(base);
-        }//로그 세부내용이 임시저장 상태면 로그베이스 저장상태를 임시저장으로 변환
+        calculateLogBaseStatus(base);//로그북에 따른 로그베이스 저장상태 계산
 
 
         // Companion 덮어쓰기 (기존 삭제 후 다시 저장)

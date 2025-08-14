@@ -21,4 +21,9 @@ public interface LogBookRepository extends JpaRepository<LogBook,Long> {
 
     Optional<LogBook> findByIdAndLogBaseInfoMemberId(Long logBookId, Long memberId);
 
+    boolean existsByLogBaseInfoIdAndSaveStatus(Long logBaseInfoId, SaveStatus saveStatus);
+
+    long countByLogBaseInfoId(Long logBaseInfoId);
+
+    long countByLogBaseInfoIdAndSaveStatus(Long logBaseInfoId, SaveStatus saveStatus);
 }
