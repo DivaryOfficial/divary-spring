@@ -1,4 +1,4 @@
-package com.divary.global.config.security.jwt;
+package com.divary.global.config.jwt;
 
 import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.repository.MemberRepository;

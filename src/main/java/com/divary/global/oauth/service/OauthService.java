@@ -35,12 +35,12 @@ public class OauthService {
         return socialOauth.verifyAndLogin(accessToken, deviceId);
     }
 
-    @Transactional
-    public void logout(SocialType socialLoginType, String deviceId, Long userId) {
-        SocialOauth socialOauth = this.findSocialOauthByType(socialLoginType);
-        if (socialOauth == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-        socialOauth.logout(deviceId, userId);
-    }
+//    @Transactional
+//    public void logout(SocialType socialLoginType, String deviceId, Long userId, String accessToken, String refreshToken) {
+//        SocialOauth socialOauth = this.findSocialOauthByType(socialLoginType);
+//        if (socialOauth == null) {
+//            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+//        }
+//        socialOauth.logout(deviceId, userId, accessToken, refreshToken);
+//    }
 }

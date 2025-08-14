@@ -19,7 +19,8 @@ import lombok.*;
 @AllArgsConstructor
 public class Member extends BaseEntity {
 
-    @NotNull
+
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Enumerated(EnumType.STRING)

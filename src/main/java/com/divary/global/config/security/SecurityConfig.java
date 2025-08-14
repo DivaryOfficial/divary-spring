@@ -1,7 +1,7 @@
 package com.divary.global.config.security;
 
 import com.divary.common.response.ApiResponse;
-import com.divary.global.config.security.jwt.JwtAuthenticationFilter;
+import com.divary.global.config.jwt.JwtAuthenticationFilter;
 import com.divary.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

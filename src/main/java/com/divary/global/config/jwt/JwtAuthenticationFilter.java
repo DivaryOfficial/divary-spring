@@ -1,15 +1,13 @@
-package com.divary.global.config.security.jwt;
+package com.divary.global.config.jwt;
 
 import com.divary.common.response.ApiResponse;
-import com.divary.domain.member.enums.Role;
-import com.divary.domain.token.entity.RefreshToken;
-import com.divary.domain.token.repository.RefreshTokenRepository;
 import com.divary.domain.token.service.RefreshTokenService;
 import com.divary.global.config.properties.Constants;
 import com.divary.global.config.security.CustomUserDetailsService;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
+//import com.divary.global.redis.service.TokenBlackListService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -36,6 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
     private final CustomUserDetailsService customUserDetailsService;
     private final RefreshTokenService refreshTokenService;
+    private final JwtResolver jwtResolver;
+//    private final TokenBlackListService tokenBlackListService;
 
 
     @Override
@@ -48,17 +48,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.debug("JWT 필터 처리 시작 - URI: {}", requestURI);
         
         try {
-            String accessToken = resolveAccessToken(request);
-            String refreshToken = resolveRefreshToken(request);
+            String accessToken = jwtResolver.resolveAccessToken(request);
+            String refreshToken = jwtResolver.resolveRefreshToken(request);
             String deviceId = request.getHeader("Device-Id");
             log.debug("AccessToken: {}", accessToken != null ? "존재" : "없음");
             log.debug("RefreshToken: {}", refreshToken != null ? "존재" : "없음");
             log.debug("DeviceId: {}", deviceId != null ? "존재" : "없음");
 
+//            if (accessToken != null && tokenBlackListService.isContainToken(accessToken)) {
+//                throw new Exception("<< 경고 >>만료된 토큰으로 접근하려합니다!!!");
+//            }
+
             if(StringUtils.hasText(accessToken) && jwtTokenProvider.validateToken(accessToken)) {
                 Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 log.debug("SecurityContext에 인증 정보 설정 완료 - 사용자: {}", authentication.getName());
+
+
             }
             // accessToken이 만료 && refreshToken 존재 시 재발급
             else if (!jwtTokenProvider.validateToken(accessToken) && StringUtils.hasText(refreshToken)) {
@@ -77,7 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     Long userId = principal.getId();
 
-                    refreshTokenService.updateRefreshToken(userId, deviceId, newAccessToken);
+                    refreshTokenService.updateRefreshToken(userId, deviceId, newRefreshToken);
                     // 새 토큰 헤더에 추가
                     jwtTokenProvider.setHeaderTokens(response, newAccessToken, newRefreshToken);
 
@@ -128,22 +134,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    public static String resolveAccessToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(Constants.AUTH_HEADER);
-        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith(Constants.TOKEN_PREFIX)) {
-            return bearerToken.substring(Constants.TOKEN_PREFIX.length());
-        }
-        return null;
-    }
-    public String resolveRefreshToken(HttpServletRequest request) {
-        String refreshToken = request.getHeader("refreshToken");
-
-        if (StringUtils.hasText(refreshToken)) {
-            if (refreshToken.startsWith("Bearer ")) {
-                return refreshToken.substring(7);
-            }
-            return refreshToken; // "Bearer " 없이도 허용
-        }
-        return null;
-    }
 }
