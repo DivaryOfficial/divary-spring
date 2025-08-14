@@ -130,16 +130,31 @@ public class ImageService {
             return;
         }
 
-        // 새 컨텐츠에서 이미지 URL 추출
-        List<String> newImageUrls = imagePathService.extractAllImageUrls(newContent);
+		// 새 컨텐츠에서 이미지 URL 추출 후 S3 키로 정규화
+		List<String> extractedUrls = imagePathService.extractAllImageUrls(newContent);
+		Set<String> newImageS3Keys = new HashSet<>();
+		for (String url : extractedUrls) {
+			try {
+				String s3Key = imageStorageService.extractS3KeyFromUrl(url);
+				if (s3Key != null && !s3Key.trim().isEmpty()) {
+					newImageS3Keys.add(s3Key);
+				}
+			} catch (BusinessException e) {
+				// URL 형식 오류 등은 무시하고 다음 항목 처리
+			}
+		}
 
-        // 삭제할 이미지 찾기 (현재 DB에는 있지만 새 컨텐츠에는 없는 이미지)
-        List<Image> imagesToDelete = currentImages.stream()
-                .filter(image -> {
-                    String imageUrl = imageStorageService.generatePublicUrl(image.getS3Key());
-                    return !newImageUrls.contains(imageUrl);
-                })
-                .collect(Collectors.toList());
+		// 진단 로그: 본문에서 추출된 S3 키들과 현재 이미지의 S3 키 비교 출력
+		List<String> currentImageS3Keys = currentImages.stream()
+				.map(Image::getS3Key)
+				.collect(Collectors.toList());
+		log.info("[이미지 삭제 진단] 본문 추출 S3 키 개수: {}, keys: {}", newImageS3Keys.size(), newImageS3Keys);
+		log.info("[이미지 삭제 진단] 현재 이미지 S3 키 개수: {}, keys: {}", currentImageS3Keys.size(), currentImageS3Keys);
+
+		// 삭제할 이미지 찾기 (현재 DB에는 있지만 새 컨텐츠에는 해당 S3 키가 없는 이미지)
+		List<Image> imagesToDelete = currentImages.stream()
+				.filter(image -> !newImageS3Keys.contains(image.getS3Key()))
+				.collect(Collectors.toList());
 
         // 삭제 처리
         for (Image imageToDelete : imagesToDelete) {
