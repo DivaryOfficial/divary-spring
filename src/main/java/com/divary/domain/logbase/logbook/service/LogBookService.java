@@ -85,6 +85,26 @@ public class LogBookService {
     }//연도에 따라, 저장 상태(임시저장,완전저장)에 따라 로그북베이스정보 조회
 
     @Transactional
+    public List<LogBaseListResultDTO> getLogBooks(Long userId) {
+
+        Member member = memberService.findById(userId);
+
+        List<LogBaseInfo> logBaseInfoList = logBaseInfoRepository.findByMemberId(userId);
+
+        return logBaseInfoList.stream()
+                .map(logBaseInfo -> LogBaseListResultDTO.builder()
+                        .name(logBaseInfo.getName())
+                        .date(logBaseInfo.getDate())
+                        .iconType(logBaseInfo.getIconType())
+                        .saveStatus(logBaseInfo.getSaveStatus())
+                        .LogBaseInfoId(logBaseInfo.getId())
+                        .build())
+                .collect(Collectors.toList());
+
+    }//특정 유저의 전체 로그북베이스정보 리스트 조회
+
+
+    @Transactional
     public List<LogBookDetailResultDTO> getLogDetail(Long logBaseInfoId, Long userId) {
 
         LogBaseInfo logBaseInfo = logBaseInfoRepository.findById(logBaseInfoId)
