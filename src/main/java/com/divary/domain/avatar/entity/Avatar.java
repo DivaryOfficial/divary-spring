@@ -36,7 +36,7 @@ public class Avatar extends BaseEntity {
     private SpeechBubble speechBubble;
 
 
-    @Column(nullable = false, name = "cheek_color")
+    @Column(name = "cheek_color")
     @Enumerated(EnumType.STRING)
     private CheekColor cheekColor;
 
