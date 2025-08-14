@@ -11,6 +11,7 @@ import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class AvatarServiceImpl implements AvatarService {
     private final MemberService memberService;
 
     @Override
+    @Transactional
     public void upsertAvatar(Long userId, AvatarRequestDTO avatarRequestDTO) {
 
         Avatar avatar;
