@@ -50,8 +50,8 @@ public class LogBookController {
     @GetMapping
     @ApiSuccessResponse(dataType = LogBaseListResultDTO.class)
     @ApiErrorExamples(value = {ErrorCode.AUTHENTICATION_REQUIRED})
-    @Operation(summary = "로그 리스트 조회", description = "연도와 저장 상태에 따라 로그북 리스트를 조회합니다.")
-    public ApiResponse<List<LogBaseListResultDTO>> getLogsByYearAndStatus(
+    @Operation(summary = "연도,저장상태 별 로그베이스 리스트 조회", description = "연도와 저장 상태에 따라 로그베이스 리스트를 조회합니다.")
+    public ApiResponse<List<LogBaseListResultDTO>> getLogListByYearAndStatus(
             @RequestParam int year,
             @RequestParam(required = false) SaveStatus saveStatus,
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
@@ -59,6 +59,19 @@ public class LogBookController {
         Long userId = userPrincipal.getId();
 
         List<LogBaseListResultDTO> result = logBookService.getLogBooksByYearAndStatus(year, saveStatus, userId);
+        return ApiResponse.success(result);
+    }
+
+    @GetMapping("/all")
+    @ApiSuccessResponse(dataType = LogBaseListResultDTO.class)
+    @ApiErrorExamples(value = {ErrorCode.AUTHENTICATION_REQUIRED})
+    @Operation(summary = "로그베이스 리스트 전체 조회", description = "특정 유저의 전체 로그베이스 리스트를 조회합니다.")
+    public ApiResponse<List<LogBaseListResultDTO>> getLogList(
+            @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+
+        Long userId = userPrincipal.getId();
+
+        List<LogBaseListResultDTO> result = logBookService.getLogBooks(userId);
         return ApiResponse.success(result);
     }
 

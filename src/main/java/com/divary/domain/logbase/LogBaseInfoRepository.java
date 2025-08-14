@@ -6,6 +6,8 @@ import com.divary.domain.logbase.logbook.enums.SaveStatus;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
+import com.mysql.cj.log.Log;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,5 +22,7 @@ public interface LogBaseInfoRepository extends JpaRepository<LogBaseInfo, Long> 
     Optional<LogBaseInfo> findByIdAndMemberId(Long id, Long memberId);
 
     Optional<LogBaseInfo> findByDateAndMemberId(LocalDate date, Long memberId);
+
+    List<LogBaseInfo> findByMemberId(Long memberId);
 
 }
