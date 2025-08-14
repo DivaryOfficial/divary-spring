@@ -147,7 +147,7 @@ public class LogBookController {
     }
 
     @PatchMapping("/{logBaseInfoId}/date")
-    @Operation(summary = "로그북 날짜 수정", description = "해당 로그북의 날짜를 수정합니다")
+    @Operation(summary = "로그베이스 날짜 수정", description = "해당 로그베이스의 날짜를 수정합니다")
     @ApiSuccessResponse(dataType = void.class)
     @ApiErrorExamples(value = {ErrorCode.LOG_ACCESS_DENIED, ErrorCode.LOG_BASE_NOT_FOUND, ErrorCode.AUTHENTICATION_REQUIRED})
     public ApiResponse<Void> updateLogDate(
