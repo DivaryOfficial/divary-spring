@@ -35,29 +35,40 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build -x test --build-cache --parallel
 
-      - name: Compress JAR with tar.gz # jar 파일 압축
-        run: |
-          mkdir -p package
-          cp build/libs/*.jar package/
-          tar --use-compress-program="gzip -1" -cf divary-app.tar.gz -C package .
-        shell: bash
+      - name: Docker 이미지 이름 설정
+        id: docker_meta
+        run: echo "image_name=divary-app" >> $GITHUB_OUTPUT
 
-      - name: Upload build artifact
+      - name: Docker Buildx 설정
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker 이미지 빌드
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false # 레지스트리에 푸시하지 않음
+          tags: ${{ steps.docker_meta.outputs.image_name }}:latest
+          load: true # 이미지를 로컬 Docker 데몬으로 로드
+
+      - name: Docker 이미지를 tar 파일로 저장
+        run: docker save ${{ steps.docker_meta.outputs.image_name }}:latest -o divary-image.tar
+
+      - name: Upload Docker image artifact
         uses: actions/upload-artifact@v4
         with:
-          name: divary-artifact
-          path: divary-app.tar.gz # 압축된 tar.gz 파일만 업로드
+          name: divary-image-artifact
+          path: divary-image.tar # tar 파일 업로드
 
   deploy:
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-
     steps:
-      - name: Download build artifact
+      - name: Download Docker image artifact
         uses: actions/download-artifact@v4
         with:
-          name: divary-artifact
+          name: divary-image-artifact # 빌드 잡에서 업로드한 아티팩트 이름
           path: ./deploy-package
 
       - name: Deploy to EC2
@@ -67,50 +78,51 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           PROD_ENV: ${{ secrets.APPLICATION_PROD_ENV }}
         run: |
+          # SSH 키 설정
           cat << KEY_EOF > private_key.pem
           $EC2_SSH_KEY
           KEY_EOF
           chmod 600 private_key.pem
 
-          tar_file=deploy-package/divary-app.tar.gz
-
-          # tar.gz 파일을 EC2로 전송 (압축 전송으로 속도 향상)
-          scp -i private_key.pem -o StrictHostKeyChecking=no -o Compression=yes "$tar_file" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/divary-app.tar.gz
-
-          # 환경변수 파일 생성 및 전송
+          # 환경변수 파일 생성
           cat << ENV_EOF > .env
           $PROD_ENV
           ENV_EOF
+
+          # Docker 이미지(.tar)와 환경변수 파일(.env)을 EC2로 전송
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./deploy-package/divary-image.tar $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/divary-image.tar
           scp -i private_key.pem -o StrictHostKeyChecking=no .env $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/.env
 
-          # EC2에서 압축 해제 후 실행
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST << EOF
+          # EC2에서 Docker 컨테이너 실행 스크립트
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST << 'EOF'
             set -e
             cd /home/$EC2_USERNAME
 
-            # 기존 서비스 중지
-            sudo systemctl stop divary || echo "서비스가 이미 중지되어 있습니다"
+            # 1. tar 파일로부터 Docker 이미지 로드
+            docker load -i divary-image.tar
 
-            # 이전 파일들 정리
-            rm -rf divary-app
+            # 2. 기존 컨테이너 중지 및 제거 (오류 무시)
+            docker stop divary-app || true
+            docker rm divary-app || true
 
-            # 새 파일 확인 및 압축 해제
-            if [ ! -f divary-app.tar.gz ]; then
-              echo "Error: divary-app.tar.gz not found"
-              exit 1
-            fi
+            # 3. 새로운 컨테이너 실행
+            # --env-file: .env 파일의 모든 변수를 컨테이너 환경변수로 주입
+            # -d: 백그라운드 실행
+            # -p: 포트 포워딩 (호스트:컨테이너)
+            # --restart always: 서버 재부팅 시 컨테이너 자동 재시작
+            docker run \
+              --name divary-app \
+              -d \
+              -p 8080:8080 \
+              --restart always \
+              --env-file .env \
+              divary-app:latest
 
-            mkdir -p divary-app
-            tar -xzf divary-app.tar.gz -C divary-app
+            # 4. 사용하지 않는 Docker 이미지 정리 (디스크 용량 확보)
+            docker image prune -af
 
-            # 새 JAR 파일로 교체
-            cp divary-app/divary-spring-0.0.1-SNAPSHOT.jar divary-app.jar
-
-            # systemd 재시작
-            sudo systemctl daemon-reload
-            sudo systemctl start divary
-            sudo systemctl is-active divary
-
+            echo "🚀 Deployment Successful!"
           EOF
-
+          
+          # 임시 파일 정리
           rm -f private_key.pem .env
