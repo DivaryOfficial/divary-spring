@@ -49,7 +49,6 @@ public class LogBook extends BaseEntity {
 
     @OneToMany(mappedBy = "logBook", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Schema(description = "동행자 리스트")
-    @Builder.Default
     private List<Companion> companions = new ArrayList<>();
 
     @Column(name = "save_status")
