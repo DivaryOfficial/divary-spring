@@ -20,6 +20,9 @@
 </div>
 <br/>
 
+## Server Architecture
+![서버 아키택처](./serverArc.png)
+
 ## 💻 Convention 💻
 
 ## 🌲 Branch Convention 🌲
