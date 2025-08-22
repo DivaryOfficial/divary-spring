@@ -40,14 +40,18 @@ public class AvatarServiceImpl implements AvatarService {
         avatar.setBodyColor(avatarRequestDTO.getBodyColor());
 
         if (avatarRequestDTO.getBuddyPetInfo() != null) {
-            var petInfo = avatarRequestDTO.getBuddyPetInfo();
-            avatar.setBudyPet(petInfo.getBudyPet());
-            avatar.setPetRotation(petInfo.getRotation());
+            avatar.setBudyPet(avatarRequestDTO.getBuddyPetInfo().getBudyPet());
+            avatar.setPetRotation(avatarRequestDTO.getBuddyPetInfo().getRotation());
 
-            if (petInfo.getOffset() != null) {
-                avatar.setPetHeight(petInfo.getOffset().getHeight());
-                avatar.setPetWidth(petInfo.getOffset().getWidth());
+            if (avatarRequestDTO.getBuddyPetInfo().getOffset() != null) {
+                avatar.setPetHeight(avatarRequestDTO.getBuddyPetInfo().getOffset().getHeight());
+                avatar.setPetWidth(avatarRequestDTO.getBuddyPetInfo().getOffset().getWidth());
             }
+        } else if (avatarRequestDTO.getBuddyPetInfo() == null) {
+            avatar.setBudyPet(null);
+            avatar.setPetRotation(null);
+            avatar.setPetHeight(null);
+            avatar.setPetWidth(null);
         }
 
         avatar.setBubbleText(avatarRequestDTO.getBubbleText());
