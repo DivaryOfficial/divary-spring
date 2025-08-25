@@ -12,6 +12,7 @@ import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import com.divary.global.oauth.dto.response.LoginResponseDTO;
 //import com.divary.global.redis.service.TokenBlackListService;
+import com.divary.global.redis.service.TokenBlackListService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -37,7 +38,7 @@ public class GoogleOauth implements SocialOauth {
     private static final String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
     private final RestTemplate restTemplate;
     private final RefreshTokenService refreshTokenService;
-//    private final TokenBlackListService tokenBlackListService;
+    private final TokenBlackListService tokenBlackListService;
 
 
     private Map<String, Object> requestUserInfo(String accessToken) {
@@ -102,16 +103,16 @@ public class GoogleOauth implements SocialOauth {
         return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
     }
-//    public void logout(String deviceId, Long userId, String accessToken, String refreshToken) {
-//         //토큰이 존재하지 않는 경우
-//            if (!tokenBlackListService.isContainToken(accessToken)) {
-//
-//                // [STEP5] BlackList를 추가합니다.
-//                tokenBlackListService.addTokenToList(accessToken);
-//                List<Object> blackList = tokenBlackListService.getTokenBlackList();      // BlackList를 조회합니다.
-//                log.debug("[+] blackList : " + blackList);
-//            }
-//
-//        refreshTokenService.removeRefreshToken(deviceId, userId);
-//    }
+    public void logout(String deviceId, Long userId, String accessToken, String refreshToken) {
+         //토큰이 존재하지 않는 경우
+            if (!tokenBlackListService.isContainToken(accessToken)) {
+
+                // [STEP5] BlackList를 추가합니다.
+                tokenBlackListService.addTokenToList(accessToken);
+                List<Object> blackList = tokenBlackListService.getTokenBlackList();      // BlackList를 조회합니다.
+                log.debug("[+] blackList : " + blackList);
+            }
+
+        refreshTokenService.removeRefreshToken(deviceId, userId);
+    }
 }

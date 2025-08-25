@@ -47,13 +47,13 @@ public class OauthController {
         return ApiResponse.success(responseDto);
     }
 
-//    @DeleteMapping(value = "/{socialLoginType}/logout")
-//    @Operation(summary = "로그아웃")
-//    public ApiResponse logout(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @PathVariable(name = "socialLoginType") SocialType socialLoginType, HttpServletRequest request, @RequestBody LogoutRequestDto logoutRequestDto) {
-//        String accessToken = jwtResolver.resolveAccessToken(request);
-//        String refreshToken = jwtResolver.resolveRefreshToken(request);
-//
-//        oauthService.logout(socialLoginType,logoutRequestDto.getDeviceId(), userPrincipal.getId(), accessToken, refreshToken);
-//        return ApiResponse.success(null);
-//    }
+    @DeleteMapping(value = "/{socialLoginType}/logout")
+    @Operation(summary = "로그아웃")
+    public ApiResponse logout(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @PathVariable(name = "socialLoginType") SocialType socialLoginType, HttpServletRequest request, @RequestBody LogoutRequestDto logoutRequestDto) {
+        String accessToken = jwtResolver.resolveAccessToken(request);
+        String refreshToken = jwtResolver.resolveRefreshToken(request);
+
+        oauthService.logout(socialLoginType,logoutRequestDto.getDeviceId(), userPrincipal.getId(), accessToken, refreshToken);
+        return ApiResponse.success(null);
+    }
 }
