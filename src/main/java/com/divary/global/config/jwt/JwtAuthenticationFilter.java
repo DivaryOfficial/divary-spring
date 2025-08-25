@@ -8,6 +8,7 @@ import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 //import com.divary.global.redis.service.TokenBlackListService;
+import com.divary.global.redis.service.TokenBlackListService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -35,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService customUserDetailsService;
     private final RefreshTokenService refreshTokenService;
     private final JwtResolver jwtResolver;
-//    private final TokenBlackListService tokenBlackListService;
+    private final TokenBlackListService tokenBlackListService;
 
 
     @Override
@@ -55,9 +56,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.debug("RefreshToken: {}", refreshToken != null ? "존재" : "없음");
             log.debug("DeviceId: {}", deviceId != null ? "존재" : "없음");
 
-//            if (accessToken != null && tokenBlackListService.isContainToken(accessToken)) {
-//                throw new Exception("<< 경고 >>만료된 토큰으로 접근하려합니다!!!");
-//            }
+            if (accessToken != null && tokenBlackListService.isContainToken(accessToken)) {
+                throw new Exception("<< 경고 >>만료된 토큰으로 접근하려합니다!!!");
+            }
 
             if(StringUtils.hasText(accessToken) && jwtTokenProvider.validateToken(accessToken)) {
                 Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
