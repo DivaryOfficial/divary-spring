@@ -37,10 +37,10 @@ public class ChatRoomStreamService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final OpenAIStreamService openAIStreamService;
-    private final OpenAIService openAIService; // 제목 생성을 위해 추가
-    private final MessageFactory messageFactory; // 메시지 생성을 위해 추가
-    private final ImageService imageService; // 이미지 처리를 위해 추가
-    private final ChatRoomMetadataService metadataService; // 메타데이터 처리를 위해 추가
+    private final OpenAIService openAIService;
+    private final MessageFactory messageFactory;
+    private final ImageService imageService;
+    private final ChatRoomMetadataService metadataService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final ConcurrentHashMap<String, SseEmitter> activeConnections = new ConcurrentHashMap<>();
@@ -49,10 +49,9 @@ public class ChatRoomStreamService {
     @Transactional
     public SseEmitter streamChatRoomMessage(ChatRoomMessageRequest request, Long userId) {
         String connectionId = "conn_" + userId + "_" + connectionIdGenerator.incrementAndGet();
-        SseEmitter emitter = new SseEmitter(300_000L); // 5분 타임아웃
+        SseEmitter emitter = new SseEmitter(300_000L);
 
         try {
-            // 채팅방 준비 (조회 또는 생성) 및 사용자 메시지 저장
             ChatRoom chatRoom = prepareChatRoomAndSaveUserMessage(request, userId);
 
             activeConnections.put(connectionId, emitter);
@@ -60,12 +59,9 @@ public class ChatRoomStreamService {
             emitter.onTimeout(() -> cleanupConnection(connectionId));
             emitter.onError(error -> cleanupConnection(connectionId));
 
-            log.info("새 SSE 연결 생성: {} (채팅방 ID: {})", connectionId, chatRoom.getId());
-
-            // 스트림 시작 이벤트 전송
+            
             sendStreamStartEvent(emitter, connectionId, request);
 
-            // 메시지 히스토리 구성 및 스트림 처리
             List<Map<String, Object>> messageHistory = buildMessageHistoryForOpenAI(chatRoom);
             Flux<String> streamFlux = openAIStreamService.sendMessageStream(
                     request.getMessage(),
@@ -85,18 +81,14 @@ public class ChatRoomStreamService {
         return emitter;
     }
 
-    // 채팅방을 준비하고 사용자의 첫 메시지를 저장하는 메소드
     private ChatRoom prepareChatRoomAndSaveUserMessage(ChatRoomMessageRequest request, Long userId) {
         if (request.getChatRoomId() == null) {
-            // 새 채팅방 생성
             return createNewChatRoom(userId, request);
         } else {
-            // 기존 채팅방에 메시지 추가
             return addMessageToExistingChatRoom(request.getChatRoomId(), userId, request);
         }
     }
 
-    // 새 채팅방 생성 로직 
     private ChatRoom createNewChatRoom(Long userId, ChatRoomMessageRequest request) {
         String title = openAIService.generateTitle(request.getMessage());
 
@@ -109,7 +101,6 @@ public class ChatRoomStreamService {
         return savedChatRoom;
     }
     
-    // 기존 채팅방에 메시지 추가 로직 (ChatRoomService 참조)
     private ChatRoom addMessageToExistingChatRoom(Long chatRoomId, Long userId, ChatRoomMessageRequest request) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
@@ -120,20 +111,17 @@ public class ChatRoomStreamService {
         return chatRoom;
     }
 
-    // 스트림 완료 후 AI 응답을 저장하는 메소드
     @Transactional
     public void saveAssistantResponse(ChatRoom chatRoom, String finalMessage) {
         try {
-            // 임시 OpenAIResponse 객체 생성 (토큰 정보 등은 알 수 없으므로 기본값 사용)
             OpenAIResponse aiResponse = OpenAIResponse.builder()
                     .content(finalMessage)
-                    .model("gpt-4o-mini") // 스트리밍에 사용된 모델명 기입
+                    .model("gpt-5-nano") // GPT-5-nano 모델로 변경
                     .promptTokens(0) .completionTokens(0) .totalTokens(0) .cost(0.0)
                     .build();
 
             addAiResponseToMessages(chatRoom, aiResponse);
             chatRoomRepository.save(chatRoom);
-            log.info("AI 응답 저장 완료 - 채팅방 ID: {}", chatRoom.getId());
         } catch (Exception e) {
             log.error("AI 응답 저장 실패 - 채팅방 ID: {}: {}", chatRoom.getId(), e.getMessage(), e);
         }
@@ -146,7 +134,10 @@ public class ChatRoomStreamService {
         AtomicLong chunkCounter = new AtomicLong(0);
 
         streamFlux
-                .filter(line -> line.trim().startsWith("{"))
+                .map(raw -> raw == null ? "" : raw.trim())
+                .map(line -> line.startsWith("data:") ? line.substring(5).trim() : line)
+                .filter(line -> !line.isEmpty() && !"[DONE]".equals(line))
+                .filter(line -> line.startsWith("{"))
                 .subscribe(
                         line -> {
                             try {
@@ -168,12 +159,10 @@ public class ChatRoomStreamService {
                         () -> {
                             try {
                                 String finalMessage = messageBuilder.toString();
-                                // AI 응답 저장
                                 saveAssistantResponse(chatRoom, finalMessage);
 
                                 sendStreamCompleteEvent(emitter, connectionId, finalMessage, chunkCounter.get());
                                 emitter.complete();
-                                log.info("스트림 정상 완료 [{}]", connectionId);
                             } catch (Exception e) {
                                 log.error("스트림 완료 처리 오류 [{}]: {}", connectionId, e.getMessage());
                             }
@@ -279,13 +268,16 @@ public class ChatRoomStreamService {
     private String parseOpenAIJSON(String jsonLine, String connectionId) {
         try {
             JsonNode jsonNode = objectMapper.readTree(jsonLine.trim());
-            JsonNode choices = jsonNode.path("choices");
-            if (choices.isArray() && !choices.isEmpty()) {
-                JsonNode delta = choices.get(0).path("delta");
-                if (delta.has("content")) {
-                    return delta.get("content").asText();
+            String eventType = jsonNode.path("type").asText();
+            
+            // Responses API 스트리밍 이벤트 처리
+            if ("response.output_text.delta".equals(eventType)) {
+                String delta = jsonNode.path("delta").asText();
+                if (!delta.isEmpty()) {
+                    return delta;
                 }
-            }
+            } else if ("response.completed".equals(eventType) || "response.failed".equals(eventType)) { }
+            
             return null;
         } catch (Exception e) {
             log.error("OpenAI JSON 파싱 오류 [{}] - JSON: '{}'", connectionId, jsonLine);
@@ -315,16 +307,21 @@ public class ChatRoomStreamService {
                 "timestamp", System.currentTimeMillis()
             );
             emitter.send(SseEmitter.event().name("message_chunk").data(chunkEvent));
-        } catch (Exception e) {
-            // 클라이언트 연결 종료 등으로 인한 오류는 무시
-        }
+        } catch (Exception e) { }
     }
 
     private void sendStreamCompleteEvent(SseEmitter emitter, String connectionId, String finalMessage, long totalChunks) {
         try {
+            long wordCount = 0;
+            if (finalMessage != null) {
+                String trimmed = finalMessage.trim();
+                if (!trimmed.isEmpty()) {
+                    wordCount = trimmed.split("\\s+").length;
+                }
+            }
             Map<String, Object> completeEvent = Map.of(
                 "eventType", "stream_complete",
-                "finalMessage", Map.of("content", finalMessage, "totalChunks", totalChunks),
+                "finalMessage", Map.of("content", finalMessage, "totalChunks", totalChunks, "wordCount", wordCount),
                 "timestamp", System.currentTimeMillis()
             );
             emitter.send(SseEmitter.event().name("stream_complete").data(completeEvent));
@@ -349,8 +346,6 @@ public class ChatRoomStreamService {
     }
 
     private void cleanupConnection(String connectionId) {
-        if (activeConnections.remove(connectionId) != null) {
-            log.info("연결 정리 완료: {} (남은 활성 연결 수: {})", connectionId, activeConnections.size());
-        }
+        if (activeConnections.remove(connectionId) != null) { }
     }
 }

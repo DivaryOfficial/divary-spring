@@ -257,6 +257,13 @@
       <div class="test-section">
         <h3>메시지 전송 테스트</h3>
         <div class="form-group">
+          <label for="testScenario">시나리오:</label>
+          <select id="testScenario">
+            <option value="new">새 채팅방 생성 후 스트리밍</option>
+            <option value="existing">기존 채팅방으로 스트리밍</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label for="message">메시지:</label>
           <textarea id="message" placeholder="테스트할 메시지를 입력하세요...">안녕하세요! iOS SSE 스트리밍 테스트입니다.</textarea>
         </div>
