@@ -3,7 +3,7 @@ package com.divary.domain.chatroom.service;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
-import com.divary.global.prompt.SystemPromptProvider;
+import com.divary.domain.chatroom.prompt.SystemPromptProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;

@@ -6,7 +6,7 @@ import com.divary.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import com.divary.global.prompt.SystemPromptProvider;
+import com.divary.domain.chatroom.prompt.SystemPromptProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

@@ -1,4 +1,4 @@
-package com.divary.global.prompt;
+package com.divary.domain.chatroom.prompt;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.core.io.ClassPathResource;
