@@ -1,4 +1,4 @@
-# 🍃 Divary-Spring 🍃
+# 🐳 Divary-Spring 🐳
 
 다이빙 서포트 앱 Divary의 Spring Boot 3.5.3 기반 백엔드 API 서버입니다.
 
