@@ -126,7 +126,7 @@ public class LogBook extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "weather_type")
-    @Schema(description = "날씨 상태", example = "PARTLY_CLOUDY")
+    @Schema(description = "날씨 상태", example = "LITTLE_CLOUDY")
     private WeatherType weatherType;
 
     @Enumerated(EnumType.STRING)
