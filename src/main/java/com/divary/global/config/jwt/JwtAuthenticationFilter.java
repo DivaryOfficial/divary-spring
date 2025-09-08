@@ -56,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.debug("RefreshToken: {}", refreshToken != null ? "존재" : "없음");
             log.debug("DeviceId: {}", deviceId != null ? "존재" : "없음");
 
-            if (accessToken != null && tokenBlackListService.isContainToken(accessToken)) {
+            if (accessToken != null && tokenBlackListService.isContainToken(accessToken)) { //토큰 블랙리스트
                 throw new Exception("<< 경고 >>만료된 토큰으로 접근하려합니다!!!");
             }
 

@@ -46,11 +46,13 @@ public class OauthController {
 
     @DeleteMapping(value = "/{socialLoginType}/logout")
     @Operation(summary = "로그아웃")
+    @ApiSuccessResponse(dataType = LoginResponseDTO.class)
+    @ApiErrorExamples(value = {ErrorCode.DEVICE_ID_NOT_FOUND})
     public ApiResponse logout(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @PathVariable(name = "socialLoginType") SocialType socialLoginType, HttpServletRequest request, @RequestBody LogoutRequestDto logoutRequestDto) {
         String accessToken = jwtResolver.resolveAccessToken(request);
         String refreshToken = jwtResolver.resolveRefreshToken(request);
 
         oauthService.logout(socialLoginType,logoutRequestDto.getDeviceId(), userPrincipal.getId(), accessToken, refreshToken);
-        return ApiResponse.success(null);
+        return ApiResponse.success("로그아웃에 성공했습니다.");
     }
 }
