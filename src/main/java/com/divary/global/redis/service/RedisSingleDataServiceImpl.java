@@ -7,9 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
-/**
- * Redis 단일 데이터를 처리하는 비즈니스 로직 구현체입니다.
- */
+
 @Service
 @RequiredArgsConstructor
 public class RedisSingleDataServiceImpl implements RedisSingleDataService {

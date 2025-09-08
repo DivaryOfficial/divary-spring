@@ -2,26 +2,18 @@ package com.divary.global.redis.controller;
 
 import com.divary.global.redis.dto.RedisDto;
 import com.divary.global.redis.service.RedisSingleDataService;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Redis 단일 데이터를 조회, 등록, 삭제하는 로직입니다.
- *
- * @author : jonghoon
- * @fileName : RedisSingleDataController
- * @since : 11/5/24
- */
+
 @RestController
 @RequestMapping("redis/singleData")
+@AllArgsConstructor
 public class RedisSingleDataController {
 
     private final RedisSingleDataService redisSingleDataService;
-
-    public RedisSingleDataController(RedisSingleDataService redisSingleDataService) {
-        this.redisSingleDataService = redisSingleDataService;
-    }
 
     /**
      * Redis 키를 기반으로 단일 데이터의 값을 조회합니다.
