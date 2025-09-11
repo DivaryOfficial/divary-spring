@@ -1,8 +1,9 @@
 package com.divary.global.config.jwt;
 
 import com.divary.common.response.ApiResponse;
+import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.service.MemberService;
 import com.divary.domain.token.service.RefreshTokenService;
-import com.divary.global.config.properties.Constants;
 import com.divary.global.config.security.CustomUserDetailsService;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.BusinessException;
@@ -37,6 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final RefreshTokenService refreshTokenService;
     private final JwtResolver jwtResolver;
     private final TokenBlackListService tokenBlackListService;
+    private final MemberService memberService;
 
 
     @Override
@@ -73,16 +75,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 boolean existsRefreshToken = jwtTokenProvider.existsRefreshToken(refreshToken, deviceId);
 
                 if (validateRefreshToken && existsRefreshToken) {
-                    String email = jwtTokenProvider.getUserEmail(refreshToken);
+                    String claimUserId = jwtTokenProvider.getUserId(refreshToken);
+                    Long userId = Long.parseLong(claimUserId);
+
+                    Member member = memberService.findById(userId);
 
 
-                    CustomUserPrincipal principal = (CustomUserPrincipal) customUserDetailsService.loadUserByUsername(email);
+                    CustomUserPrincipal principal = (CustomUserPrincipal) customUserDetailsService.loadUserByUsername(member.getEmail());
                     Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
 
                     String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
                     String newRefreshToken = jwtTokenProvider.generateRefreshToken(authentication); // access토큰 발급할때마다 refresh도 새로 발급(RTR)
-
-                    Long userId = principal.getId();
 
                     refreshTokenService.updateRefreshToken(userId, deviceId, newRefreshToken);
                     // 새 토큰 헤더에 추가

@@ -1,7 +1,6 @@
 package com.divary.global.config.jwt;
 
 import com.divary.domain.member.entity.Member;
-import com.divary.domain.member.repository.MemberRepository;
 import com.divary.domain.member.service.MemberService;
 import com.divary.domain.token.repository.RefreshTokenRepository;
 import com.divary.global.config.properties.JwtProperties;
@@ -109,7 +108,7 @@ public class JwtTokenProvider {
         return refreshTokenRepository.existsByRefreshTokenAndDeviceId(refreshToken, deviceId);
     }
 
-    public String getUserEmail(String token) {
+    public String getUserId(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
