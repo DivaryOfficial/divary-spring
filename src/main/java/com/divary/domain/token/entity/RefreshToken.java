@@ -3,6 +3,8 @@ package com.divary.domain.token.entity;
 import com.divary.common.entity.BaseEntity;
 import com.divary.common.enums.SocialType;
 import com.divary.domain.member.entity.Member;
+import com.divary.global.exception.BusinessException;
+import com.divary.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -14,7 +16,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Setter
 public class RefreshToken extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -30,4 +31,11 @@ public class RefreshToken extends BaseEntity {
 
     @Column(nullable = false)
     private String deviceId;
+
+    public void updateToken(String newRefreshToken) { //새로 발급받은 refresh토큰으로 update
+        if (newRefreshToken == null || newRefreshToken.trim().isEmpty()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        this.refreshToken = newRefreshToken;
+    }
 }

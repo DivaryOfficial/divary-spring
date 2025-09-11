@@ -20,13 +20,13 @@ public class RefreshTokenService {
     @Transactional
     public void updateRefreshToken(Long userId, String deviceId, String newRefreshToken) {
         RefreshToken originalRefresh = refreshTokenRepository.findByUser_IdAndDeviceId(userId, deviceId);
-        originalRefresh.setRefreshToken(newRefreshToken);
+        originalRefresh.updateToken(newRefreshToken);
     }
     public void saveToken(Member member,String accessToken,String refreshToken,String deviceId,SocialType socialType){
         refreshTokenRepository.save(RefreshToken.builder()
                 .user(member)
                 .deviceId(deviceId)
-                .socialType(SocialType.GOOGLE)
+                .socialType(socialType)
                 .refreshToken(refreshToken)
                 .build());
     }
