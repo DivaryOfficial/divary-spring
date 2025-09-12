@@ -1,6 +1,7 @@
 package com.divary.global.config.jwt;
 
 import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.repository.MemberRepository;
 import com.divary.domain.member.service.MemberService;
 import com.divary.domain.token.repository.RefreshTokenRepository;
 import com.divary.global.config.properties.JwtProperties;
@@ -34,7 +35,7 @@ public class JwtTokenProvider {
     private final JwtProperties jwtProperties;
     private final CustomUserDetailsService userDetailsService;
     private final RefreshTokenRepository refreshTokenRepository;
-    private final MemberService memberService;
+    private final MemberRepository memberRepository;
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtProperties.getSecretKey().getBytes());
@@ -96,7 +97,7 @@ public class JwtTokenProvider {
         } catch (NumberFormatException e) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
-        Member member = memberService.findById(userId);
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         CustomUserPrincipal principal = new CustomUserPrincipal(member);
         return new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
@@ -108,13 +109,14 @@ public class JwtTokenProvider {
         return refreshTokenRepository.existsByRefreshTokenAndDeviceId(refreshToken, deviceId);
     }
 
-    public String getUserId(String token) {
+    public Member getUserFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        return claims.getSubject();
+        Member user = memberRepository.findById(Long.parseLong(claims.getSubject())).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        return user;
     }
     public List<String> getRoles(String email) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);

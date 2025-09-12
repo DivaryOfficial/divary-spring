@@ -38,7 +38,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final RefreshTokenService refreshTokenService;
     private final JwtResolver jwtResolver;
     private final TokenBlackListService tokenBlackListService;
-    private final MemberService memberService;
 
 
     @Override
@@ -75,19 +74,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 boolean existsRefreshToken = jwtTokenProvider.existsRefreshToken(refreshToken, deviceId);
 
                 if (validateRefreshToken && existsRefreshToken) {
-                    String claimUserId = jwtTokenProvider.getUserId(refreshToken);
-                    Long userId = Long.parseLong(claimUserId);
-
-                    Member member = memberService.findById(userId);
+                    Member user = jwtTokenProvider.getUserFromToken(refreshToken);
 
 
-                    CustomUserPrincipal principal = (CustomUserPrincipal) customUserDetailsService.loadUserByUsername(member.getEmail());
+
+                    CustomUserPrincipal principal = new CustomUserPrincipal(user);
                     Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
 
                     String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
                     String newRefreshToken = jwtTokenProvider.generateRefreshToken(authentication); // access토큰 발급할때마다 refresh도 새로 발급(RTR)
 
-                    refreshTokenService.updateRefreshToken(userId, deviceId, newRefreshToken);
+                    refreshTokenService.updateRefreshToken(user.getId(), deviceId, newRefreshToken);
                     // 새 토큰 헤더에 추가
                     jwtTokenProvider.setHeaderTokens(response, newAccessToken, newRefreshToken);
 
