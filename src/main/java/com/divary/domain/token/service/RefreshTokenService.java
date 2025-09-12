@@ -2,13 +2,11 @@ package com.divary.domain.token.service;
 
 import com.divary.common.enums.SocialType;
 import com.divary.domain.member.entity.Member;
-import com.divary.domain.token.entity.RefreshToken;
+import com.divary.domain.token.entity.DeviceSession;
 import com.divary.domain.token.repository.RefreshTokenRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
-import com.divary.global.exception.GlobalExceptionHandler;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,11 +17,11 @@ public class RefreshTokenService {
 
     @Transactional
     public void updateRefreshToken(Long userId, String deviceId, String newRefreshToken) {
-        RefreshToken originalRefresh = refreshTokenRepository.findByUser_IdAndDeviceId(userId, deviceId);
+        DeviceSession originalRefresh = refreshTokenRepository.findByUser_IdAndDeviceId(userId, deviceId);
         originalRefresh.updateToken(newRefreshToken);
     }
     public void saveToken(Member member,String accessToken,String refreshToken,String deviceId,SocialType socialType){
-        refreshTokenRepository.save(RefreshToken.builder()
+        refreshTokenRepository.save(DeviceSession.builder()
                 .user(member)
                 .deviceId(deviceId)
                 .socialType(socialType)
