@@ -32,7 +32,6 @@ import java.util.Map;
 public class GoogleOauth implements SocialOauth {
 
     private final MemberService memberService;
-    private final AvatarService avatarService;
     private final JwtTokenProvider jwtTokenProvider;
     private static final String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
     private final RestTemplate restTemplate;
@@ -67,9 +66,9 @@ public class GoogleOauth implements SocialOauth {
     }
 
     @Override
-    public LoginResponseDTO verifyAndLogin(String googleAccessToken, String deviceId) {
+    public LoginResponseDTO verifyAndLogin(String token, String deviceId) {
         // accessToken으로 사용자 정보 요청
-        Map<String, Object> userInfo = requestUserInfo(googleAccessToken);
+        Map<String, Object> userInfo = requestUserInfo(token);
         String email = (String) userInfo.get("email");
 
         Member member;
@@ -99,11 +98,10 @@ public class GoogleOauth implements SocialOauth {
         refreshTokenService.saveToken(member, accessToken, refreshToken, deviceId, SocialType.GOOGLE);
 
         // 3. 응답 생성
-        return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+        return new LoginResponseDTO(accessToken, refreshToken, SocialType.GOOGLE);
 
     }
     public void logout(String deviceId, Long userId, String accessToken) {
-        //조건문 없이 바로 Access Token을 블랙리스트에 추가합니다.
         tokenBlackListService.addToBlacklist(accessToken);
 
 
