@@ -3,7 +3,7 @@ package com.divary.domain.token.service;
 import com.divary.common.enums.SocialType;
 import com.divary.domain.member.entity.Member;
 import com.divary.domain.token.entity.DeviceSession;
-import com.divary.domain.token.repository.RefreshTokenRepository;
+import com.divary.domain.token.repository.DeviceSessionRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -12,8 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class RefreshTokenService {
-    private final RefreshTokenRepository refreshTokenRepository;
+public class DeviceSessionService {
+    private final DeviceSessionRepository refreshTokenRepository;
 
     @Transactional
     public void updateRefreshToken(Long userId, String deviceId, String newRefreshToken) {

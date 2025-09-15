@@ -2,8 +2,7 @@ package com.divary.global.config.jwt;
 
 import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.repository.MemberRepository;
-import com.divary.domain.member.service.MemberService;
-import com.divary.domain.token.repository.RefreshTokenRepository;
+import com.divary.domain.token.repository.DeviceSessionRepository;
 import com.divary.global.config.properties.JwtProperties;
 import com.divary.global.config.security.CustomUserDetailsService;
 import com.divary.global.config.security.CustomUserPrincipal;
@@ -34,7 +33,7 @@ public class JwtTokenProvider {
 
     private final JwtProperties jwtProperties;
     private final CustomUserDetailsService userDetailsService;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final DeviceSessionRepository refreshTokenRepository;
     private final MemberRepository memberRepository;
 
     private Key getSigningKey() {
@@ -132,4 +131,22 @@ public class JwtTokenProvider {
         refreshTokenRepository.deleteByRefreshToken(token);
     }
 
+    public Long getRemainingExpiration(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            Date expiration = claims.getExpiration();
+            long now = System.currentTimeMillis();
+
+            // 현재 시간보다 만료 시간이 이전이라면 0을 반환
+            return Math.max(0, expiration.getTime() - now);
+        } catch (Exception e) {
+            // 토큰이 유효하지 않은 경우 (이미 만료되었거나, 서명이 잘못된 경우 등)
+            return 0L;
+        }
+    }
 }

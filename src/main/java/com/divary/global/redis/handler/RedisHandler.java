@@ -1,49 +1,59 @@
 package com.divary.global.redis.handler;
 
-import com.divary.global.redis.RedisConfig;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ListOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
+import java.util.function.Supplier;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RedisHandler {
 
-    private final RedisConfig redisConfig;
+    // ⭐️ 1. RedisConfig 의존성 제거, RedisTemplate만 주입받습니다.
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    /**
-     * 리스트에 접근하여 다양한 연산을 수행합니다.
-     *
-     * @return ListOperations<String, Object>
-     */
     public ListOperations<String, Object> getListOperations() {
-        return redisConfig.redisTemplate().opsForList();
+        // ⭐️ 주입받은 redisTemplate 필드를 일관되게 사용합니다.
+        return redisTemplate.opsForList();
     }
 
-    /**
-     * 단일 데이터에 접근하여 다양한 연산을 수행합니다.
-     *
-     * @return ValueOperations<String, Object>
-     */
     public ValueOperations<String, Object> getValueOperations() {
-        return redisConfig.redisTemplate().opsForValue();
+        // ⭐️ 주입받은 redisTemplate 필드를 일관되게 사용합니다.
+        return redisTemplate.opsForValue();
     }
 
+    // ⭐️ 2. delete 메서드 수정 (컴파일 오류 해결)
+    public Boolean delete(String key) {
+        return redisTemplate.delete(key);
+    }
 
     /**
-     * Redis 작업중 등록, 수정, 삭제에 대해서 처리 및 예외처리를 수행합니다.
-     *
-     * @param operation
-     * @return
+     * 반환 값이 없는 Redis 작업을 처리합니다. (예: set)
      */
-    public int executeOperation(Runnable operation) {
+    public void execute(Runnable operation) {
         try {
             operation.run();
-            return 1;
         } catch (Exception e) {
-            System.out.println("Redis 작업 오류 발생 :: " + e.getMessage());
-            return 0;
+            // ⭐️ 3. SLF4J 로거를 사용하고, 예외를 던져서 호출부가 알 수 있도록 합니다.
+            log.error("Redis 작업 오류 발생", e);
+            throw new RuntimeException("Redis 작업 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    /**
+     * 반환 값이 있는 Redis 작업을 처리합니다. (예: delete)
+     * @return 작업의 결과
+     */
+    public <T> T execute(Supplier<T> operation) {
+        try {
+            return operation.get();
+        } catch (Exception e) {
+            log.error("Redis 작업 오류 발생", e);
+            throw new RuntimeException("Redis 작업 중 오류가 발생했습니다.", e);
         }
     }
 }

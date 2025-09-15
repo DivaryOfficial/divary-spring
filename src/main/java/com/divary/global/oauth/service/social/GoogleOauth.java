@@ -5,7 +5,7 @@ import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.service.MemberService;
 import com.divary.domain.avatar.service.AvatarService;
-import com.divary.domain.token.service.RefreshTokenService;
+import com.divary.domain.token.service.DeviceSessionService;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.config.jwt.JwtTokenProvider;
 import com.divary.global.exception.BusinessException;
@@ -24,7 +24,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 @Component
@@ -37,7 +36,7 @@ public class GoogleOauth implements SocialOauth {
     private final JwtTokenProvider jwtTokenProvider;
     private static final String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
     private final RestTemplate restTemplate;
-    private final RefreshTokenService refreshTokenService;
+    private final DeviceSessionService refreshTokenService;
     private final TokenBlackListService tokenBlackListService;
 
 
@@ -103,15 +102,15 @@ public class GoogleOauth implements SocialOauth {
         return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
     }
-    public void logout(String deviceId, Long userId, String accessToken, String refreshToken) {
-         //토큰이 존재하지 않는 경우
-            if (!tokenBlackListService.isContainToken(accessToken)) {
+    public void logout(String deviceId, Long userId, String accessToken) {
+        //조건문 없이 바로 Access Token을 블랙리스트에 추가합니다.
+        tokenBlackListService.addToBlacklist(accessToken);
 
-                // [STEP5] BlackList를 추가합니다.
-                tokenBlackListService.addTokenToList(accessToken);
-                List<Object> blackList = tokenBlackListService.getTokenBlackList();      // BlackList를 조회합니다.
-                log.debug("[+] blackList : " + blackList);
-            }
+
+        //DB에서 Refresh Token을 삭제합니다.
+        refreshTokenService.removeRefreshToken(deviceId, userId);
+
+        log.debug("로그아웃 처리 완료. AccessToken 블랙리스트 추가, RefreshToken 삭제. UserId: {}, DeviceId: {}", userId, deviceId);
 
         refreshTokenService.removeRefreshToken(deviceId, userId);
     }

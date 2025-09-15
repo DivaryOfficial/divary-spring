@@ -52,7 +52,7 @@ public class OauthController {
         String accessToken = jwtResolver.resolveAccessToken(request);
         String refreshToken = jwtResolver.resolveRefreshToken(request);
 
-        oauthService.logout(socialLoginType,logoutRequestDto.getDeviceId(), userPrincipal.getId(), accessToken, refreshToken);
+        oauthService.logout(socialLoginType,logoutRequestDto.getDeviceId(), userPrincipal.getId(), accessToken);
         return ApiResponse.success("로그아웃에 성공했습니다.");
     }
 }

@@ -1,43 +1,45 @@
 package com.divary.global.redis.service;
 
-
+import com.divary.global.config.jwt.JwtTokenProvider;
+import com.divary.global.redis.service.TokenBlackListService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
 @RequiredArgsConstructor
 public class TokenBlackListServiceImpl implements TokenBlackListService {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    private final String REDIS_BLACK_LIST_KEY = "tokenBlackList";
 
-    //BlackList 내에 토큰을 추가합니다.
+
     @Override
-    public void addTokenToList(String value) {
-        redisTemplate.opsForList().rightPush(REDIS_BLACK_LIST_KEY, value);
+    public void addToBlacklist(String token) {
+        Long remainingExpiration = jwtTokenProvider.getRemainingExpiration(token);
+
+        if (remainingExpiration > 0) {
+            stringRedisTemplate.opsForValue().set(
+                    token,
+                    "logout",
+                    remainingExpiration,
+                    TimeUnit.MILLISECONDS
+            );
+        }
     }
 
-    //BlackList 내에 토큰이 존재하는지 여부를 확인합니다.
     @Override
-    public boolean isContainToken(String value) {
-        List<Object> allItems = redisTemplate.opsForList().range(REDIS_BLACK_LIST_KEY, 0, -1);
-        return allItems.stream()
-                .anyMatch(item -> item.equals(value));
+    public boolean isContainToken(String token) {
+        return stringRedisTemplate.hasKey(token);
     }
 
-    //BlackList 항목을 모두 조회합니다.
-    public List<Object> getTokenBlackList() {
-        return redisTemplate.opsForList().range(REDIS_BLACK_LIST_KEY, 0, -1);
-    }
 
-    //BlackList 내에서 항목을 제거합니다.
     @Override
-    public void removeToken(String value) {
-        redisTemplate.opsForList().remove(REDIS_BLACK_LIST_KEY, 0, value);
+    public void removeToken(String token) {
+        stringRedisTemplate.delete(token);
     }
 }

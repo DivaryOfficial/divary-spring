@@ -2,8 +2,7 @@ package com.divary.global.config.jwt;
 
 import com.divary.common.response.ApiResponse;
 import com.divary.domain.member.entity.Member;
-import com.divary.domain.member.service.MemberService;
-import com.divary.domain.token.service.RefreshTokenService;
+import com.divary.domain.token.service.DeviceSessionService;
 import com.divary.global.config.security.CustomUserDetailsService;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.BusinessException;
@@ -35,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
     private final CustomUserDetailsService customUserDetailsService;
-    private final RefreshTokenService refreshTokenService;
+    private final DeviceSessionService refreshTokenService;
     private final JwtResolver jwtResolver;
     private final TokenBlackListService tokenBlackListService;
 

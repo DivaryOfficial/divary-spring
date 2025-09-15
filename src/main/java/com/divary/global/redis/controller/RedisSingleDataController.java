@@ -2,15 +2,14 @@ package com.divary.global.redis.controller;
 
 import com.divary.global.redis.dto.RedisDto;
 import com.divary.global.redis.service.RedisSingleDataService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor; // ⭐️ @AllArgsConstructor 대신 @RequiredArgsConstructor 권장
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
-@RequestMapping("redis/singleData")
-@AllArgsConstructor
+@RequestMapping("/redis") // ⭐️ 공통 경로 단순화
+@RequiredArgsConstructor
 public class RedisSingleDataController {
 
     private final RedisSingleDataService redisSingleDataService;
@@ -18,42 +17,49 @@ public class RedisSingleDataController {
     /**
      * Redis 키를 기반으로 단일 데이터의 값을 조회합니다.
      *
-     * @param redisDto
-     * @return
+     * @param key 조회할 데이터의 키
+     * @return 조회된 데이터 값
      */
-    @PostMapping("/getValue")
-    public ResponseEntity<Object> getValue(@RequestBody RedisDto redisDto) {
-        String result = redisSingleDataService.getSingleData(redisDto.getKey());
-        return new ResponseEntity<>(result, HttpStatus.OK);
+    // ⭐️ POST -> GET, @RequestBody -> @PathVariable
+    @GetMapping("/{key}")
+    public ResponseEntity<String> getValue(@PathVariable String key) {
+        String value = redisSingleDataService.getSingleData(key);
+        // ⭐️ 값이 없을 경우 404 Not Found, 있을 경우 200 OK 반환
+        return value != null ? ResponseEntity.ok(value) : ResponseEntity.notFound().build();
     }
 
     /**
-     * Redis 단일 데이터 값을 등록/수정합니다.(duration 값이 존재하면 메모리 상 유효시간을 지정합니다.)
+     * Redis 단일 데이터 값을 등록/수정합니다.
      *
-     * @param redisDto
-     * @return
+     * @param redisDto 키, 값, 유효 시간을 포함한 DTO
+     * @return 성공 응답
      */
-    @PostMapping("/setValue")
-    public ResponseEntity<Object> setValue(@RequestBody RedisDto redisDto) {
-        int result = 0;
+    // ⭐️ POST -> PUT (멱등성을 나타내기 위해)
+    @PutMapping
+    public ResponseEntity<Void> setValue(@RequestBody RedisDto redisDto) {
+        // ⭐️ 서비스의 반환 타입이 void이므로 값을 받지 않음
         if (redisDto.getDuration() == null) {
-            result = redisSingleDataService.setSingleData(redisDto.getKey(), redisDto.getValue());
+            redisSingleDataService.setSingleData(redisDto.getKey(), redisDto.getValue());
         } else {
-            result = redisSingleDataService.setSingleData(redisDto.getKey(), redisDto.getValue(), redisDto.getDuration());
+            redisSingleDataService.setSingleData(redisDto.getKey(), redisDto.getValue(), redisDto.getDuration());
         }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        // ⭐️ 성공 시 200 OK 와 함께 빈 Body를 반환
+        return ResponseEntity.ok().build();
     }
 
     /**
      * Redis 키를 기반으로 단일 데이터의 값을 삭제합니다.
      *
-     * @param redisDto
-     * @return
+     * @param key 삭제할 데이터의 키
+     * @return 성공 응답
      */
-    @DeleteMapping("/delete")
-    public ResponseEntity<Object> deleteRow(@RequestBody RedisDto redisDto) {
-        int result = redisSingleDataService.deleteSingleData(redisDto.getKey());
-        return new ResponseEntity<>(result, HttpStatus.OK);
-    }
+    // ⭐️ @RequestBody -> @PathVariable
+    @DeleteMapping("/{key}")
+    public ResponseEntity<Void> deleteValue(@PathVariable String key) { // ⭐️ deleteRow -> deleteValue (더 명확한 이름)
+        // ⭐️ 서비스의 반환 타입이 boolean이므로 boolean으로 받음
+        boolean isDeleted = redisSingleDataService.deleteSingleData(key);
 
+        // ⭐️ 삭제 성공 시 204 No Content, 실패(키가 애초에 없음) 시 404 Not Found 반환
+        return isDeleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
 }

@@ -6,7 +6,6 @@ import com.divary.global.exception.ErrorCode;
 import com.divary.global.oauth.dto.response.LoginResponseDTO;
 import com.divary.global.oauth.service.social.SocialOauth;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.token.TokenService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,11 +35,11 @@ public class OauthService {
     }
 
     @Transactional
-    public void logout(SocialType socialLoginType, String deviceId, Long userId, String accessToken, String refreshToken) {
+    public void logout(SocialType socialLoginType, String deviceId, Long userId, String accessToken) {
         SocialOauth socialOauth = this.findSocialOauthByType(socialLoginType);
         if (socialOauth == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
-        socialOauth.logout(deviceId, userId, accessToken, refreshToken);
+        socialOauth.logout(deviceId, userId, accessToken);
     }
 }
