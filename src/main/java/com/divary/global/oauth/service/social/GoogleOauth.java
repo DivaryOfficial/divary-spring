@@ -33,7 +33,6 @@ import java.util.Map;
 public class GoogleOauth implements SocialOauth {
 
     private final MemberService memberService;
-    private final AvatarService avatarService;
     private final JwtTokenProvider jwtTokenProvider;
     private static final String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
     private final RestTemplate restTemplate;
@@ -107,7 +106,6 @@ public class GoogleOauth implements SocialOauth {
 
     }
     public void logout(String deviceId, Long userId, String accessToken) {
-        //조건문 없이 바로 Access Token을 블랙리스트에 추가합니다.
         tokenBlackListService.addToBlacklist(accessToken);
 
 
