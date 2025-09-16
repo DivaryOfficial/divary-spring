@@ -1,0 +1,19 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  app:
+    build: .
+    env_file:
+      - .env # 로컬에서는 .env 파일을 사용
+
+  web:
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - app
+    volumes:
+      - /etc/ssl/certs/divary.pem:/etc/ssl/certs/divary.pem:ro
+      - /etc/ssl/private/divary.key:/etc/ssl/private/divary.key:ro
