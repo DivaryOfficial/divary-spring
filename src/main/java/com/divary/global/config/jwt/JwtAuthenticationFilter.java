@@ -1,13 +1,8 @@
 package com.divary.global.config.jwt;
 
 import com.divary.common.response.ApiResponse;
-import com.divary.domain.member.entity.Member;
-import com.divary.domain.token.service.DeviceSessionService;
-import com.divary.global.config.security.CustomUserDetailsService;
-import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
-//import com.divary.global.redis.service.TokenBlackListService;
 import com.divary.global.redis.service.TokenBlackListService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -17,7 +12,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -25,19 +19,20 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 
+/**
+ * 클라이언트의 모든 API 요청을 가로채 Access Token의 유효성을 검증하는 필터입니다.
+ * 토큰 재발급 로직은 처리하지 않으며, 토큰이 유효하지 않을 경우 예외를 발생시켜 401 Unauthorized 응답을 유도합니다.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final ObjectMapper objectMapper;
-    private final CustomUserDetailsService customUserDetailsService;
-    private final DeviceSessionService refreshTokenService;
     private final JwtResolver jwtResolver;
     private final TokenBlackListService tokenBlackListService;
-
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -45,93 +40,75 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        String requestURI = request.getRequestURI();
-        log.debug("JWT 필터 처리 시작 - URI: {}", requestURI);
-        
-        try {
-            String accessToken = jwtResolver.resolveAccessToken(request);
-            String refreshToken = jwtResolver.resolveRefreshToken(request);
-            String deviceId = request.getHeader("Device-Id");
-            log.debug("AccessToken: {}", accessToken != null ? "존재" : "없음");
-            log.debug("RefreshToken: {}", refreshToken != null ? "존재" : "없음");
-            log.debug("DeviceId: {}", deviceId != null ? "존재" : "없음");
-
-            if (accessToken != null && tokenBlackListService.isContainToken(accessToken)) { //토큰 블랙리스트
-                throw new Exception("<< 경고 >>만료된 토큰으로 접근하려합니다!!!");
-            }
-
-            if(StringUtils.hasText(accessToken) && jwtTokenProvider.validateToken(accessToken)) {
-                Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("SecurityContext에 인증 정보 설정 완료 - 사용자: {}", authentication.getName());
-
-
-            }
-            // accessToken이 만료 && refreshToken 존재 시 재발급
-            else if (!jwtTokenProvider.validateToken(accessToken) && StringUtils.hasText(refreshToken)) {
-                boolean validateRefreshToken = jwtTokenProvider.validateToken(refreshToken);
-                boolean existsRefreshToken = jwtTokenProvider.existsRefreshToken(refreshToken, deviceId);
-
-                if (validateRefreshToken && existsRefreshToken) {
-                    Member user = jwtTokenProvider.getUserFromToken(refreshToken);
-
-
-
-                    CustomUserPrincipal principal = new CustomUserPrincipal(user);
-                    Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
-
-                    String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
-                    String newRefreshToken = jwtTokenProvider.generateRefreshToken(authentication); // access토큰 발급할때마다 refresh도 새로 발급(RTR)
-
-                    refreshTokenService.updateRefreshToken(user.getId(), deviceId, newRefreshToken);
-                    // 새 토큰 헤더에 추가
-                    jwtTokenProvider.setHeaderTokens(response, newAccessToken, newRefreshToken);
-
-
-                    // 인증 객체 설정
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                    log.debug("AccessToken 재발급 및 SecurityContext 설정 완료 - 사용자: {}", authentication.getName());
-                } else {
-                    if (!validateRefreshToken && existsRefreshToken) {
-                        // DB에 있으나 만료된 리프레시 토큰은 삭제
-                        jwtTokenProvider.deleteRefreshToken(refreshToken);
-                        log.info("만료된 RefreshToken 삭제 완료");
-                    }
-                    log.warn("RefreshToken이 유효하지 않거나 저장소에 없음");
-                    throw new BusinessException(ErrorCode.INVALID_TOKEN);
-                }
-            } else {
-                log.debug("토큰이 없거나 둘 다 유효하지 않음");
-            }
-
-
-        } catch (BusinessException e) {
-            log.error("JWT 인증 비즈니스 로직 오류: {}", e.getMessage());
-            handleJwtException(request, response, e.getErrorCode());
-            return;
-        } catch (Exception e) {
-            log.error("JWT 인증 처리 중 예상치 못한 오류 발생: {}", e.getMessage());
-            handleJwtException(request, response, ErrorCode.INVALID_TOKEN);
+        // 1. 인증이 필요 없는 경로는 필터를 건너뜁니다.
+        if (shouldNotFilter(request)) {
+            filterChain.doFilter(request, response);
             return;
         }
-        
+
+        try {
+            // 2. 헤더에서 Access Token을 추출합니다.
+            String accessToken = jwtResolver.resolveAccessToken(request);
+
+            // 3. Access Token이 존재하는 경우에만 검증을 시작합니다.
+            if (StringUtils.hasText(accessToken)) {
+                // 3-1. 로그아웃 처리된 토큰인지 블랙리스트를 확인합니다.
+                if (tokenBlackListService.isContainToken(accessToken)) {
+                    throw new BusinessException(ErrorCode.INVALID_TOKEN, "로그아웃 처리된 토큰입니다.");
+                }
+
+                // 3-2. 토큰이 유효한지 검증합니다.
+                if (jwtTokenProvider.validateToken(accessToken)) {
+                    // 토큰이 유효하면, 인증 정보를 SecurityContext에 등록합니다.
+                    Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    log.debug("SecurityContext에 인증 정보 설정 완료 - 사용자 ID: {}", authentication.getName());
+                } else {
+                    // 토큰이 만료되었거나 유효하지 않은 경우, 예외를 발생시킵니다.
+                    log.warn("유효하지 않은 Access Token입니다. URI: {}", request.getRequestURI());
+                    throw new BusinessException(ErrorCode.INVALID_TOKEN);
+                }
+            }
+            // 4. Access Token이 헤더에 없는 경우, 일단 통과시킵니다.
+            // (이후 SecurityConfig에서 .anyRequest().authenticated() 설정에 따라 접근이 차단됩니다.)
+
+        } catch (BusinessException e) {
+            // JWT 관련 예외는 정형화된 JSON 응답으로 처리합니다.
+            handleJwtException(response, e.getErrorCode(), request.getRequestURI());
+            return; // 예외 발생 시 필터 체인 중단
+        }
+
         filterChain.doFilter(request, response);
     }
 
-    // 인증 예외 처리 정형화된 구조로 응답하도록 설정 (GlobalExceptionHandler로 처리 불가 해서 직접 처리)
-    private void handleJwtException(HttpServletRequest request, HttpServletResponse response, ErrorCode errorCode) {
+    /**
+     * 필터 적용이 필요 없는 경로인지 확인합니다.
+     */
+    public boolean shouldNotFilter(HttpServletRequest request) {
+        String[] excludePath = {
+                "/api/auth/login",
+                "/api/auth/signup",
+                "/api/auth/reissue",
+                "/swagger-ui",
+                "/v3/api-docs"
+        };
+        String path = request.getRequestURI();
+        return Arrays.stream(excludePath).anyMatch(path::startsWith);
+    }
+
+    /**
+     * JWT 관련 예외 발생 시, 정형화된 에러 응답을 생성합니다.
+     */
+    private void handleJwtException(HttpServletResponse response, ErrorCode errorCode, String path) {
         try {
             response.setStatus(errorCode.getStatus().value());
             response.setContentType("application/json;charset=UTF-8");
-            
-            ApiResponse<Void> errorResponse = ApiResponse.error(errorCode, request.getRequestURI());
-            String jsonResponse = objectMapper.writeValueAsString(errorResponse);
+            ApiResponse<Void> errorResponse = ApiResponse.error(errorCode, path);
+            String jsonResponse = new ObjectMapper().writeValueAsString(errorResponse);
             response.getWriter().write(jsonResponse);
             response.getWriter().flush();
-            
         } catch (IOException e) {
             log.error("JWT 예외 응답 작성 중 오류 발생: {}", e.getMessage());
         }
     }
-
 }

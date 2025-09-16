@@ -31,7 +31,7 @@ public class OauthController {
 
 
     @PostMapping(value = "/{socialLoginType}/login")
-    @Operation(summary = "로그인", description = "accessCode, device ID, 로그인 유지 여부를 보내주세요")
+    @Operation(summary = "로그인", description = "accessCode, device ID를 보내주세요")
     @ApiSuccessResponse(dataType = LoginResponseDTO.class)
     @ApiErrorExamples(value = {ErrorCode.INVALID_INPUT_VALUE})
     public ApiResponse<LoginResponseDTO> login(@PathVariable(name = "socialLoginType") SocialType socialLoginType,
@@ -50,9 +50,21 @@ public class OauthController {
     @ApiErrorExamples(value = {ErrorCode.DEVICE_ID_NOT_FOUND})
     public ApiResponse logout(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @PathVariable(name = "socialLoginType") SocialType socialLoginType, HttpServletRequest request, @RequestBody LogoutRequestDto logoutRequestDto) {
         String accessToken = jwtResolver.resolveAccessToken(request);
-        String refreshToken = jwtResolver.resolveRefreshToken(request);
 
-        oauthService.logout(socialLoginType,logoutRequestDto.getDeviceId(), userPrincipal.getId(), accessToken);
+        oauthService.logout(socialLoginType, logoutRequestDto.getDeviceId(), userPrincipal.getId(), accessToken);
         return ApiResponse.success("로그아웃에 성공했습니다.");
+    }
+
+    @PostMapping(value = "/reissue")
+    @Operation(summary = "access token 만료시 새로운 access token 발급")
+    @ApiSuccessResponse(dataType = LoginResponseDTO.class)
+    @ApiErrorExamples(value = {ErrorCode.INVALID_INPUT_VALUE})
+    public ApiResponse<LoginResponseDTO> reissueToken(HttpServletRequest request) {
+        String refreshToken = jwtResolver.resolveRefreshToken(request); // 헤더에서 Refresh Token 추출
+        String deviceId = request.getHeader("Device-Id");
+
+        LoginResponseDTO newTokens = oauthService.reissueToken(refreshToken, deviceId);
+
+        return ApiResponse.success(newTokens);
     }
 }

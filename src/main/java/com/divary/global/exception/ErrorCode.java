@@ -73,7 +73,10 @@ public enum ErrorCode {
     ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH_002", "액세스 토큰이 만료되었습니다."), // TODO: 토큰 만료 시 401 에러 처리 필요
     INVALID_USER_CONTEXT(HttpStatus.UNAUTHORIZED, "AUTH_003", "사용자 인증 정보가 유효하지 않습니다."),
     AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "AUTH_004", "인증이 필요합니다."),
-    ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH_005", "접근이 거절되었습니다.");
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH_005", "접근이 거절되었습니다."),
+
+    //device session 관련
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "DEVICE_001", "refresh token을 찾을 수 없습니다.");
 
     // TODO: 비즈니스 로직 개발하면서 필요한 에러코드들 추가
     private final HttpStatus status;

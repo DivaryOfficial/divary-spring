@@ -1,11 +1,20 @@
 package com.divary.global.oauth.service;
 
 import com.divary.common.enums.SocialType;
+import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.repository.MemberRepository;
+import com.divary.domain.token.entity.DeviceSession;
+import com.divary.domain.token.repository.DeviceSessionRepository;
+import com.divary.global.config.jwt.JwtResolver;
+import com.divary.global.config.jwt.JwtTokenProvider;
+import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import com.divary.global.oauth.dto.response.LoginResponseDTO;
 import com.divary.global.oauth.service.social.SocialOauth;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +25,9 @@ import java.util.List;
 public class OauthService {
     private final List<SocialOauth> socialOauthList;
     private final SocialOauth socialOauth;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final DeviceSessionRepository deviceSessionRepository;
+    private final MemberRepository memberRepository;
 
 
     private SocialOauth findSocialOauthByType(SocialType socialLoginType) {
@@ -42,4 +54,46 @@ public class OauthService {
         }
         socialOauth.logout(deviceId, userId, accessToken);
     }
+
+    /**
+     * 우리 서비스의 Refresh Token을 사용하여 Access Token과 Refresh Token을 재발급합니다. (RTR)
+     * 이 로직은 모든 소셜 로그인 사용자에게 공통으로 적용됩니다.
+     * @param refreshToken 클라이언트로부터 받은 Refresh Token
+     * @param deviceId 사용자의 기기 ID
+     * @return 새로운 Access/Refresh Token이 담긴 DTO
+     */
+    @Transactional
+    public LoginResponseDTO reissueToken(String refreshToken, String deviceId) {
+        // 1. Refresh Token 유효성 검증
+        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, "Refresh Token이 유효하지 않습니다.");
+        }
+
+        // 2. DB에 저장된 토큰과 일치하는지, Device ID가 맞는지 확인
+        boolean exists = deviceSessionRepository.existsByRefreshTokenAndDeviceId(refreshToken, deviceId);
+        if (!exists) {
+            throw new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND, "저장소에 Refresh Token이 없거나 기기 정보가 일치하지 않습니다.");
+        }
+
+        // 3. 토큰에서 사용자 ID 추출
+        Long userId = jwtTokenProvider.getUserFromToken(refreshToken).getId();
+        Member member = memberRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // 4. 새로운 Access Token과 Refresh Token 생성 (RTR)
+        CustomUserPrincipal principal = new CustomUserPrincipal(member);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+
+        String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(authentication);
+
+
+        // 5. DB의 Refresh Token을 새로운 토큰으로 업데이트
+        DeviceSession deviceSession = deviceSessionRepository.findByUser_IdAndDeviceId(userId, deviceId);
+        deviceSession.updateToken(newRefreshToken);
+
+        // 6. 새로운 토큰 쌍을 반환
+        return new LoginResponseDTO(newAccessToken, newRefreshToken);
+    }
 }
+
