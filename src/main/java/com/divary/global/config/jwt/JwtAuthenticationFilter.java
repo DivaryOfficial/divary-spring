@@ -90,7 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 "/api/auth/signup",
                 "/api/auth/reissue",
                 "/swagger-ui",
-                "/v3/api-docs"
+                "/api/v1/v3/api-docs"
         };
         String path = request.getRequestURI();
         return Arrays.stream(excludePath).anyMatch(path::startsWith);
