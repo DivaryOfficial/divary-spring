@@ -66,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 } else {
                     // 토큰이 만료되었거나 유효하지 않은 경우, 예외를 발생시킵니다.
                     log.warn("유효하지 않은 Access Token입니다. URI: {}", request.getRequestURI());
-                    throw new BusinessException(ErrorCode.INVALID_TOKEN);
+                    throw new BusinessException(ErrorCode.ACCESS_TOKEN_EXPIRED);
                 }
             }
             // 4. Access Token이 헤더에 없는 경우, 일단 통과시킵니다.
