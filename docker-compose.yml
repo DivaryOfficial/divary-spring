@@ -1,19 +1,26 @@
-# docker-compose.yml
-version: '3.8'
+version: "3.9"
 
 services:
   app:
     build: .
+    container_name: app
+    ports:
+      - "8081:8080"
     env_file:
-      - .env # 로컬에서는 .env 파일을 사용
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
 
   web:
     build: ./nginx
+    container_name: web
     ports:
-      - "80:80"
-      - "443:443"
+      # 서버의 8888 포트를 컨테이너의 80(HTTP) 포트로 연결합니다.
+      - "8888:80"
+      # 서버의 8443 포트를 컨테이너의 443(HTTPS) 포트로 연결합니다.
+      - "8443:443"
     depends_on:
       - app
     volumes:
-      - /etc/ssl/certs/divary.pem:/etc/ssl/certs/divary.pem:ro
-      - /etc/ssl/private/divary.key:/etc/ssl/private/divary.key:ro
+      - ./nginx/certs/divary.pem:/etc/ssl/certs/divary.pem:ro
+      - ./nginx/certs/divary.key:/etc/ssl/private/divary.key:ro
