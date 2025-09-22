@@ -1,6 +1,6 @@
-package com.divary.domain.token.repository;
+package com.divary.domain.device_session.repository;
 
-import com.divary.domain.token.entity.DeviceSession;
+import com.divary.domain.device_session.entity.DeviceSession;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DeviceSessionRepository extends JpaRepository<DeviceSession, Long> {

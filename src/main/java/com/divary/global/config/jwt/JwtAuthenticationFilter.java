@@ -40,11 +40,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 1. 인증이 필요 없는 경로는 필터를 건너뜁니다.
-        if (shouldNotFilter(request)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
 
         try {
             // 2. 헤더에서 Access Token을 추출합니다.
@@ -52,14 +47,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 3. Access Token이 존재하는 경우에만 검증을 시작합니다.
             if (StringUtils.hasText(accessToken)) {
-                // 3-1. 로그아웃 처리된 토큰인지 블랙리스트를 확인합니다.
-                if (tokenBlackListService.isContainToken(accessToken)) {
-                    throw new BusinessException(ErrorCode.INVALID_TOKEN, "로그아웃 처리된 토큰입니다.");
-                }
 
-                // 3-2. 토큰이 유효한지 검증합니다.
+                //토큰이 유효한지 검증합니다.
                 if (jwtTokenProvider.validateToken(accessToken)) {
-                    // 토큰이 유효하면, 인증 정보를 SecurityContext에 등록합니다.
+                    // 토큰이 유효하면, 로그아웃 처리된 토큰인지 블랙리스트를 확인하고 인증 정보를 SecurityContext에 등록합니다.
+
+                    if (tokenBlackListService.isContainToken(accessToken)) {
+                        throw new BusinessException(ErrorCode.INVALID_TOKEN, "로그아웃 처리된 토큰입니다.");
+                    }
+
                     Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                     log.debug("SecurityContext에 인증 정보 설정 완료 - 사용자 ID: {}", authentication.getName());
@@ -81,20 +77,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * 필터 적용이 필요 없는 경로인지 확인합니다.
-     */
-    public boolean shouldNotFilter(HttpServletRequest request) {
-        String[] excludePath = {
-                "/api/auth/login",
-                "/api/auth/signup",
-                "/api/auth/reissue",
-                "/swagger-ui",
-                "/api/v1/v3/api-docs"
-        };
-        String path = request.getRequestURI();
-        return Arrays.stream(excludePath).anyMatch(path::startsWith);
-    }
 
     /**
      * JWT 관련 예외 발생 시, 정형화된 에러 응답을 생성합니다.

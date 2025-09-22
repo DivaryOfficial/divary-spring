@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 
@@ -13,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class TokenBlackListServiceImpl implements TokenBlackListService {
 
-    private final StringRedisTemplate stringRedisTemplate;
+    private final RedisSingleDataService redisSingleDataService;
     private final JwtTokenProvider jwtTokenProvider;
 
 
@@ -23,23 +24,19 @@ public class TokenBlackListServiceImpl implements TokenBlackListService {
         Long remainingExpiration = jwtTokenProvider.getRemainingExpiration(token);
 
         if (remainingExpiration > 0) {
-            stringRedisTemplate.opsForValue().set(
-                    token,
-                    "logout",
-                    remainingExpiration,
-                    TimeUnit.MILLISECONDS
-            );
+            redisSingleDataService.setSingleData(token, "logout", Duration.ofMillis(jwtTokenProvider.getRemainingExpiration(token)));
         }
     }
 
     @Override
     public boolean isContainToken(String token) {
-        return stringRedisTemplate.hasKey(token);
+        return redisSingleDataService.hasSingleData(token);
+
     }
 
 
     @Override
     public void removeToken(String token) {
-        stringRedisTemplate.delete(token);
+        redisSingleDataService.deleteSingleData(token);
     }
 }

@@ -16,6 +16,8 @@ public interface RedisSingleDataService {
 
     String getSingleData(String key);                                   // Redis 키를 기반으로 단일 데이터의 값을 조회합니다.
 
+    boolean hasSingleData(String key);                                  // 데이터 값이 존재하는지 확인
+
     boolean deleteSingleData(String key);                                   // Redis 키를 기반으로 단일 데이터의 값을 삭제합니다.
 }
 

@@ -1,4 +1,4 @@
-package com.divary.domain.token.entity;
+package com.divary.domain.device_session.entity;
 
 import com.divary.common.entity.BaseEntity;
 import com.divary.common.enums.SocialType;

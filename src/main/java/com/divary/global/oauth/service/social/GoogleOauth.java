@@ -5,7 +5,7 @@ import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.service.MemberService;
 import com.divary.domain.avatar.service.AvatarService;
-import com.divary.domain.token.service.DeviceSessionService;
+import com.divary.domain.device_session.service.DeviceSessionService;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.config.jwt.JwtTokenProvider;
 import com.divary.global.exception.BusinessException;
@@ -89,7 +89,7 @@ public class GoogleOauth implements SocialOauth {
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 principal, null,
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + Role.USER.name()))  // 권한을 설정 일시적으로 일반 유저 권한만
+                Collections.singleton(new SimpleGrantedAuthority(Role.USER.name()))  // 권한을 설정 일시적으로 일반 유저 권한만
         );
 
         // JWT 토큰 발급
@@ -111,7 +111,5 @@ public class GoogleOauth implements SocialOauth {
         refreshTokenService.removeRefreshToken(deviceId, userId);
 
         log.debug("로그아웃 처리 완료. AccessToken 블랙리스트 추가, RefreshToken 삭제. UserId: {}, DeviceId: {}", userId, deviceId);
-
-        refreshTokenService.removeRefreshToken(deviceId, userId);
     }
 }

@@ -2,10 +2,10 @@ package com.divary.global.oauth.service;
 
 import com.divary.common.enums.SocialType;
 import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.repository.MemberRepository;
-import com.divary.domain.token.entity.DeviceSession;
-import com.divary.domain.token.repository.DeviceSessionRepository;
-import com.divary.global.config.jwt.JwtResolver;
+import com.divary.domain.device_session.entity.DeviceSession;
+import com.divary.domain.device_session.repository.DeviceSessionRepository;
 import com.divary.global.config.jwt.JwtTokenProvider;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.BusinessException;
@@ -77,11 +77,13 @@ public class OauthService {
 
         // 3. 토큰에서 사용자 ID 추출
         Long userId = jwtTokenProvider.getUserFromToken(refreshToken).getId();
-        Member member = memberRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        Role role = jwtTokenProvider.getRoleFromToken(refreshToken);
+
+
+
 
         // 4. 새로운 Access Token과 Refresh Token 생성 (RTR)
-        CustomUserPrincipal principal = new CustomUserPrincipal(member);
+        CustomUserPrincipal principal = new CustomUserPrincipal(userId, role);
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
 
         String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);

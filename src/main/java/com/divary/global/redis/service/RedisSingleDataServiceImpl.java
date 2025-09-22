@@ -24,7 +24,7 @@ public class RedisSingleDataServiceImpl implements RedisSingleDataService {
      */
     @Override
     public void setSingleData(String key, Object value) {
-        // ⭐️ 반환 값이 없는 Runnable을 사용하는 execute 메서드 호출
+        // 반환 값이 없는 Runnable을 사용하는 execute 메서드 호출
         redisHandler.execute(() -> redisHandler.getValueOperations().set(key, value));
     }
 
@@ -38,7 +38,7 @@ public class RedisSingleDataServiceImpl implements RedisSingleDataService {
      */
     @Override
     public void setSingleData(String key, Object value, Duration duration) {
-        // ⭐️ 반환 값이 없는 Runnable을 사용하는 execute 메서드 호출
+        // 반환 값이 없는 Runnable을 사용하는 execute 메서드 호출
         redisHandler.execute(() -> redisHandler.getValueOperations().set(key, value, duration));
     }
 
@@ -55,6 +55,12 @@ public class RedisSingleDataServiceImpl implements RedisSingleDataService {
         return value != null ? String.valueOf(value) : null;
     }
 
+    // 키에 해당하는 데이터가 존재하는지 확인합니다.
+    @Override
+    public boolean hasSingleData(String key) {
+        Object value = redisHandler.getValueOperations().get(key);
+        return value != null;
+    }
     /**
      * 키에 해당하는 데이터를 삭제합니다.
      *
@@ -63,7 +69,7 @@ public class RedisSingleDataServiceImpl implements RedisSingleDataService {
      */
     @Override
     public boolean deleteSingleData(String key) {
-        // ⭐️ boolean 값을 반환하는 Supplier를 사용하는 execute 메서드 호출
+        // boolean 값을 반환하는 Supplier를 사용하는 execute 메서드 호출
         return redisHandler.execute(() -> redisHandler.delete(key));
     }
 }

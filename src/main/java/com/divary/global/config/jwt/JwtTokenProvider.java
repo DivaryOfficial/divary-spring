@@ -1,8 +1,9 @@
 package com.divary.global.config.jwt;
 
 import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.repository.MemberRepository;
-import com.divary.domain.token.repository.DeviceSessionRepository;
+import com.divary.domain.device_session.repository.DeviceSessionRepository;
 import com.divary.global.config.properties.JwtProperties;
 import com.divary.global.config.security.CustomUserDetailsService;
 import com.divary.global.config.security.CustomUserPrincipal;
@@ -84,11 +85,7 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        Claims claims = getClaimsFromToken(token);
 
         Long userId;
         try {
@@ -109,13 +106,17 @@ public class JwtTokenProvider {
     }
 
     public Member getUserFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+
+        Claims claims = getClaimsFromToken(token);
+
         Member user = memberRepository.findById(Long.parseLong(claims.getSubject())).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         return user;
+    }
+    public Role getRoleFromToken(String token) {
+
+        Claims claims = getClaimsFromToken(token);
+
+        return Role.valueOf(claims.get("role", String.class));
     }
     public List<String> getRoles(String email) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -133,11 +134,7 @@ public class JwtTokenProvider {
 
     public Long getRemainingExpiration(String token) {
         try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+            Claims claims = getClaimsFromToken(token);
 
             Date expiration = claims.getExpiration();
             long now = System.currentTimeMillis();
@@ -148,5 +145,13 @@ public class JwtTokenProvider {
             // 토큰이 유효하지 않은 경우 (이미 만료되었거나, 서명이 잘못된 경우 등)
             return 0L;
         }
+    }
+
+    public Claims getClaimsFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }
