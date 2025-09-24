@@ -1,7 +1,6 @@
 package com.divary.global.oauth.service;
 
 import com.divary.common.enums.SocialType;
-import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.repository.MemberRepository;
 import com.divary.domain.device_session.entity.DeviceSession;
@@ -76,7 +75,7 @@ public class OauthService {
         }
 
         // 3. 토큰에서 사용자 ID 추출
-        Long userId = jwtTokenProvider.getUserFromToken(refreshToken).getId();
+        Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
         Role role = jwtTokenProvider.getRoleFromToken(refreshToken);
 
 

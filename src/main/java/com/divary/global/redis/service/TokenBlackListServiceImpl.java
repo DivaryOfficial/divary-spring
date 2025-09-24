@@ -24,7 +24,7 @@ public class TokenBlackListServiceImpl implements TokenBlackListService {
         Long remainingExpiration = jwtTokenProvider.getRemainingExpiration(token);
 
         if (remainingExpiration > 0) {
-            redisSingleDataService.setSingleData(token, "logout", Duration.ofMillis(jwtTokenProvider.getRemainingExpiration(token)));
+            redisSingleDataService.setSingleData(token, "logout", Duration.ofMillis(remainingExpiration));
         }
     }
 

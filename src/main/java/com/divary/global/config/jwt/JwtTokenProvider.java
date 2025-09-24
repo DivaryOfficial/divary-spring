@@ -85,17 +85,11 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        Claims claims = getClaimsFromToken(token);
+        Long userId = getUserIdFromToken(token);
 
-        Long userId;
-        try {
-            userId = Long.parseLong(claims.getSubject());
-        } catch (NumberFormatException e) {
-            throw new BusinessException(ErrorCode.INVALID_TOKEN);
-        }
-        Member member = memberRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        Role role = getRoleFromToken(token);
 
-        CustomUserPrincipal principal = new CustomUserPrincipal(member);
+        CustomUserPrincipal principal = new CustomUserPrincipal(userId, role);
         return new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
     }
 
@@ -105,12 +99,11 @@ public class JwtTokenProvider {
         return refreshTokenRepository.existsByRefreshTokenAndDeviceId(refreshToken, deviceId);
     }
 
-    public Member getUserFromToken(String token) {
+    public Long getUserIdFromToken(String token) {
 
         Claims claims = getClaimsFromToken(token);
 
-        Member user = memberRepository.findById(Long.parseLong(claims.getSubject())).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-        return user;
+        return Long.parseLong(claims.getSubject());
     }
     public Role getRoleFromToken(String token) {
 
