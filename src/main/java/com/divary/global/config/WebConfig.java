@@ -41,6 +41,14 @@ public class WebConfig implements WebMvcConfigurer {
     
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
+
+        registry.addMapping("/**")
+                .allowedOrigins("https://divary.app", "http://localhost:8080")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
+
         registry.addMapping("/api/v1/chatrooms/stream")
                 .allowedOriginPatterns("*") // iOS 앱 개발 환경 고려
                 .allowedMethods("POST", "GET", "OPTIONS")

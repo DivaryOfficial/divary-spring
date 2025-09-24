@@ -20,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import jakarta.annotation.PostConstruct;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -40,8 +42,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**").disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
+                .cors(withDefaults())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
+
                                 "/h2-console/**",
                                 "/swagger-ui/**",
                                 "/api/v1/v3/api-docs/**",
