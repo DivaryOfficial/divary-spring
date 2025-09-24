@@ -1,12 +1,13 @@
 package com.divary.global.config.security;
 
 import com.divary.common.response.ApiResponse;
-import com.divary.global.config.security.jwt.JwtAuthenticationFilter;
+import com.divary.global.config.jwt.JwtAuthenticationFilter;
 import com.divary.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -40,11 +41,13 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/notification").authenticated()
-                        .requestMatchers("/api/v1/chatrooms/stream").authenticated()
-                        .requestMatchers("/api/v1/chatrooms/**").authenticated()
-                        .requestMatchers("api/v1/images/upload/temp").authenticated()
-                        .anyRequest().permitAll()
+                        .requestMatchers(
+                                "/h2-console/**",
+                                "/swagger-ui/**",
+                                "/api/v1/v3/api-docs/**",
+                                "/api/v1/auth/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(customAuthenticationEntryPoint())

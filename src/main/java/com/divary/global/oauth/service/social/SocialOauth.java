@@ -1,10 +1,12 @@
 package com.divary.global.oauth.service.social;
 
 import com.divary.common.enums.SocialType;
-import com.divary.global.oauth.dto.LoginResponseDTO;
+import com.divary.global.oauth.dto.response.LoginResponseDTO;
 
 public interface SocialOauth {
-    LoginResponseDTO verifyAndLogin(String code);
+    LoginResponseDTO verifyAndLogin(String code, String deviceId);
+    void logout(String deviceId, Long userId, String accessToken);
+
     SocialType type = null;
 
     default SocialType type() {

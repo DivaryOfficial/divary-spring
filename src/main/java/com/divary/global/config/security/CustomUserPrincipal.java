@@ -26,12 +26,21 @@ public class CustomUserPrincipal implements UserDetails {
             new SimpleGrantedAuthority("ROLE_" + member.getRole().name())
         );
     }
+
+    public CustomUserPrincipal(Long userId, Role userRole) {
+        this.id = userId;
+        this.role = userRole;
+        this.email = null; // ⚠️ 토큰에는 이메일 정보가 없으므로 null로 설정합니다.
+        this.authorities = Collections.singletonList(
+                new SimpleGrantedAuthority("ROLE_" + userRole.name())
+        );
+    }
     
     // UserDetails 구현 메서드들
     @Override
     public String getUsername() {
-        return email;
-    }
+        return id.toString();
+    } //member에서 username을 사용하고 있지 않아서 id 반환
     
     @Override
     public String getPassword() {

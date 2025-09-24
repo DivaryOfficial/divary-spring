@@ -1,6 +1,7 @@
 package com.divary.global.config.security;
 
 import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.repository.MemberRepository;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
@@ -23,4 +24,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         
         return new CustomUserPrincipal(member);
     }
+
+    public CustomUserPrincipal validateFromToken(Long userId, Role role) {
+        return new CustomUserPrincipal(userId, role);
+    }
+
 }

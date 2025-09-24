@@ -40,6 +40,8 @@ public enum ErrorCode {
     //맴버 관련
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_001", "이메일을 찾을 수 없습니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_002", "유저를 찾을 수 없습니다."),
+    MEMBER_ALREADY_EXISTS(HttpStatus.NOT_FOUND, "MEMBER_003", "이미 가입된 이메일입니다."),
+    DEVICE_ID_NOT_FOUND(HttpStatus.NOT_FOUND, "DEVICE_001", "디바이스 아이디를 찾을 수 없습니다"),
 
     //소셜 로그인 관련
     GOOGLE_BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "GOOGLE_001", "구글 유저를 찾을 수 없습니다"),
@@ -67,11 +69,14 @@ public enum ErrorCode {
     IMAGE_URL_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "IMAGE_004", "올바르지 않은 이미지 URL 형식입니다."),
     
     // 인증 관련 에러코드 강화
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_001", "토큰이 유효하지 않습니다."),
-    ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH_002", "액세스 토큰이 만료되었습니다."), // TODO: 토큰 만료 시 401 에러 처리 필요
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_001", "토큰 또는 deviceID가 유효하지 않습니다."),
+    ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH_002", "액세스 토큰이 만료되었습니다."),
     INVALID_USER_CONTEXT(HttpStatus.UNAUTHORIZED, "AUTH_003", "사용자 인증 정보가 유효하지 않습니다."),
     AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "AUTH_004", "인증이 필요합니다."),
-    ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH_005", "접근이 거절되었습니다.");
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH_005", "접근이 거절되었습니다."),
+
+    //device session 관련
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "DEVICE_001", "refresh token을 찾을 수 없습니다.");
 
     // TODO: 비즈니스 로직 개발하면서 필요한 에러코드들 추가
     private final HttpStatus status;
