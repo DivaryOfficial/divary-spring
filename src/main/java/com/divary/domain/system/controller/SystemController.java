@@ -4,11 +4,10 @@ import com.divary.common.response.ApiResponse;
 import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.repository.MemberRepository;
-import com.divary.common.enums.SocialType;
 import com.divary.domain.image.enums.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.global.config.SwaggerConfig.ApiErrorExamples;
-import com.divary.global.config.security.jwt.JwtTokenProvider;
+import com.divary.global.config.jwt.JwtTokenProvider;
 import com.divary.global.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -98,7 +97,6 @@ public class SystemController {
         if (memberRepository.findByEmail(email).isEmpty()) {
             Member testUser = Member.builder()
                     .email(email)
-                    .socialType(SocialType.GOOGLE)
                     .role(Role.USER)
                     .build();
             memberRepository.save(testUser);
@@ -117,7 +115,7 @@ public class SystemController {
             null, 
             Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
         );
-        String token = jwtTokenProvider.generateToken(auth);
+        String token = jwtTokenProvider.generateAccessToken(auth);
         return ApiResponse.success(token);
     }
 
