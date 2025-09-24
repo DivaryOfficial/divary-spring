@@ -1,14 +1,17 @@
-# 1. 베이스 이미지 설정 (OpenJDK 21 사용)
+# --- 1단계: 빌드 스테이지 ---
+FROM openjdk:21-jdk-slim as builder
+WORKDIR /app
+COPY build.gradle settings.gradle .
+COPY gradle ./gradle
+RUN ./gradlew dependencies --build-cache || return 0
+COPY src ./src
+RUN chmod +x ./gradlew
+RUN ./gradlew build -x test
+
+# --- 2단계: 실행 스테이지 ---
 FROM eclipse-temurin:21-jre-jammy
-
-# 2. 빌드된 JAR 파일명을 인자로 받기
-ARG JAR_FILE=build/libs/*.jar
-
-# 3. JAR 파일을 컨테이너 내부로 복사
-COPY ${JAR_FILE} app.jar
-
-# 4. 컨테이너가 외부에 노출할 포트 설정
-EXPOSE 8080
-
-# 5. 컨테이너가 시작될 때 실행할 명령어
-ENTRYPOINT ["exec", "java", "-jar", "/app.jar"]
+WORKDIR /app
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+COPY --from=builder --chown=appuser:appgroup /app/build/libs/*.jar app.jar
+USER appuser
+ENTRYPOINT ["java", "-jar", "app.jar"]
