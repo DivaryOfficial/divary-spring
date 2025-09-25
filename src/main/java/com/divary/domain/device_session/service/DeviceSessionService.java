@@ -20,7 +20,7 @@ public class DeviceSessionService {
         DeviceSession originalRefresh = deviceSessionRepository.findByUser_IdAndDeviceId(userId, deviceId);
         originalRefresh.updateToken(newRefreshToken);
     }
-    public void saveToken(Member member,String accessToken,String refreshToken,String deviceId,SocialType socialType){
+    public void saveToken(Member member,String refreshToken,String deviceId,SocialType socialType){
         deviceSessionRepository.save(DeviceSession.builder()
                 .user(member)
                 .deviceId(deviceId)
@@ -36,6 +36,25 @@ public class DeviceSessionService {
         }
         else{
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+    }
+    @Transactional
+    public void upsertRefreshToken(Member member, String refreshToken, String deviceId, SocialType socialType) {
+        // 1. memberId와 deviceId로 기존 세션이 있는지 조회
+        DeviceSession session = deviceSessionRepository.findByUser_IdAndDeviceId(member.getId(), deviceId);
+
+        if (session != null) {
+            // 2. 기존 세션이 있다면(null이 아니라면), Refresh Token만 갱신 (Update)
+            session.updateToken(refreshToken);
+        } else {
+            // 3. 기존 세션이 없다면(null이라면), 새로 생성 (Insert)
+            session = DeviceSession.builder()
+                    .user(member)
+                    .refreshToken(refreshToken)
+                    .deviceId(deviceId)
+                    .socialType(socialType)
+                    .build();
+            deviceSessionRepository.save(session);
         }
     }
 }

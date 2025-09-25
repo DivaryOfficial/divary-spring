@@ -21,6 +21,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
@@ -67,6 +68,7 @@ public class GoogleOauth implements SocialOauth {
     }
 
     @Override
+    @Transactional
     public LoginResponseDTO verifyAndLogin(String googleAccessToken, String deviceId) {
         // accessToken으로 사용자 정보 요청
         Map<String, Object> userInfo = requestUserInfo(googleAccessToken);
@@ -97,7 +99,9 @@ public class GoogleOauth implements SocialOauth {
         String accessToken = jwtTokenProvider.generateAccessToken(authentication);
         String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
-        deviceSessionService.saveToken(member, accessToken, refreshToken, deviceId, SocialType.GOOGLE);
+        deviceSessionService.upsertRefreshToken(member, refreshToken, deviceId, SocialType.GOOGLE);
+
+
 
         // 3. 응답 생성
         return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
