@@ -10,5 +10,5 @@ public interface DeviceSessionRepository extends JpaRepository<DeviceSession, Lo
 
     DeviceSession findByUser_IdAndDeviceId(Long userId, String deviceId);
 
-    void deleteByDeviceId(String deviceId);
+    void deleteByUser_IdAndDeviceId(Long userId, String deviceId);
 }
