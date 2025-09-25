@@ -36,7 +36,7 @@ public class GoogleOauth implements SocialOauth {
     private final JwtTokenProvider jwtTokenProvider;
     private static final String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
     private final RestTemplate restTemplate;
-    private final DeviceSessionService refreshTokenService;
+    private final DeviceSessionService deviceSessionService;
     private final TokenBlackListService tokenBlackListService;
 
 
@@ -76,6 +76,7 @@ public class GoogleOauth implements SocialOauth {
 
         try {
             member = memberService.findMemberByEmail(email);
+            deviceSessionService.removeRefreshToken(deviceId, member.getId());
 
         } catch (BusinessException e) {
             member = memberService.saveMember(Member.builder()
@@ -96,7 +97,7 @@ public class GoogleOauth implements SocialOauth {
         String accessToken = jwtTokenProvider.generateAccessToken(authentication);
         String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
-        refreshTokenService.saveToken(member, accessToken, refreshToken, deviceId, SocialType.GOOGLE);
+        deviceSessionService.saveToken(member, accessToken, refreshToken, deviceId, SocialType.GOOGLE);
 
         // 3. 응답 생성
         return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
@@ -108,7 +109,7 @@ public class GoogleOauth implements SocialOauth {
 
 
         //DB에서 Refresh Token을 삭제합니다.
-        refreshTokenService.removeRefreshToken(deviceId, userId);
+        deviceSessionService.removeRefreshToken(deviceId, userId);
 
         log.debug("로그아웃 처리 완료. AccessToken 블랙리스트 추가, RefreshToken 삭제. UserId: {}, DeviceId: {}", userId, deviceId);
     }
