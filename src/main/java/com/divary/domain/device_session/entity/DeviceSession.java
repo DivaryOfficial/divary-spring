@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "device_session", uniqueConstraints = {
         @UniqueConstraint(
-                columnNames = {"user_id", "deviceId"} // 묶을 DB 컬럼 이름들
+                columnNames = {"user_id", "device_id"} // 묶을 DB 컬럼 이름들
         )
 })
 @AllArgsConstructor

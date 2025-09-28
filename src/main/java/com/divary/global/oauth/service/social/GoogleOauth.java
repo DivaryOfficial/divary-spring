@@ -78,7 +78,6 @@ public class GoogleOauth implements SocialOauth {
 
         try {
             member = memberService.findMemberByEmail(email);
-            deviceSessionService.removeRefreshToken(deviceId, member.getId());
 
         } catch (BusinessException e) {
             member = memberService.saveMember(Member.builder()
