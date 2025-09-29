@@ -21,6 +21,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
@@ -36,7 +37,7 @@ public class GoogleOauth implements SocialOauth {
     private final JwtTokenProvider jwtTokenProvider;
     private static final String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
     private final RestTemplate restTemplate;
-    private final DeviceSessionService refreshTokenService;
+    private final DeviceSessionService deviceSessionService;
     private final TokenBlackListService tokenBlackListService;
 
 
@@ -67,6 +68,7 @@ public class GoogleOauth implements SocialOauth {
     }
 
     @Override
+    @Transactional
     public LoginResponseDTO verifyAndLogin(String googleAccessToken, String deviceId) {
         // accessToken으로 사용자 정보 요청
         Map<String, Object> userInfo = requestUserInfo(googleAccessToken);
@@ -96,7 +98,9 @@ public class GoogleOauth implements SocialOauth {
         String accessToken = jwtTokenProvider.generateAccessToken(authentication);
         String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
-        refreshTokenService.saveToken(member, accessToken, refreshToken, deviceId, SocialType.GOOGLE);
+        deviceSessionService.upsertRefreshToken(member, refreshToken, deviceId, SocialType.GOOGLE);
+
+
 
         // 3. 응답 생성
         return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
@@ -108,7 +112,7 @@ public class GoogleOauth implements SocialOauth {
 
 
         //DB에서 Refresh Token을 삭제합니다.
-        refreshTokenService.removeRefreshToken(deviceId, userId);
+        deviceSessionService.removeRefreshToken(deviceId, userId);
 
         log.debug("로그아웃 처리 완료. AccessToken 블랙리스트 추가, RefreshToken 삭제. UserId: {}, DeviceId: {}", userId, deviceId);
     }
