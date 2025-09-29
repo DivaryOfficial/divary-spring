@@ -23,7 +23,7 @@ public class CustomUserPrincipal implements UserDetails {
         this.email = member.getEmail();
         this.role = member.getRole();
         this.authorities = Collections.singleton(
-            new SimpleGrantedAuthority("ROLE_" + member.getRole().name())
+            new SimpleGrantedAuthority(member.getRole().name())
         );
     }
 
@@ -32,7 +32,7 @@ public class CustomUserPrincipal implements UserDetails {
         this.role = userRole;
         this.email = null; // ⚠️ 토큰에는 이메일 정보가 없으므로 null로 설정합니다.
         this.authorities = Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_" + userRole.name())
+                new SimpleGrantedAuthority(userRole.name())
         );
     }
     

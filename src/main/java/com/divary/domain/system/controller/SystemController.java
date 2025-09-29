@@ -113,7 +113,7 @@ public class SystemController {
         Authentication auth = new UsernamePasswordAuthenticationToken(
             email, 
             null, 
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+            Collections.singletonList(new SimpleGrantedAuthority("USER"))
         );
         String token = jwtTokenProvider.generateAccessToken(auth);
         return ApiResponse.success(token);

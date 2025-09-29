@@ -45,7 +45,8 @@ public class SecurityConfig {
                                 "/h2-console/**",
                                 "/swagger-ui/**",
                                 "/api/v1/v3/api-docs/**",
-                                "/api/v1/auth/**"
+                                "/api/v1/auth/**",
+                                "/api/v1/system/**" //TODO prod에서 안쓰게 막기
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
