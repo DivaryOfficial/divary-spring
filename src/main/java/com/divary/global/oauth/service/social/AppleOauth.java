@@ -4,7 +4,7 @@ import com.divary.common.enums.SocialType;
 import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.service.MemberService;
-import com.divary.domain.token.service.DeviceSessionService;
+import com.divary.domain.device_session.service.DeviceSessionService;
 import com.divary.global.config.jwt.JwtTokenProvider;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.BusinessException;

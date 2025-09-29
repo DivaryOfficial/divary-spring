@@ -8,7 +8,6 @@ import com.divary.global.config.SwaggerConfig.ApiSuccessResponse;
 import com.divary.global.exception.ErrorCode;
 import com.divary.global.config.jwt.JwtResolver;
 import com.divary.global.config.security.CustomUserPrincipal;
-import com.divary.global.config.jwt.JwtTokenProvider;
 import com.divary.global.oauth.dto.request.LogoutRequestDto;
 import com.divary.global.oauth.dto.request.LoginRequestDto;
 import com.divary.global.oauth.dto.response.LoginResponseDTO;
