@@ -8,19 +8,16 @@ import com.divary.domain.device_session.service.DeviceSessionService;
 import com.divary.global.config.jwt.JwtTokenProvider;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.BusinessException;
-import com.divary.global.exception.ErrorCode;
 import com.divary.global.oauth.dto.response.LoginResponseDTO;
 import com.divary.global.oauth.infra.AppleJwtParser;
 import com.divary.global.redis.service.TokenBlackListService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.C;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.Map;
@@ -44,12 +41,14 @@ public class AppleOauth implements SocialOauth {
      * @return 우리 서비스의 Access/Refresh Token이 담긴 DTO
      */
     @Override
+    @Transactional
     public LoginResponseDTO verifyAndLogin(String identityToken, String deviceId) {
         // Identity Token을 검증하고 사용자 정보를 추출합니다.
         Map<String, String> userInfo = appleJwtParser.parse(identityToken);
         String email = userInfo.get("email");
 
         Member member;
+
         try {
             member = memberService.findMemberByEmail(email);
 
@@ -61,21 +60,24 @@ public class AppleOauth implements SocialOauth {
 
         }
 
-        // 우리 서비스의 자체 토큰을 발급합니다.
-        //    (이 부분은 기존 로그인 로직과 동일하게 구현합니다.)
         CustomUserPrincipal principal = new CustomUserPrincipal(member);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 principal, null,
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + Role.USER.name()))
+                Collections.singleton(new SimpleGrantedAuthority(Role.USER.name()))  // 권한을 설정 일시적으로 일반 유저 권한만
         );
+
+        // JWT 토큰 발급
         String accessToken = jwtTokenProvider.generateAccessToken(authentication);
         String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
-        // 디바이스 세션(리프레시 토큰) 저장
-        deviceSessionService.saveToken(member, accessToken,refreshToken, deviceId, SocialType.APPLE);
+        deviceSessionService.upsertRefreshToken(member, refreshToken, deviceId, SocialType.APPLE);
 
-        return new LoginResponseDTO(accessToken, refreshToken, SocialType.APPLE);
+
+
+        // 3. 응답 생성
+        return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+
     }
 
     @Override
@@ -87,5 +89,9 @@ public class AppleOauth implements SocialOauth {
         deviceSessionService.removeRefreshToken(deviceId, userId);
 
         log.debug("Apple 계정 로그아웃 처리 완료. UserId: {}, DeviceId: {}", userId, deviceId);
+    }
+    @Override
+    public SocialType getType() {
+        return SocialType.APPLE;
     }
 }

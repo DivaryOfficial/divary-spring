@@ -114,4 +114,8 @@ public class GoogleOauth implements SocialOauth {
 
         log.debug("로그아웃 처리 완료. AccessToken 블랙리스트 추가, RefreshToken 삭제. UserId: {}, DeviceId: {}", userId, deviceId);
     }
+    @Override
+    public SocialType getType() {
+        return SocialType.GOOGLE;
+    }
 }
