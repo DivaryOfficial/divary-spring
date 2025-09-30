@@ -8,6 +8,8 @@ import com.divary.domain.image.enums.ImageType;
 import com.divary.domain.image.service.ImageService;
 import com.divary.global.config.SwaggerConfig.ApiErrorExamples;
 import com.divary.global.config.jwt.JwtTokenProvider;
+import com.divary.global.config.security.CustomUserPrincipal;
+import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -110,11 +112,18 @@ public class SystemController {
     @Operation(summary = "테스트 JWT 토큰 발급", description = "개발 환경용 JWT 토큰을 발급합니다.")
     @PostMapping("/test-token")
     public ApiResponse<String> generateTestToken(@RequestParam(defaultValue = "test@divary.com") String email) {
+        // 1. 이메일로 사용자 조회
+        Member member = memberRepository.findByEmail(email)
+            .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        
+        CustomUserPrincipal principal = new CustomUserPrincipal(member);
+        
         Authentication auth = new UsernamePasswordAuthenticationToken(
-            email, 
+            principal, 
             null, 
             Collections.singletonList(new SimpleGrantedAuthority("USER"))
         );
+        
         String token = jwtTokenProvider.generateAccessToken(auth);
         return ApiResponse.success(token);
     }
