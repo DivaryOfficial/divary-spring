@@ -14,6 +14,7 @@ import com.divary.global.oauth.dto.response.LoginResponseDTO;
 import com.divary.global.oauth.service.OauthService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,7 +35,7 @@ public class OauthController {
     @ApiSuccessResponse(dataType = LoginResponseDTO.class)
     @ApiErrorExamples(value = {ErrorCode.INVALID_INPUT_VALUE})
     public ApiResponse<LoginResponseDTO> login(@PathVariable(name = "socialLoginType") SocialType socialLoginType,
-                                               @RequestBody LoginRequestDto loginRequestDto) {
+                                               @Valid @RequestBody LoginRequestDto loginRequestDto) {
         String accessToken = loginRequestDto.getAccessToken();
         String deviceId = loginRequestDto.getDeviceId();
         log.info(">> 앱에서 받은 accessToken :: {}", accessToken);

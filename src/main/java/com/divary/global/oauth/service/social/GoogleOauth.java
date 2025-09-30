@@ -108,7 +108,6 @@ public class GoogleOauth implements SocialOauth {
     public void logout(String deviceId, Long userId, String accessToken) {
         tokenBlackListService.addToBlacklist(accessToken);
 
-
         //DB에서 Refresh Token을 삭제합니다.
         deviceSessionService.removeRefreshToken(deviceId, userId);
 

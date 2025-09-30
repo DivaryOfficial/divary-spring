@@ -6,7 +6,6 @@ import lombok.Getter;
 
 @Getter
 public class LogoutRequestDto {
-    @NotNull
     @Schema(description = "디바이스 아이디", example = "1")
     private String deviceId;
 }
