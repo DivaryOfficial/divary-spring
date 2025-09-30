@@ -11,6 +11,7 @@ import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import com.divary.global.oauth.dto.response.LoginResponseDTO;
 import com.divary.global.oauth.service.social.SocialOauth;
+import com.divary.global.oauth.service.social.SocialOauthServiceFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,17 +24,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OauthService {
     private final List<SocialOauth> socialOauthList;
-    private final SocialOauth socialOauth;
     private final JwtTokenProvider jwtTokenProvider;
     private final DeviceSessionRepository deviceSessionRepository;
-    private final MemberRepository memberRepository;
+    private final SocialOauthServiceFactory socialOauthServiceFactory;
 
 
-    private SocialOauth findSocialOauthByType(SocialType socialLoginType) {
-        return socialOauthList.stream()
-                .filter(x -> x.type() == socialLoginType)
-                .findFirst()
-                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE));
+    public SocialOauth findSocialOauthByType(SocialType socialType) {
+        return socialOauthServiceFactory.getInstance(socialType);
     }
 
     public LoginResponseDTO authenticateWithAccessToken(SocialType socialLoginType, String accessToken, String deviceId) {
