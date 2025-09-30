@@ -29,13 +29,10 @@ public class DeviceSessionService {
                 .build());
     }
     public void removeRefreshToken(String deviceId, Long userId){
-        if (userId != null && deviceId == null) {
+        if (deviceId == null) {
             deviceSessionRepository.deleteByUser_Id(userId); //내 모든 기기에서 로그아웃
-        }else if (userId != null && deviceId != null) {
+        }else {
             deviceSessionRepository.deleteByUser_IdAndDeviceId(userId, deviceId); //특정 기기에서 특정 유저 로그아웃
-        }
-        else{
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
     }
     @Transactional

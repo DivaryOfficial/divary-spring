@@ -4,74 +4,48 @@ import com.divary.common.enums.SocialType;
 import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.service.MemberService;
-import com.divary.domain.avatar.service.AvatarService;
 import com.divary.domain.device_session.service.DeviceSessionService;
-import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.config.jwt.JwtTokenProvider;
+import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.BusinessException;
-import com.divary.global.exception.ErrorCode;
 import com.divary.global.oauth.dto.response.LoginResponseDTO;
-//import com.divary.global.redis.service.TokenBlackListService;
+import com.divary.global.oauth.infra.AppleJwtParser;
 import com.divary.global.redis.service.TokenBlackListService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.Map;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
-public class GoogleOauth implements SocialOauth {
+@RequiredArgsConstructor
+public class AppleOauth implements SocialOauth {
 
-    private final MemberService memberService;
-    private final JwtTokenProvider jwtTokenProvider;
-    private static final String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
-    private final RestTemplate restTemplate;
     private final DeviceSessionService deviceSessionService;
     private final TokenBlackListService tokenBlackListService;
+    private final MemberService memberService; // 회원 조회/가입을 위한 의존성 추가
+    private final JwtTokenProvider jwtTokenProvider; // 우리 서비스의 토큰 발급을 위한 의존성 추가
+    private final AppleJwtParser appleJwtParser; // Apple Identity Token을 검증/해독하는 별도 클래스
 
 
-    private Map<String, Object> requestUserInfo(String accessToken) {
-
-
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.set("Authorization", "Bearer " + accessToken);
-
-        org.springframework.http.HttpEntity<?> entity = new org.springframework.http.HttpEntity<>(headers);
-
-        ResponseEntity<Map> response = restTemplate.exchange(
-                userInfoUrl,
-                org.springframework.http.HttpMethod.GET,
-                entity,
-                Map.class
-        );
-
-        if (response.getStatusCode() == HttpStatus.OK) {
-            Map<String, Object> userInfo = response.getBody();
-
-            System.out.println("사용자 정보: " + userInfo);
-
-            return userInfo;
-        }
-
-        throw new BusinessException(ErrorCode.GOOGLE_BAD_GATEWAY);
-    }
-
+    /**
+     * 클라이언트로부터 받은 Identity Token을 검증하고, 우리 서비스의 로그인 처리를 수행합니다.
+     * @param identityToken 클라이언트에서 전달받은 Apple Identity Token
+     * @param deviceId 사용자의 기기 ID
+     * @return 우리 서비스의 Access/Refresh Token이 담긴 DTO
+     */
     @Override
     @Transactional
-    public LoginResponseDTO verifyAndLogin(String googleAccessToken, String deviceId) {
-        // accessToken으로 사용자 정보 요청
-        Map<String, Object> userInfo = requestUserInfo(googleAccessToken);
-        String email = (String) userInfo.get("email");
+    public LoginResponseDTO verifyAndLogin(String identityToken, String deviceId) {
+        // Identity Token을 검증하고 사용자 정보를 추출합니다.
+        Map<String, String> userInfo = appleJwtParser.parse(identityToken);
+        String email = userInfo.get("email");
 
         Member member;
 
@@ -97,7 +71,7 @@ public class GoogleOauth implements SocialOauth {
         String accessToken = jwtTokenProvider.generateAccessToken(authentication);
         String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
-        deviceSessionService.upsertRefreshToken(member, refreshToken, deviceId, SocialType.GOOGLE);
+        deviceSessionService.upsertRefreshToken(member, refreshToken, deviceId, SocialType.APPLE);
 
 
 
@@ -105,16 +79,19 @@ public class GoogleOauth implements SocialOauth {
         return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
     }
+
+    @Override
     public void logout(String deviceId, Long userId, String accessToken) {
+        // AccessToken을 블랙리스트에 추가합니다.
         tokenBlackListService.addToBlacklist(accessToken);
 
-        //DB에서 Refresh Token을 삭제합니다.
+        // DB에서 Refresh Token(디바이스 세션)을 삭제합니다.
         deviceSessionService.removeRefreshToken(deviceId, userId);
 
-        log.debug("로그아웃 처리 완료. AccessToken 블랙리스트 추가, RefreshToken 삭제. UserId: {}, DeviceId: {}", userId, deviceId);
+        log.debug("Apple 계정 로그아웃 처리 완료. UserId: {}, DeviceId: {}", userId, deviceId);
     }
     @Override
     public SocialType getType() {
-        return SocialType.GOOGLE;
+        return SocialType.APPLE;
     }
 }

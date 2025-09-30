@@ -74,6 +74,8 @@ public enum ErrorCode {
     INVALID_USER_CONTEXT(HttpStatus.UNAUTHORIZED, "AUTH_003", "사용자 인증 정보가 유효하지 않습니다."),
     AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "AUTH_004", "인증이 필요합니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH_005", "접근이 거절되었습니다."),
+    SOCIAL_PROVIDER_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH_006", "지원하지 않는 소셜 로그인 타입입니다."),
+
 
     //device session 관련
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "DEVICE_001", "refresh token을 찾을 수 없습니다.");
