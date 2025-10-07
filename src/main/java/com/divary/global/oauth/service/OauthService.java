@@ -43,12 +43,12 @@ public class OauthService {
     }
 
     @Transactional
-    public void logout(SocialType socialLoginType, String deviceId, Long userId, String accessToken) {
+    public void logout(SocialType socialLoginType, String deviceId, Long userId) {
         SocialOauth socialOauth = this.findSocialOauthByType(socialLoginType);
         if (socialOauth == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
-        socialOauth.logout(deviceId, userId, accessToken);
+        socialOauth.logout(deviceId, userId);
     }
 
     /**

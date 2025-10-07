@@ -26,6 +26,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Schema(description = "다이빙 로그 기본정보")
@@ -41,6 +43,7 @@ public class LogBaseInfo extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     @Schema(description = "유저 id", example = "1L")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Member member;
 
     @OneToMany(mappedBy = "logBaseInfo", cascade = CascadeType.REMOVE, orphanRemoval = true)

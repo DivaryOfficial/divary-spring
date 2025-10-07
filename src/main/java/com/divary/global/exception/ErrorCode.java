@@ -42,7 +42,7 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_002", "유저를 찾을 수 없습니다."),
     MEMBER_ALREADY_EXISTS(HttpStatus.NOT_FOUND, "MEMBER_003", "이미 가입된 이메일입니다."),
     DEVICE_ID_NOT_FOUND(HttpStatus.NOT_FOUND, "DEVICE_001", "디바이스 아이디를 찾을 수 없습니다"),
-
+    MEMBER_IS_DEACTIVATE(HttpStatus.NOT_FOUND, "MEMBER_004", "탈퇴 예정인 계정입니다."),
     //소셜 로그인 관련
     GOOGLE_BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "GOOGLE_001", "구글 유저를 찾을 수 없습니다"),
 

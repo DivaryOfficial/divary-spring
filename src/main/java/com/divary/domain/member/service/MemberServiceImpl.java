@@ -5,11 +5,16 @@ import com.divary.domain.image.dto.request.ImageUploadRequest;
 import com.divary.domain.image.service.ImageService;
 import com.divary.domain.member.dto.requestDTO.MyPageLevelRequestDTO;
 import com.divary.domain.member.dto.response.MyPageImageResponseDTO;
+import com.divary.domain.member.enums.Status;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
+import com.divary.global.oauth.dto.response.DeactivateResponse;
+import com.divary.global.redis.service.TokenBlackListService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.token.TokenService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.divary.domain.member.repository.MemberRepository;
@@ -17,13 +22,18 @@ import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Levels;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final ImageService imageService;
-    String additionalPath = "qualifications";
+    private final TokenBlackListService tokenBlackListService;
+
+    @Value("${jobs.user-deletion.grace-period-days}")
+    private int gracePeriodDays;
 
     @Override
     public Member findMemberByEmail(String email) {
@@ -68,4 +78,26 @@ public class MemberServiceImpl implements MemberService {
         return new MyPageImageResponseDTO(fileUrl);
     }
 
+    @Override
+    @Transactional
+    public DeactivateResponse requestToDeleteMember(Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        member.requestDeletion();
+
+        LocalDateTime scheduledDeletionAt = member.getDeactivatedAt()
+                .plusDays(gracePeriodDays);
+
+        return new DeactivateResponse(scheduledDeletionAt);
+    }
+
+    @Override
+    @Transactional
+    public void cancelDeleteMember(Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // DEACTIVATED 상태일 때만 취소 가능
+        if (member.getStatus() == Status.DEACTIVATED) {
+            member.cancelDeletion();
+        }
+    }
 }

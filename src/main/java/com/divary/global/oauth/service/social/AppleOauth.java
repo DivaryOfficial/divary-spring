@@ -81,9 +81,7 @@ public class AppleOauth implements SocialOauth {
     }
 
     @Override
-    public void logout(String deviceId, Long userId, String accessToken) {
-        // AccessToken을 블랙리스트에 추가합니다.
-        tokenBlackListService.addToBlacklist(accessToken);
+    public void logout(String deviceId, Long userId) {
 
         // DB에서 Refresh Token(디바이스 세션)을 삭제합니다.
         deviceSessionService.removeRefreshToken(deviceId, userId);
