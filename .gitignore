@@ -86,8 +86,9 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.**
 
 ### Application specific ###
 application-dev.yml
 application-prod.yml
-application-local.yml 
+application-staging.yml 
