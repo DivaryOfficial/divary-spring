@@ -1,10 +1,13 @@
 package com.divary.global.oauth.service;
 
 import com.divary.common.enums.SocialType;
+import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
+import com.divary.domain.member.enums.Status;
 import com.divary.domain.member.repository.MemberRepository;
 import com.divary.domain.device_session.entity.DeviceSession;
 import com.divary.domain.device_session.repository.DeviceSessionRepository;
+import com.divary.domain.member.service.MemberService;
 import com.divary.global.config.jwt.JwtTokenProvider;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.BusinessException;
@@ -27,6 +30,8 @@ public class OauthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final DeviceSessionRepository deviceSessionRepository;
     private final SocialOauthServiceFactory socialOauthServiceFactory;
+    private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
 
     public SocialOauth findSocialOauthByType(SocialType socialType) {
@@ -65,16 +70,23 @@ public class OauthService {
             throw new BusinessException(ErrorCode.INVALID_TOKEN, "Refresh Token이 유효하지 않습니다.");
         }
 
-        // 2. DB에 저장된 토큰과 일치하는지, Device ID가 맞는지 확인
+
+        // 2. 토큰에서 사용자 ID 추출
+        Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
+        Role role = jwtTokenProvider.getRoleFromToken(refreshToken);
+
+        Member member = memberRepository.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // 3. 회원의 탈퇴 여부 확인
+        if (member.getStatus() == Status.DEACTIVATED){
+            throw new BusinessException(ErrorCode.MEMBER_IS_DEACTIVATE);
+        }
+
+        // 4. DB에 저장된 토큰과 일치하는지, Device ID가 맞는지 확인
         boolean exists = deviceSessionRepository.existsByRefreshTokenAndDeviceId(refreshToken, deviceId);
         if (!exists) {
             throw new BusinessException(ErrorCode.REFRESH_TOKEN_NOT_FOUND, "저장소에 Refresh Token이 없거나 기기 정보가 일치하지 않습니다.");
         }
-
-        // 3. 토큰에서 사용자 ID 추출
-        Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
-        Role role = jwtTokenProvider.getRoleFromToken(refreshToken);
-
 
 
 

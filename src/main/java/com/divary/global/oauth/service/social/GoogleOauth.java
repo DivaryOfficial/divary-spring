@@ -3,6 +3,7 @@ package com.divary.global.oauth.service.social;
 import com.divary.common.enums.SocialType;
 import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
+import com.divary.domain.member.enums.Status;
 import com.divary.domain.member.service.MemberService;
 import com.divary.domain.avatar.service.AvatarService;
 import com.divary.domain.device_session.service.DeviceSessionService;
@@ -81,6 +82,7 @@ public class GoogleOauth implements SocialOauth {
         } catch (BusinessException e) {
             member = memberService.saveMember(Member.builder()
                     .email(email)
+                    .status(Status.ACTIVE)
                     .role(Role.USER)
                     .build());
 

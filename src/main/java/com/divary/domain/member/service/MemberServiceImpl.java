@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.core.token.TokenService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,24 +81,35 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#memberId")
     public DeactivateResponse requestToDeleteMember(Long memberId) {
+        try {
         Member member = memberRepository.findById(memberId).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
         member.requestDeletion();
 
         LocalDateTime scheduledDeletionAt = member.getDeactivatedAt()
                 .plusDays(gracePeriodDays);
 
         return new DeactivateResponse(scheduledDeletionAt);
+    }catch (ObjectOptimisticLockingFailureException e) {
+            throw new BusinessException(ErrorCode.CONCURRENT_REQUEST_ERROR, "요청 처리 중 충돌이 발생했습니다. 잠시 후 다시 시도해주세요.");
+        }
     }
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#memberId")
     public void cancelDeleteMember(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        try {
+            Member member = memberRepository.findById(memberId).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        // DEACTIVATED 상태일 때만 취소 가능
-        if (member.getStatus() == Status.DEACTIVATED) {
-            member.cancelDeletion();
+            // DEACTIVATED 상태일 때만 취소 가능
+            if (member.getStatus() == Status.DEACTIVATED) {
+                member.cancelDeletion();
+            }
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new BusinessException(ErrorCode.CONCURRENT_REQUEST_ERROR, "요청 처리 중 충돌이 발생했습니다. 잠시 후 다시 시도해주세요.");
         }
     }
 }

@@ -34,9 +34,14 @@ public class Member extends BaseEntity {
     private Levels level;
 
     @Enumerated(EnumType.STRING)
+    @NotNull
     private Status status; // 사용자 상태
 
-    private LocalDateTime deactivatedAt;
+
+    private LocalDateTime deactivatedAt; //비활성화 된 시간과 날짜
+
+    @Version
+    private Long version; //버전을통해 레이스 컨디션 해결
 
 
     // 탈퇴 요청 처리

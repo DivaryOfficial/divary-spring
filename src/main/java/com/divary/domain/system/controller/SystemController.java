@@ -3,6 +3,7 @@ package com.divary.domain.system.controller;
 import com.divary.common.response.ApiResponse;
 import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
+import com.divary.domain.member.enums.Status;
 import com.divary.domain.member.repository.MemberRepository;
 import com.divary.domain.image.enums.ImageType;
 import com.divary.domain.image.service.ImageService;
@@ -99,6 +100,7 @@ public class SystemController {
         if (memberRepository.findByEmail(email).isEmpty()) {
             Member testUser = Member.builder()
                     .email(email)
+                    .status(Status.ACTIVE)
                     .role(Role.USER)
                     .build();
             memberRepository.save(testUser);
