@@ -35,8 +35,7 @@ public class Member extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @NotNull
-    private Status status; // 사용자 상태
-
+    Status status = Status.ACTIVE;  // 사용자 상태
 
     private LocalDateTime deactivatedAt; //비활성화 된 시간과 날짜
 

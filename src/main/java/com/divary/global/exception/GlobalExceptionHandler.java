@@ -4,6 +4,7 @@ import com.divary.common.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -70,6 +71,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(ApiResponse.error(ErrorCode.METHOD_NOT_ALLOWED, request.getRequestURI()));
+    }
+
+    /**
+     * JPA Optimistic Lock 버전 충돌 예외 처리
+     */
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleOptimisticLockingFailureException(ObjectOptimisticLockingFailureException e) {
+        log.warn("handleOptimisticLockingFailureException", e); // 충돌 발생 로깅
+
+        // 409 Conflict 상태 코드로 응답
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(ErrorCode.CONCURRENCY_CONFLICT));
     }
 
     /**
