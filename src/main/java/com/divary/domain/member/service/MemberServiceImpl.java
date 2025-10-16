@@ -85,34 +85,29 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#memberId")
     public DeactivateResponse requestToDeleteMember(Long memberId) {
-        try {
         Member member = memberRepository.findById(memberId).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
+        if (member.getStatus() == Status.DEACTIVATED) {
+            return new DeactivateResponse(member.getDeactivatedAt());
+        }
         member.requestDeletion();
 
         LocalDateTime scheduledDeletionAt = member.getDeactivatedAt()
                 .plusDays(gracePeriodDays);
 
         return new DeactivateResponse(scheduledDeletionAt);
-    }catch (ObjectOptimisticLockingFailureException e) {
-            throw new BusinessException(ErrorCode.CONCURRENT_REQUEST_ERROR, "요청 처리 중 충돌이 발생했습니다. 잠시 후 다시 시도해주세요.");
-        }
     }
 
     @Override
     @Transactional
     @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#memberId")
     public void cancelDeleteMember(Long memberId) {
-        try {
             Member member = memberRepository.findById(memberId).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
             // DEACTIVATED 상태일 때만 취소 가능
             if (member.getStatus() == Status.DEACTIVATED) {
                 member.cancelDeletion();
             }
-        } catch (ObjectOptimisticLockingFailureException e) {
-            throw new BusinessException(ErrorCode.CONCURRENT_REQUEST_ERROR, "요청 처리 중 충돌이 발생했습니다. 잠시 후 다시 시도해주세요.");
-        }
     }
     @Override
     @Transactional
