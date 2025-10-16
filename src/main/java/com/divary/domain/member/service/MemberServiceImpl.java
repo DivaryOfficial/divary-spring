@@ -5,6 +5,7 @@ import com.divary.domain.image.dto.request.ImageUploadRequest;
 import com.divary.domain.image.service.ImageService;
 import com.divary.domain.member.dto.requestDTO.MyPageLevelRequestDTO;
 import com.divary.domain.member.dto.response.MyPageImageResponseDTO;
+import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.enums.Status;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
@@ -24,6 +25,7 @@ import com.divary.domain.member.enums.Levels;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -111,5 +113,21 @@ public class MemberServiceImpl implements MemberService {
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new BusinessException(ErrorCode.CONCURRENT_REQUEST_ERROR, "요청 처리 중 충돌이 발생했습니다. 잠시 후 다시 시도해주세요.");
         }
+    }
+    @Override
+    @Transactional
+    public Member findOrCreateMember(String email) {
+        // 1. Optional을 사용하여 회원을 조회합니다.
+        Optional<Member> optionalMember = memberRepository.findByEmail(email);
+
+        // 2. 회원이 존재하면 그대로 반환하고, 존재하지 않으면 새로 생성하여 저장한 뒤 반환합니다.
+        return optionalMember.orElseGet(() -> {
+            Member newMember = Member.builder()
+                    .email(email)
+                    .status(Status.ACTIVE)
+                    .role(Role.USER)
+                    .build();
+            return memberRepository.save(newMember);
+        });
     }
 }

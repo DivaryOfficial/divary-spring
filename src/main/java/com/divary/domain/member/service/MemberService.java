@@ -14,5 +14,7 @@ public interface MemberService {
     MyPageImageResponseDTO uploadLicense(MultipartFile image, Long userId);
     DeactivateResponse requestToDeleteMember(Long memberId);
     void cancelDeleteMember(Long memberId);
+    public Member findOrCreateMember(String email);
+
 
 }

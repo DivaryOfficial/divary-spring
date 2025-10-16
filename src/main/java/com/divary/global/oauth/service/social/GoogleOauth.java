@@ -74,19 +74,8 @@ public class GoogleOauth implements SocialOauth {
         Map<String, Object> userInfo = requestUserInfo(googleAccessToken);
         String email = (String) userInfo.get("email");
 
-        Member member;
 
-        try {
-            member = memberService.findMemberByEmail(email);
-
-        } catch (BusinessException e) {
-            member = memberService.saveMember(Member.builder()
-                    .email(email)
-                    .status(Status.ACTIVE)
-                    .role(Role.USER)
-                    .build());
-
-        }
+        Member member = memberService.findOrCreateMember(email);
 
         CustomUserPrincipal principal = new CustomUserPrincipal(member);
 

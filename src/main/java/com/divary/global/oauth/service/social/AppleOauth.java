@@ -48,19 +48,7 @@ public class AppleOauth implements SocialOauth {
         Map<String, String> userInfo = appleJwtParser.parse(identityToken);
         String email = userInfo.get("email");
 
-        Member member;
-
-        try {
-            member = memberService.findMemberByEmail(email);
-
-        } catch (BusinessException e) {
-            member = memberService.saveMember(Member.builder()
-                    .email(email)
-                    .status(Status.ACTIVE)
-                    .role(Role.USER)
-                    .build());
-
-        }
+        Member member = memberService.findOrCreateMember(email);
 
         CustomUserPrincipal principal = new CustomUserPrincipal(member);
 
