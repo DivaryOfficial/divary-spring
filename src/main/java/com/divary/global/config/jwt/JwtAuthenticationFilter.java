@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -36,8 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtResolver jwtResolver;
     private final TokenBlackListService tokenBlackListService;
     private final MemberService memberService;
-    private static final String REACTIVATE_MEMBER_URI = "/api/v1/auth/reactivate";
-    private static final String REACTIVATE_MEMBER_METHOD = "POST";
+    private final RequestMatcher reactivateMemberRequestMatcher;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -59,8 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Member member = memberService.findById(userId);
 
                 // 1. 현재 요청이 회원 복구 API인지 확인합니다.
-                boolean isRecoveryRequest = request.getRequestURI().equals(REACTIVATE_MEMBER_URI) &&
-                        request.getMethod().equalsIgnoreCase(REACTIVATE_MEMBER_METHOD);
+                boolean isRecoveryRequest = reactivateMemberRequestMatcher.matches(request);
 
                 // 2. 복구 요청이 아닌 경우에만 비활성화 상태를 체크합니다.
                 if (!isRecoveryRequest && member.getStatus() == Status.DEACTIVATED) {
