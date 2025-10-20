@@ -3,6 +3,7 @@ package com.divary.global.oauth.service.social;
 import com.divary.common.enums.SocialType;
 import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
+import com.divary.domain.member.enums.Status;
 import com.divary.domain.member.service.MemberService;
 import com.divary.domain.device_session.service.DeviceSessionService;
 import com.divary.global.config.jwt.JwtTokenProvider;
@@ -47,18 +48,7 @@ public class AppleOauth implements SocialOauth {
         Map<String, String> userInfo = appleJwtParser.parse(identityToken);
         String email = userInfo.get("email");
 
-        Member member;
-
-        try {
-            member = memberService.findMemberByEmail(email);
-
-        } catch (BusinessException e) {
-            member = memberService.saveMember(Member.builder()
-                    .email(email)
-                    .role(Role.USER)
-                    .build());
-
-        }
+        Member member = memberService.findOrCreateMember(email);
 
         CustomUserPrincipal principal = new CustomUserPrincipal(member);
 
@@ -81,9 +71,7 @@ public class AppleOauth implements SocialOauth {
     }
 
     @Override
-    public void logout(String deviceId, Long userId, String accessToken) {
-        // AccessToken을 블랙리스트에 추가합니다.
-        tokenBlackListService.addToBlacklist(accessToken);
+    public void logout(String deviceId, Long userId) {
 
         // DB에서 Refresh Token(디바이스 세션)을 삭제합니다.
         deviceSessionService.removeRefreshToken(deviceId, userId);
