@@ -37,7 +37,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtResolver jwtResolver;
     private final TokenBlackListService tokenBlackListService;
     private final MemberService memberService;
-    private final RequestMatcher reactivateMemberRequestMatcher;
+    private static final String REACTIVATE_MEMBER_URI = "/api/v1/auth/reactivate";
+    private static final String REACTIVATE_MEMBER_METHOD = "POST"; //todo 하드코딩 안하게 변경
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
