@@ -19,7 +19,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import jakarta.annotation.PostConstruct;
-import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -87,11 +86,5 @@ public class SecurityConfig {
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public PathPatternRequestMatcher reactivateMemberRequestMatcher() {
-        return PathPatternRequestMatcher.withDefaults()
-                .matcher(HttpMethod.POST, "/api/v1/auth/reactivate");
     }
 }
