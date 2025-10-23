@@ -3,6 +3,7 @@ package com.divary.global.oauth.service.social;
 import com.divary.common.enums.SocialType;
 import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Role;
+import com.divary.domain.member.enums.Status;
 import com.divary.domain.member.service.MemberService;
 import com.divary.domain.avatar.service.AvatarService;
 import com.divary.domain.device_session.service.DeviceSessionService;
@@ -73,18 +74,8 @@ public class GoogleOauth implements SocialOauth {
         Map<String, Object> userInfo = requestUserInfo(googleAccessToken);
         String email = (String) userInfo.get("email");
 
-        Member member;
 
-        try {
-            member = memberService.findMemberByEmail(email);
-
-        } catch (BusinessException e) {
-            member = memberService.saveMember(Member.builder()
-                    .email(email)
-                    .role(Role.USER)
-                    .build());
-
-        }
+        Member member = memberService.findOrCreateMember(email);
 
         CustomUserPrincipal principal = new CustomUserPrincipal(member);
 
@@ -105,8 +96,7 @@ public class GoogleOauth implements SocialOauth {
         return LoginResponseDTO.builder().accessToken(accessToken).refreshToken(refreshToken).build();
 
     }
-    public void logout(String deviceId, Long userId, String accessToken) {
-        tokenBlackListService.addToBlacklist(accessToken);
+    public void logout(String deviceId, Long userId) {
 
         //DB에서 Refresh Token을 삭제합니다.
         deviceSessionService.removeRefreshToken(deviceId, userId);

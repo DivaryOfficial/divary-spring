@@ -1,6 +1,9 @@
 package com.divary.global.config.jwt;
 
 import com.divary.common.response.ApiResponse;
+import com.divary.domain.member.entity.Member;
+import com.divary.domain.member.enums.Status;
+import com.divary.domain.member.service.MemberService;
 import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import com.divary.global.redis.service.TokenBlackListService;
@@ -19,7 +22,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * 클라이언트의 모든 API 요청을 가로채 Access Token의 유효성을 검증하는 필터입니다.
@@ -33,6 +35,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtResolver jwtResolver;
     private final TokenBlackListService tokenBlackListService;
+    private final MemberService memberService;
+    private static final String REACTIVATE_MEMBER_URI = "/api/v1/auth/reactivate";
+    private static final String REACTIVATE_MEMBER_METHOD = "POST"; //todo 하드코딩 안하게 변경
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -45,8 +50,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 2. 헤더에서 Access Token을 추출합니다.
             String accessToken = jwtResolver.resolveAccessToken(request);
 
+
             // 3. Access Token이 존재하는 경우에만 검증을 시작합니다.
             if (StringUtils.hasText(accessToken)) {
+
+                Long userId = jwtTokenProvider.getUserIdFromToken(accessToken);
+
+                Member member = memberService.findById(userId);
+
+                // 1. 현재 요청이 회원 복구 API인지 확인합니다.
+                boolean isRecoveryRequest = request.getRequestURI().equals(REACTIVATE_MEMBER_URI) &&
+                        request.getMethod().equalsIgnoreCase(REACTIVATE_MEMBER_METHOD);
+
+                // 2. 복구 요청이 아닌 경우에만 비활성화 상태를 체크합니다.
+                if (!isRecoveryRequest && member.getStatus() == Status.DEACTIVATED) {
+                    throw new BusinessException(ErrorCode.MEMBER_IS_DEACTIVATE);
+                }
 
                 //토큰이 유효한지 검증합니다.
                 if (jwtTokenProvider.validateToken(accessToken)) {
