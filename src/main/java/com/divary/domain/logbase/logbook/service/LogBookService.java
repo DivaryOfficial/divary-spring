@@ -16,6 +16,7 @@ import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +60,7 @@ public class LogBookService {
     }
 
     @Transactional(readOnly = true)
-    public List<LogBaseListResultDTO> getLogBooksByYearAndStatus(int year, SaveStatus status, Long userId) {
+    public List<LogBaseListResultDTO> getLogBooksByYearAndStatus(int year, SaveStatus status, Long userId, Sort sort) {
 
         List<LogBaseInfo> logBaseInfoList;
 
@@ -70,7 +71,7 @@ public class LogBookService {
             // 쿼리스트링 없을 경우 전체 조회
             logBaseInfoList = logBaseInfoRepository.findByYearAndMember(year,member);
         } else {
-            logBaseInfoList = logBaseInfoRepository.findByYearAndStatusAndMember(year,status,member);
+            logBaseInfoList = logBaseInfoRepository.findByYearAndStatusAndMember(year,status,member,sort);
         }
 
         return logBaseInfoList.stream()

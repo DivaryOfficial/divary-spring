@@ -3,6 +3,7 @@ package com.divary.domain.member.service;
 import com.divary.common.util.EnumValidator;
 import com.divary.domain.image.dto.request.ImageUploadRequest;
 import com.divary.domain.image.service.ImageService;
+import com.divary.domain.member.dto.requestDTO.MyPageGroupRequestDTO;
 import com.divary.domain.member.dto.requestDTO.MyPageLevelRequestDTO;
 import com.divary.domain.member.dto.response.MyPageImageResponseDTO;
 import com.divary.domain.member.enums.Role;
@@ -144,5 +145,12 @@ public class MemberServiceImpl implements MemberService {
                     .build();
             return memberRepository.save(newMember);
         });
+    }
+    @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#userId")
+    public void updateGroup(Long userId, MyPageGroupRequestDTO requestDTO){
+        String group = requestDTO.getGroup();
+
+        Member member = memberRepository.findById(userId).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        member.setGroup(group);
     }
 }

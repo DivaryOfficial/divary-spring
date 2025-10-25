@@ -19,6 +19,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -52,13 +53,23 @@ public class LogBookController {
     @ApiErrorExamples(value = {ErrorCode.AUTHENTICATION_REQUIRED})
     @Operation(summary = "연도,저장상태 별 로그베이스 리스트 조회", description = "연도와 저장 상태에 따라 로그베이스 리스트를 조회합니다.")
     public ApiResponse<List<LogBaseListResultDTO>> getLogListByYearAndStatus(
-            @RequestParam int year,
+            @RequestParam(required = false) int year,
             @RequestParam(required = false) SaveStatus saveStatus,
-            @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+            @AuthenticationPrincipal CustomUserPrincipal userPrincipal,
+            @RequestParam(required = false) String sort)
+    {
+        Sort sortOption;
+
+        if ("oldest".equalsIgnoreCase(sort)) {
+            sortOption = Sort.by(Sort.Direction.ASC, "date");
+        }
+        else {
+            sortOption = Sort.by(Sort.Direction.DESC, "date");
+        }
 
         Long userId = userPrincipal.getId();
 
-        List<LogBaseListResultDTO> result = logBookService.getLogBooksByYearAndStatus(year, saveStatus, userId);
+        List<LogBaseListResultDTO> result = logBookService.getLogBooksByYearAndStatus(year, saveStatus, userId, sortOption);
         return ApiResponse.success(result);
     }
 

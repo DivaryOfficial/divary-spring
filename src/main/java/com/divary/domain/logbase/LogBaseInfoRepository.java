@@ -8,13 +8,14 @@ import java.util.List;
 import java.util.Optional;
 
 import com.mysql.cj.log.Log;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface LogBaseInfoRepository extends JpaRepository<LogBaseInfo, Long> {
     @Query("SELECT l FROM LogBaseInfo l WHERE YEAR(l.date) = :year AND l.saveStatus = :status AND l.member = :member ORDER BY l.date DESC")
-    List<LogBaseInfo> findByYearAndStatusAndMember(@Param("year") int year, @Param("status") SaveStatus status, @Param("member") Member member);
+    List<LogBaseInfo> findByYearAndStatusAndMember(@Param("year") int year, @Param("status") SaveStatus status, @Param("member") Member member, Sort sort);
 
     @Query("SELECT l FROM LogBaseInfo l WHERE YEAR(l.date) = :year AND l.member = :member ORDER BY l.date DESC")
     List<LogBaseInfo> findByYearAndMember(@Param("year") int year, @Param("member") Member member);

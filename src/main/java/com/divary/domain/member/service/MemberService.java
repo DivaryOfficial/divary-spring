@@ -1,5 +1,6 @@
 package com.divary.domain.member.service;
 
+import com.divary.domain.member.dto.requestDTO.MyPageGroupRequestDTO;
 import com.divary.domain.member.dto.response.MyPageImageResponseDTO;
 import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.dto.requestDTO.MyPageLevelRequestDTO;
@@ -16,5 +17,5 @@ public interface MemberService {
     void cancelDeleteMember(Long memberId);
     public Member findOrCreateMember(String email);
 
-
+    void updateGroup(Long userId, MyPageGroupRequestDTO requestDTO);
 }
