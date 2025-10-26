@@ -45,7 +45,6 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     @Cacheable(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#id")
     public Member findById(Long id) {
         return  memberRepository.findById(id).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
@@ -54,18 +53,35 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#member.id", condition = "#member.id != null")
     public Member saveMember(Member member) {
+        // If member has an ID, it might be a detached entity from cache
+        // Re-fetch from DB to get managed entity with proper version
+        if (member.getId() != null) {
+            Member managedMember = memberRepository.findById(member.getId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+            // Copy all fields from detached member to managed member
+            managedMember.setEmail(member.getEmail());
+            managedMember.setLevel(member.getLevel());
+            managedMember.setRole(member.getRole());
+            managedMember.setStatus(member.getStatus());
+            managedMember.setDeactivatedAt(member.getDeactivatedAt());
+
+            return managedMember; // JPA dirty checking will save this
+        }
+
+        // New entity - just save directly
         return memberRepository.save(member);
     }
 
 
 
-    @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#userId")
+    @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#userId", beforeInvocation = false)
     public void updateLevel(Long userId, MyPageLevelRequestDTO requestDTO) {
         Levels level = EnumValidator.validateEnum(Levels.class, requestDTO.getLevel().name());
 
-
         Member member = memberRepository.findById(userId).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         member.setLevel(level);
+        // Cache evicted after successful update
     }
 
     @Override
@@ -85,7 +101,7 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#memberId")
+    @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#memberId", beforeInvocation = false)
     public DeactivateResponse requestToDeleteMember(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
@@ -98,11 +114,12 @@ public class MemberServiceImpl implements MemberService {
                 .plusDays(gracePeriodDays);
 
         return new DeactivateResponse(scheduledDeletionAt);
+        // Cache evicted after successful update
     }
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#memberId")
+    @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#memberId", beforeInvocation = false)
     public void cancelDeleteMember(Long memberId) {
             Member member = memberRepository.findById(memberId).orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
@@ -110,6 +127,7 @@ public class MemberServiceImpl implements MemberService {
             if (member.getStatus() == Status.DEACTIVATED) {
                 member.cancelDeletion();
             }
+            // Cache evicted after successful update
     }
     @Override
     @Transactional
