@@ -39,11 +39,13 @@ public class MemberServiceImpl implements MemberService {
     private int gracePeriodDays;
 
     @Override
+    @Transactional(readOnly = true)
     public Member findMemberByEmail(String email) {
         return memberRepository.findByEmail(email).orElseThrow(()-> new BusinessException(ErrorCode.EMAIL_NOT_FOUND));
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#id")
     public Member findById(Long id) {
         return  memberRepository.findById(id).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));

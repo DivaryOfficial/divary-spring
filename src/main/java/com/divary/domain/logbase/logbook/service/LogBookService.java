@@ -58,10 +58,11 @@ public class LogBookService {
                 .build();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<LogBaseListResultDTO> getLogBooksByYearAndStatus(int year, SaveStatus status, Long userId) {
 
         List<LogBaseInfo> logBaseInfoList;
+
 
         Member member = memberService.findById(userId);
 
@@ -84,7 +85,7 @@ public class LogBookService {
 
     }//연도에 따라, 저장 상태(임시저장,완전저장)에 따라 로그북베이스정보 조회
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<LogBaseListResultDTO> getLogBooks(Long userId) {
 
         List<LogBaseInfo> logBaseInfoList = logBaseInfoRepository.findByMemberId(userId);
