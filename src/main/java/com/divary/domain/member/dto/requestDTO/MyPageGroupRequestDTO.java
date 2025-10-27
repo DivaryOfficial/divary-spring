@@ -7,5 +7,5 @@ import lombok.Getter;
 public class MyPageGroupRequestDTO {
 
     @Schema(description = "Group", example = "PADI")
-    private String group;
+    private String memberGroup;
 }

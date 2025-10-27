@@ -148,9 +148,9 @@ public class MemberServiceImpl implements MemberService {
     }
     @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#userId")
     public void updateGroup(Long userId, MyPageGroupRequestDTO requestDTO){
-        String group = requestDTO.getGroup();
+        String group = requestDTO.getMemberGroup();
 
         Member member = memberRepository.findById(userId).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-        member.setGroup(group);
+        member.setMemberGroup(group);
     }
 }
