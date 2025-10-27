@@ -2,10 +2,12 @@ package com.divary.domain.member.service;
 
 import com.divary.common.util.EnumValidator;
 import com.divary.domain.image.dto.request.ImageUploadRequest;
+import com.divary.domain.image.dto.response.ImageResponse;
 import com.divary.domain.image.service.ImageService;
 import com.divary.domain.member.dto.requestDTO.MyPageGroupRequestDTO;
 import com.divary.domain.member.dto.requestDTO.MyPageLevelRequestDTO;
 import com.divary.domain.member.dto.response.MyPageImageResponseDTO;
+import com.divary.domain.member.dto.response.MyPageProfileResponseDTO;
 import com.divary.domain.member.enums.Role;
 import com.divary.domain.member.enums.Status;
 import com.divary.global.exception.BusinessException;
@@ -26,6 +28,7 @@ import com.divary.domain.member.enums.Levels;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -146,6 +149,7 @@ public class MemberServiceImpl implements MemberService {
             return memberRepository.save(newMember);
         });
     }
+    @Override
     @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#userId")
     public void updateGroup(Long userId, MyPageGroupRequestDTO requestDTO){
         String group = requestDTO.getMemberGroup();
@@ -153,4 +157,32 @@ public class MemberServiceImpl implements MemberService {
         Member member = memberRepository.findById(userId).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         member.setMemberGroup(group);
     }
+
+    @Override
+    public MyPageProfileResponseDTO getMemberProfile(Long userId){
+        Member member = memberRepository.findById(userId).orElseThrow(()->new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        String memberIdByEmail = member.getEmail().split("@")[0];
+        // 프로필에 나오는 아이디: 이메일에서 @ 앞부분만 추출
+
+        return MyPageProfileResponseDTO.builder()
+                .memberGroup(member.getMemberGroup())
+                .level(member.getLevel())
+                .id(memberIdByEmail)
+                .build();
+    }
+
+    @Override
+    public MyPageImageResponseDTO getLicenseImage(Long userId){
+
+        String uploadPath = "users/" + userId + "/license/";
+
+        List<ImageResponse> imageResponses = imageService.getImagesByPath(uploadPath);
+
+        String fileUrl = imageResponses.getFirst().getFileUrl();
+
+        return new MyPageImageResponseDTO(fileUrl);
+    }
+
+
 }
