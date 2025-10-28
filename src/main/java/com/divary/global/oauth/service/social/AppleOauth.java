@@ -9,6 +9,7 @@ import com.divary.domain.device_session.service.DeviceSessionService;
 import com.divary.global.config.jwt.JwtTokenProvider;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.BusinessException;
+import com.divary.global.exception.ErrorCode;
 import com.divary.global.oauth.dto.response.LoginResponseDTO;
 import com.divary.global.oauth.infra.AppleJwtParser;
 import com.divary.global.redis.service.TokenBlackListService;
@@ -50,6 +51,11 @@ public class AppleOauth implements SocialOauth {
 
         Member member = memberService.findOrCreateMember(email);
 
+        // 탈퇴 신청된 계정은 로그인 차단
+        if (member.getStatus() == Status.DEACTIVATED) {
+            throw new BusinessException(ErrorCode.MEMBER_IS_DEACTIVATE);
+        }
+
         CustomUserPrincipal principal = new CustomUserPrincipal(member);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
@@ -78,6 +84,28 @@ public class AppleOauth implements SocialOauth {
 
         log.debug("Apple 계정 로그아웃 처리 완료. UserId: {}, DeviceId: {}", userId, deviceId);
     }
+
+    @Override
+    @Transactional
+    public void reactivate(String identityToken) {
+        // Identity Token을 검증하고 사용자 정보를 추출합니다.
+        Map<String, String> userInfo = appleJwtParser.parse(identityToken);
+        String email = userInfo.get("email");
+
+        // 이메일로 회원 찾기
+        Member member = memberService.findMemberByEmail(email);
+
+        // 탈퇴 신청된 계정이 아니면 복구 불가
+        if (member.getStatus() != Status.DEACTIVATED) {
+            throw new BusinessException(ErrorCode.MEMBER_NOT_DEACTIVATED);
+        }
+
+        // 복구 처리
+        memberService.cancelDeleteMember(member.getId());
+
+        log.debug("Apple 계정 복구 완료. Email: {}, UserId: {}", email, member.getId());
+    }
+
     @Override
     public SocialType getType() {
         return SocialType.APPLE;
