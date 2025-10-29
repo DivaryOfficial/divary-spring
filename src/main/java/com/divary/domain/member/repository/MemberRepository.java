@@ -1,5 +1,6 @@
 package com.divary.domain.member.repository;
 
+import com.divary.common.enums.SocialType;
 import com.divary.domain.member.entity.Member;
 import com.divary.domain.member.enums.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,5 +12,6 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByEmail(String email);
     Optional<Member> findById(Long id);
+    Optional<Member> findBySocialIdAndSocialType(String socialId, SocialType socialType);
     List<Member> findByStatusAndDeactivatedAtBefore(Status status, LocalDateTime cutoffDate);
 }
