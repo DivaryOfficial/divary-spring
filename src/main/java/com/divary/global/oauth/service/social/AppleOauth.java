@@ -47,9 +47,14 @@ public class AppleOauth implements SocialOauth {
     public LoginResponseDTO verifyAndLogin(String identityToken, String deviceId) {
         // Identity Token을 검증하고 사용자 정보를 추출합니다.
         Map<String, String> userInfo = appleJwtParser.parse(identityToken);
+
+        String sub = userInfo.get("sub");
         String email = userInfo.get("email");
 
-        Member member = memberService.findOrCreateMember(email);
+        log.debug("Apple 로그인 - sub: {}, email: {}", sub, email);
+
+        // socialId(sub)와 socialType으로 회원 조회 또는 생성
+        Member member = memberService.findOrCreateMemberBySocialId(sub, SocialType.APPLE, email);
 
         // 탈퇴 신청된 계정은 로그인 차단
         if (member.getStatus() == Status.DEACTIVATED) {

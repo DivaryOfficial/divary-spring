@@ -72,10 +72,13 @@ public class GoogleOauth implements SocialOauth {
     public LoginResponseDTO verifyAndLogin(String googleAccessToken, String deviceId) {
         // accessToken으로 사용자 정보 요청
         Map<String, Object> userInfo = requestUserInfo(googleAccessToken);
+        String sub = (String) userInfo.get("id");  // Google의 고유 사용자 ID
         String email = (String) userInfo.get("email");
 
+        log.debug("Google 로그인 - sub: {}, email: {}", sub, email);
 
-        Member member = memberService.findOrCreateMember(email);
+        // socialId(sub)와 socialType으로 회원 조회 또는 생성
+        Member member = memberService.findOrCreateMemberBySocialId(sub, SocialType.GOOGLE, email);
 
         // 탈퇴 신청된 계정은 로그인 차단
         if (member.getStatus() == Status.DEACTIVATED) {
