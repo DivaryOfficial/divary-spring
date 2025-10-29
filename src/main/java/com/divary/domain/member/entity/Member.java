@@ -57,5 +57,9 @@ public class Member extends BaseEntity {
         this.status = Status.ACTIVE;
         this.deactivatedAt = null;
     }
+
+    public void updateGroup(String newGroup){
+        this.memberGroup = newGroup;
+    }
     
 }

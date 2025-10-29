@@ -155,7 +155,7 @@ public class MemberServiceImpl implements MemberService {
         String group = requestDTO.getMemberGroup();
 
         Member member = memberRepository.findById(userId).orElseThrow(()-> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-        member.setMemberGroup(group);
+        member.updateGroup(group);
     }
 
     @Override

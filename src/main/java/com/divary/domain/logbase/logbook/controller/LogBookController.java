@@ -53,7 +53,7 @@ public class LogBookController {
     @ApiErrorExamples(value = {ErrorCode.AUTHENTICATION_REQUIRED})
     @Operation(summary = "연도,저장상태 별 로그베이스 리스트 조회", description = "연도와 저장 상태에 따라 로그베이스 리스트를 조회합니다.")
     public ApiResponse<List<LogBaseListResultDTO>> getLogListByYearAndStatus(
-            @RequestParam(required = false) int year,
+            @RequestParam int year,
             @RequestParam(required = false) SaveStatus saveStatus,
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal,
             @RequestParam(required = false) String sort)

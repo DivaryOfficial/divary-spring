@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -237,10 +238,25 @@ public class ImageService {
     }
 
     // 경로 패턴으로 이미지 목록 조회
+    @Transactional(readOnly = true)
     public List<ImageResponse> getImagesByPath(String pathPattern) {
         List<Image> images = imageRepository.findByS3KeyStartingWith(pathPattern);
+
         return images.stream()
-                .map(image -> ImageResponse.from(image, imageStorageService.generatePublicUrl(image.getS3Key())))
+                .map(image -> {
+                    String s3Key = image.getS3Key();
+                    String fileUrl;
+
+                    //s3Key에 license가 포함된 경우 Pre-signed URL 생성
+                    if (s3Key != null && s3Key.contains("/license/")) {
+                        fileUrl = imageStorageService.generatePreSignedUrl(s3Key, Duration.ofMinutes(10));
+                        log.info("라이센스 이미지 Pre-signed URL 생성 완료: {}", fileUrl);
+                    } else {
+                        fileUrl = imageStorageService.generatePublicUrl(s3Key);
+                    }//이외의 경우에는 일반 public url 생성
+
+                    return ImageResponse.from(image, fileUrl);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -252,7 +268,7 @@ public class ImageService {
         String fileUrl = imageStorageService.generatePublicUrl(image.getS3Key());
         return ImageResponse.from(image, fileUrl);
     }
-    
+
     // 이미지 삭제
     @Transactional
     public void deleteImage(Long imageId) {
