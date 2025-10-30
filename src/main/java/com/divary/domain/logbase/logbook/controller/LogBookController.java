@@ -19,6 +19,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -54,11 +55,21 @@ public class LogBookController {
     public ApiResponse<List<LogBaseListResultDTO>> getLogListByYearAndStatus(
             @RequestParam int year,
             @RequestParam(required = false) SaveStatus saveStatus,
-            @AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
+            @AuthenticationPrincipal CustomUserPrincipal userPrincipal,
+            @RequestParam(required = false) String sort)
+    {
+        Sort sortOption;
+
+        if ("oldest".equalsIgnoreCase(sort)) {
+            sortOption = Sort.by(Sort.Direction.ASC, "date");
+        }
+        else {
+            sortOption = Sort.by(Sort.Direction.DESC, "date");
+        }
 
         Long userId = userPrincipal.getId();
 
-        List<LogBaseListResultDTO> result = logBookService.getLogBooksByYearAndStatus(year, saveStatus, userId);
+        List<LogBaseListResultDTO> result = logBookService.getLogBooksByYearAndStatus(year, saveStatus, userId, sortOption);
         return ApiResponse.success(result);
     }
 
