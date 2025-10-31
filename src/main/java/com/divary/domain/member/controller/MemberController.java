@@ -1,8 +1,10 @@
 package com.divary.domain.member.controller;
 
 import com.divary.common.response.ApiResponse;
+import com.divary.domain.member.dto.requestDTO.MyPageGroupRequestDTO;
 import com.divary.domain.member.dto.requestDTO.MyPageLevelRequestDTO;
 import com.divary.domain.member.dto.response.MyPageImageResponseDTO;
+import com.divary.domain.member.dto.response.MyPageProfileResponseDTO;
 import com.divary.global.config.SwaggerConfig;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.ErrorCode;
@@ -39,4 +41,27 @@ public class MemberController {
         return ApiResponse.success(response);
     }
 
+    @PatchMapping("/group")
+    @SwaggerConfig.ApiSuccessResponse(dataType = Void.class)
+    @SwaggerConfig.ApiErrorExamples(value = {ErrorCode.INVALID_INPUT_VALUE, ErrorCode.AUTHENTICATION_REQUIRED})
+    public ApiResponse updateGroup(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, @Valid @RequestBody MyPageGroupRequestDTO requestDTO) {
+        memberService.updateGroup(userPrincipal.getId(), requestDTO);
+        return ApiResponse.success(null);
+    }
+
+    @GetMapping("/profile")
+    @SwaggerConfig.ApiSuccessResponse(dataType = Void.class)
+    @SwaggerConfig.ApiErrorExamples(value = {ErrorCode.AUTHENTICATION_REQUIRED})
+    public ApiResponse getProfile(@AuthenticationPrincipal CustomUserPrincipal userPrincipal){
+        MyPageProfileResponseDTO responseDTO = memberService.getMemberProfile(userPrincipal.getId());
+        return ApiResponse.success(responseDTO);
+    }
+
+    @GetMapping("/license")
+    @SwaggerConfig.ApiSuccessResponse(dataType = Void.class)
+    @SwaggerConfig.ApiErrorExamples(value = {ErrorCode.AUTHENTICATION_REQUIRED})
+    public ApiResponse getLicense(@AuthenticationPrincipal CustomUserPrincipal userPrincipal){
+        MyPageImageResponseDTO responseDTO = memberService.getLicenseImage(userPrincipal.getId());
+        return ApiResponse.success(responseDTO);
+    }
 }

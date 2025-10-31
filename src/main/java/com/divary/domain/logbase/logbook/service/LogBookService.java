@@ -16,6 +16,7 @@ import com.divary.global.exception.BusinessException;
 import com.divary.global.exception.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +60,7 @@ public class LogBookService {
     }
 
     @Transactional(readOnly = true)
-    public List<LogBaseListResultDTO> getLogBooksByYearAndStatus(int year, SaveStatus status, Long userId) {
+    public List<LogBaseListResultDTO> getLogBooksByYearAndStatus(int year, SaveStatus status, Long userId, Sort sort) {
 
         List<LogBaseInfo> logBaseInfoList;
 
@@ -70,7 +71,7 @@ public class LogBookService {
             // 쿼리스트링 없을 경우 전체 조회
             logBaseInfoList = logBaseInfoRepository.findByYearAndMember(year,member);
         } else {
-            logBaseInfoList = logBaseInfoRepository.findByYearAndStatusAndMember(year,status,member);
+            logBaseInfoList = logBaseInfoRepository.findByYearAndStatusAndMember(year,status,member,sort);
         }
 
         return logBaseInfoList.stream()
@@ -131,11 +132,6 @@ public class LogBookService {
         LogBaseInfo base = logBaseInfoRepository.findByIdAndMemberId(logBaseInfoId,userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.LOG_BASE_NOT_FOUND));
 
-        // 연결된 기존의 로그북 개수 확인
-        if (logBookRepository.countByLogBaseInfo(base) >= 3) {
-            throw new BusinessException(ErrorCode.LOG_LIMIT_EXCEEDED);
-        }//하루 최대 3개 넘으면 에러 던지기
-
         LogBook logBook = LogBook.builder()
                 .logBaseInfo(base)
                 .build();
@@ -170,17 +166,12 @@ public class LogBookService {
             }
             return; // 베이스를 TEMP로 맞췄으니 종료
         }
-
-        // 2. 연결된 로그북들 모두 COMPLETE인지 확인
-        long total = logBookRepository.countByLogBaseInfoId(base.getId());
-        if (total > 0) {
-            long completeCount = logBookRepository.countByLogBaseInfoIdAndSaveStatus(base.getId(), SaveStatus.COMPLETE);
-            if (completeCount == total) {
-                if (base.getSaveStatus() != SaveStatus.COMPLETE) {
-                    base.setSaveStatus(SaveStatus.COMPLETE);
-                }
+        else {
+            if (base.getSaveStatus() != SaveStatus.COMPLETE) {
+                base.setSaveStatus(SaveStatus.COMPLETE);
             }
         }
+
     }
 
     @Transactional

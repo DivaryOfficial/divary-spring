@@ -37,6 +37,9 @@ public class Member extends BaseEntity {
     @NotNull
     Status status = Status.ACTIVE;  // 사용자 상태
 
+    @Column
+    private String memberGroup;
+
     private LocalDateTime deactivatedAt; //비활성화 된 시간과 날짜
 
     @Version
@@ -54,4 +57,9 @@ public class Member extends BaseEntity {
         this.status = Status.ACTIVE;
         this.deactivatedAt = null;
     }
+
+    public void updateGroup(String newGroup){
+        this.memberGroup = newGroup;
+    }
+    
 }
