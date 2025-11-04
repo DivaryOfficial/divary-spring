@@ -36,7 +36,7 @@ public class AppleJwtParser {
     /**
      * Apple Identity Token을 검증하고 사용자 정보를 추출합니다.
      * @param identityToken 클라이언트로부터 받은 Identity Token
-     * @return 사용자 정보 (sub: Apple User ID, email: 이메일)
+     * @return 사용자 정보 (sub: Apple User ID, email: 이메일 또는 빈 문자열)
      */
     public Map<String, String> parse(String identityToken) {
         // 1. Apple 공개키 목록을 가져옵니다. (실제 운영에서는 캐싱 필요)
@@ -65,7 +65,13 @@ public class AppleJwtParser {
         // 5. 생성된 PublicKey로 토큰의 서명, 발급자, 만료시간 등을 최종 검증합니다.
         Claims claims = getClaims(identityToken, publicKey);
 
-        return Map.of("sub", claims.getSubject(), "email", claims.get("email", String.class));
+        String sub = claims.getSubject();
+        String email = claims.get("email", String.class);
+
+        return Map.of(
+            "sub", sub,
+            "email", email != null ? email : ""
+        );
     }
 
     /**

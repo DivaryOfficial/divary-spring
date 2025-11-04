@@ -20,11 +20,21 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"socialId", "socialType"})
+})
 public class Member extends BaseEntity {
 
 
     @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = true)
+    private String socialId;  // Apple sub 또는 Google sub
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
+    private SocialType socialType;  // APPLE, GOOGLE 등
 
     @Enumerated(EnumType.STRING)
     @NotNull
@@ -61,5 +71,10 @@ public class Member extends BaseEntity {
     public void updateGroup(String newGroup){
         this.memberGroup = newGroup;
     }
-    
+
+    // 소셜 정보 업데이트 (기존 회원 마이그레이션용)
+    public void updateSocialInfo(String socialId, SocialType socialType) {
+        this.socialId = socialId;
+        this.socialType = socialType;
+    }
 }

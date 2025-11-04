@@ -1,5 +1,6 @@
 package com.divary.domain.member.service;
 
+import com.divary.common.enums.SocialType;
 import com.divary.domain.member.dto.requestDTO.MyPageGroupRequestDTO;
 import com.divary.domain.member.dto.response.MyPageImageResponseDTO;
 import com.divary.domain.member.dto.response.MyPageProfileResponseDTO;
@@ -16,7 +17,7 @@ public interface MemberService {
     MyPageImageResponseDTO uploadLicense(MultipartFile image, Long userId);
     DeactivateResponse requestToDeleteMember(Long memberId);
     void cancelDeleteMember(Long memberId);
-    public Member findOrCreateMember(String email);
+    Member findOrCreateMemberBySocialId(String socialId, SocialType socialType, String email);
 
     void updateGroup(Long userId, MyPageGroupRequestDTO requestDTO);
 

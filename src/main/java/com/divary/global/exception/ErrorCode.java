@@ -47,6 +47,7 @@ public enum ErrorCode {
     MEMBER_NOT_DEACTIVATED(HttpStatus.BAD_REQUEST, "MEMBER_006", "탈퇴 신청되지 않은 계정입니다."),
     //소셜 로그인 관련
     GOOGLE_BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "GOOGLE_001", "구글 유저를 찾을 수 없습니다"),
+    ALREADY_REGISTERED_WITH_DIFFERENT_SOCIAL(HttpStatus.CONFLICT, "AUTH_007", "이미 다른 소셜 계정으로 가입되어 있습니다."),
 
     //알림 관련
     NOTIFICAITION_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_003", "해당 ID를 가진 사용자의 알림이 존재하지 않습니다"),
