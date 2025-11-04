@@ -44,6 +44,7 @@ public enum ErrorCode {
     DEVICE_ID_NOT_FOUND(HttpStatus.NOT_FOUND, "DEVICE_001", "디바이스 아이디를 찾을 수 없습니다"),
     MEMBER_IS_DEACTIVATE(HttpStatus.FORBIDDEN, "MEMBER_004", "탈퇴 예정인 계정입니다."),
     CONCURRENT_REQUEST_ERROR(HttpStatus.CONFLICT, "MEMBER_005", "탈퇴 요청 처리 중 데이터 충돌이 발생했습니다"),
+    MEMBER_NOT_DEACTIVATED(HttpStatus.BAD_REQUEST, "MEMBER_006", "탈퇴 신청되지 않은 계정입니다."),
     //소셜 로그인 관련
     GOOGLE_BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "GOOGLE_001", "구글 유저를 찾을 수 없습니다"),
 

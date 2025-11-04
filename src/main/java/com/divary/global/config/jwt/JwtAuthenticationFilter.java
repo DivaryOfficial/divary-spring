@@ -36,8 +36,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtResolver jwtResolver;
     private final TokenBlackListService tokenBlackListService;
     private final MemberService memberService;
-    private static final String REACTIVATE_MEMBER_URI = "/api/v1/auth/reactivate";
-    private static final String REACTIVATE_MEMBER_METHOD = "POST"; //todo 하드코딩 안하게 변경
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -58,12 +56,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 Member member = memberService.findById(userId);
 
-                // 1. 현재 요청이 회원 복구 API인지 확인합니다.
-                boolean isRecoveryRequest = request.getRequestURI().equals(REACTIVATE_MEMBER_URI) &&
-                        request.getMethod().equalsIgnoreCase(REACTIVATE_MEMBER_METHOD);
-
-                // 2. 복구 요청이 아닌 경우에만 비활성화 상태를 체크합니다.
-                if (!isRecoveryRequest && member.getStatus() == Status.DEACTIVATED) {
+                // 탈퇴 신청된 계정은 API 접근 차단
+                if (member.getStatus() == Status.DEACTIVATED) {
                     throw new BusinessException(ErrorCode.MEMBER_IS_DEACTIVATE);
                 }
 

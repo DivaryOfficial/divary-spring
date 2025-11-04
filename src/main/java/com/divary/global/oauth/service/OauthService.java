@@ -56,6 +56,15 @@ public class OauthService {
         socialOauth.logout(deviceId, userId);
     }
 
+    @Transactional
+    public void reactivate(SocialType socialLoginType, String accessToken) {
+        SocialOauth socialOauth = this.findSocialOauthByType(socialLoginType);
+        if (socialOauth == null) {
+            throw new BusinessException(ErrorCode.SOCIAL_PROVIDER_NOT_FOUND);
+        }
+        socialOauth.reactivate(accessToken);
+    }
+
     /**
      * 우리 서비스의 Refresh Token을 사용하여 Access Token과 Refresh Token을 재발급합니다. (RTR)
      * 이 로직은 모든 소셜 로그인 사용자에게 공통으로 적용됩니다.
