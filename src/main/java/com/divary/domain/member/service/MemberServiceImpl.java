@@ -1,5 +1,6 @@
 package com.divary.domain.member.service;
 
+import com.divary.common.enums.SocialType;
 import com.divary.common.util.EnumValidator;
 import com.divary.domain.image.dto.request.ImageUploadRequest;
 import com.divary.domain.image.dto.response.ImageResponse;
@@ -135,19 +136,56 @@ public class MemberServiceImpl implements MemberService {
     }
     @Override
     @Transactional
-    public Member findOrCreateMember(String email) {
-        // 1. Optional을 사용하여 회원을 조회합니다.
-        Optional<Member> optionalMember = memberRepository.findByEmail(email);
+    public Member findOrCreateMemberBySocialId(String socialId, SocialType socialType, String email) {
+        // 1. socialId와 socialType으로 회원 조회
+        Optional<Member> optionalMember = memberRepository.findBySocialIdAndSocialType(socialId, socialType);
 
-        // 2. 회원이 존재하면 그대로 반환하고, 존재하지 않으면 새로 생성하여 저장한 뒤 반환합니다.
-        return optionalMember.orElseGet(() -> {
-            Member newMember = Member.builder()
-                    .email(email)
-                    .status(Status.ACTIVE)
-                    .role(Role.USER)
-                    .build();
-            return memberRepository.save(newMember);
-        });
+        // 2. 회원이 존재하면 그대로 반환
+        if (optionalMember.isPresent()) {
+            return optionalMember.get();
+        }
+
+        // 3. 기존 회원 마이그레이션: email로 기존 회원 찾기
+        if (email != null && !email.isEmpty()) {
+            Optional<Member> existingMember = memberRepository.findByEmail(email);
+            if (existingMember.isPresent()) {
+                Member member = existingMember.get();
+
+                // 3-1. 기존 회원의 socialId가 없으면 업데이트 (마이그레이션)
+                if (member.getSocialId() == null) {
+                    member.updateSocialInfo(socialId, socialType);
+                    return member;  // JPA dirty checking으로 자동 저장
+                }
+
+                // 3-2. 이미 다른 소셜 타입으로 가입된 경우
+                if (!member.getSocialType().equals(socialType)) {
+                    throw new BusinessException(
+                        ErrorCode.ALREADY_REGISTERED_WITH_DIFFERENT_SOCIAL,
+                        "이 이메일은 이미 " + member.getSocialType() + " 계정으로 가입되어 있습니다. " +
+                        member.getSocialType() + " 로그인을 사용해주세요."
+                    );
+                }
+
+                // 3-3. 같은 소셜 타입인데 다른 socialId인 경우 (비정상 케이스)
+                throw new BusinessException(ErrorCode.INVALID_TOKEN, "계정 정보가 일치하지 않습니다.");
+            }
+        }
+
+        // 4. 새로운 회원 생성
+        // 첫 로그인 시 email이 없으면 예외 발생
+        if (email == null || email.isEmpty()) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN,
+                socialType + " 첫 로그인 시 이메일이 필요합니다.");
+        }
+
+        Member newMember = Member.builder()
+                .email(email)
+                .socialId(socialId)
+                .socialType(socialType)
+                .status(Status.ACTIVE)
+                .role(Role.USER)
+                .build();
+        return memberRepository.save(newMember);
     }
     @Override
     @CacheEvict(cacheNames = com.divary.global.config.CacheConfig.CACHE_MEMBER_BY_ID, key = "#userId")

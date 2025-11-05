@@ -94,14 +94,16 @@ public class OauthController {
         return ApiResponse.success(response);
     }
 
-    @PostMapping(value = "/reactivate")
-    @Operation(summary = "회원 탈퇴를 취소합니다.")
+    @PostMapping(value = "/{socialLoginType}/reactivate")
+    @Operation(summary = "소셜 토큰을 사용하여 회원 탈퇴를 취소합니다.")
     @ApiSuccessResponse(dataType = void.class)
-    @ApiErrorExamples(value = {ErrorCode.MEMBER_NOT_FOUND})
-    public ApiResponse reactivate(@AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        Long userId = userPrincipal.getId();
+    @ApiErrorExamples(value = {ErrorCode.EMAIL_NOT_FOUND, ErrorCode.MEMBER_NOT_DEACTIVATED})
+    public ApiResponse reactivate(@PathVariable(name = "socialLoginType") SocialType socialLoginType,
+                                   @Valid @RequestBody com.divary.global.oauth.dto.request.RecoveryRequestDto recoveryRequestDto) {
+        String accessToken = recoveryRequestDto.getAccessToken();
+        log.info(">> 복구 요청 - 소셜 타입: {}, accessToken: {}", socialLoginType, accessToken);
 
-        memberService.cancelDeleteMember(userId);
+        oauthService.reactivate(socialLoginType, accessToken);
         return ApiResponse.success("회원 정보 복구에 성공했습니다");
     }
 

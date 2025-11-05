@@ -72,10 +72,18 @@ public class GoogleOauth implements SocialOauth {
     public LoginResponseDTO verifyAndLogin(String googleAccessToken, String deviceId) {
         // accessToken으로 사용자 정보 요청
         Map<String, Object> userInfo = requestUserInfo(googleAccessToken);
+        String sub = (String) userInfo.get("id");  // Google의 고유 사용자 ID
         String email = (String) userInfo.get("email");
 
+        log.debug("Google 로그인 - sub: {}, email: {}", sub, email);
 
-        Member member = memberService.findOrCreateMember(email);
+        // socialId(sub)와 socialType으로 회원 조회 또는 생성
+        Member member = memberService.findOrCreateMemberBySocialId(sub, SocialType.GOOGLE, email);
+
+        // 탈퇴 신청된 계정은 로그인 차단
+        if (member.getStatus() == Status.DEACTIVATED) {
+            throw new BusinessException(ErrorCode.MEMBER_IS_DEACTIVATE);
+        }
 
         CustomUserPrincipal principal = new CustomUserPrincipal(member);
 
@@ -103,6 +111,28 @@ public class GoogleOauth implements SocialOauth {
 
         log.debug("로그아웃 처리 완료. AccessToken 블랙리스트 추가, RefreshToken 삭제. UserId: {}, DeviceId: {}", userId, deviceId);
     }
+
+    @Override
+    @Transactional
+    public void reactivate(String googleAccessToken) {
+        // accessToken으로 사용자 정보 요청
+        Map<String, Object> userInfo = requestUserInfo(googleAccessToken);
+        String email = (String) userInfo.get("email");
+
+        // 이메일로 회원 찾기
+        Member member = memberService.findMemberByEmail(email);
+
+        // 탈퇴 신청된 계정이 아니면 복구 불가
+        if (member.getStatus() != Status.DEACTIVATED) {
+            throw new BusinessException(ErrorCode.MEMBER_NOT_DEACTIVATED);
+        }
+
+        // 복구 처리
+        memberService.cancelDeleteMember(member.getId());
+
+        log.debug("계정 복구 완료. Email: {}, UserId: {}", email, member.getId());
+    }
+
     @Override
     public SocialType getType() {
         return SocialType.GOOGLE;

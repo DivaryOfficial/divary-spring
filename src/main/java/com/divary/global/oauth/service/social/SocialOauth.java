@@ -6,6 +6,7 @@ import com.divary.global.oauth.dto.response.LoginResponseDTO;
 public interface SocialOauth {
     LoginResponseDTO verifyAndLogin(String token, String deviceId);
     void logout(String deviceId, Long userId);
+    void reactivate(String token);
     SocialType getType();
 
 }
