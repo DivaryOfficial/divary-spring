@@ -22,4 +22,7 @@ public class MyPageProfileResponseDTO {
     @Schema(description = "레벨", example = "오픈워터 다이버")
     private Levels level;
 
+    @Schema(description = "총 다이빙 횟수")
+    private Integer accumulations;
+
 }
