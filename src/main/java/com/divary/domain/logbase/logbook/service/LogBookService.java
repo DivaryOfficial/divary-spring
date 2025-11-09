@@ -277,4 +277,10 @@ public class LogBookService {
 
     }
 
+    public int getAccumulationById(Long userId){
+
+        //현재기준으로 총 로그북 누적횟수 계산
+        return logBookRepository.countByLogBaseInfoMemberIdAndSaveStatus(userId, SaveStatus.COMPLETE);
+    }
+
 }
