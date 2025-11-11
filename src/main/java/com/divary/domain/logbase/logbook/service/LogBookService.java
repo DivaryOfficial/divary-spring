@@ -1,7 +1,7 @@
 package com.divary.domain.logbase.logbook.service;
 
 import com.divary.domain.member.entity.Member;
-import com.divary.domain.member.service.MemberServiceImpl;
+import com.divary.domain.member.service.MemberService;
 import com.divary.domain.logbase.LogBaseInfo;
 import com.divary.domain.logbase.LogBaseInfoRepository;
 import com.divary.domain.logbase.logbook.dto.request.*;
@@ -33,7 +33,7 @@ public class LogBookService {
     private final LogBaseInfoRepository logBaseInfoRepository;
     private final LogBookRepository logBookRepository;
     private final CompanionRepository companionRepository;
-    private final MemberServiceImpl memberService;
+    private final MemberService memberService;
 
     @Transactional
     public LogBaseCreateResultDTO createLogBase
