@@ -5,8 +5,6 @@ import com.divary.common.util.EnumValidator;
 import com.divary.domain.image.dto.request.ImageUploadRequest;
 import com.divary.domain.image.dto.response.ImageResponse;
 import com.divary.domain.image.service.ImageService;
-import com.divary.domain.logbase.logbook.enums.SaveStatus;
-import com.divary.domain.logbase.logbook.service.LogBookService;
 import com.divary.domain.member.dto.requestDTO.MyPageGroupRequestDTO;
 import com.divary.domain.member.dto.requestDTO.MyPageLevelRequestDTO;
 import com.divary.domain.member.dto.response.MyPageImageResponseDTO;
@@ -41,7 +39,6 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
     private final ImageService imageService;
     private final TokenBlackListService tokenBlackListService;
-    private final LogBookService logBookService;
 
     @Value("${jobs.user-deletion.grace-period-days}")
     private int gracePeriodDays;
@@ -199,24 +196,6 @@ public class MemberServiceImpl implements MemberService {
         member.updateGroup(group);
     }
 
-    @Override
-    public MyPageProfileResponseDTO getMemberProfile(Long userId){
-        Member member = memberRepository.findById(userId).orElseThrow(()->new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-
-        Integer accumulation
-                = logBookService.getAccumulationById(userId);
-        //현재기준으로 총 로그북 누적횟수 계산
-
-        String memberIdByEmail = member.getEmail().split("@")[0];
-        // 프로필에 나오는 아이디: 이메일에서 @ 앞부분만 추출
-
-        return MyPageProfileResponseDTO.builder()
-                .memberGroup(member.getMemberGroup())
-                .level(member.getLevel())
-                .id(memberIdByEmail)
-                .accumulations(accumulation)
-                .build();
-    }
 
     @Override
     public MyPageImageResponseDTO getLicenseImage(Long userId){
