@@ -5,6 +5,7 @@ import com.divary.domain.member.dto.requestDTO.MyPageGroupRequestDTO;
 import com.divary.domain.member.dto.requestDTO.MyPageLevelRequestDTO;
 import com.divary.domain.member.dto.response.MyPageImageResponseDTO;
 import com.divary.domain.member.dto.response.MyPageProfileResponseDTO;
+import com.divary.domain.member.facade.MyPageFacade;
 import com.divary.global.config.SwaggerConfig;
 import com.divary.global.config.security.CustomUserPrincipal;
 import com.divary.global.exception.ErrorCode;
@@ -22,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class MemberController {
     private final MemberService memberService;
+    private final MyPageFacade myPageFacade;
 
     @PatchMapping("/level")
     @SwaggerConfig.ApiSuccessResponse(dataType = Void.class)
@@ -53,7 +55,7 @@ public class MemberController {
     @SwaggerConfig.ApiSuccessResponse(dataType = Void.class)
     @SwaggerConfig.ApiErrorExamples(value = {ErrorCode.AUTHENTICATION_REQUIRED})
     public ApiResponse getProfile(@AuthenticationPrincipal CustomUserPrincipal userPrincipal){
-        MyPageProfileResponseDTO responseDTO = memberService.getMemberProfile(userPrincipal.getId());
+        MyPageProfileResponseDTO responseDTO = myPageFacade.getMemberProfile(userPrincipal.getId());
         return ApiResponse.success(responseDTO);
     }
 
