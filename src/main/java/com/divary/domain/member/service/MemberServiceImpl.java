@@ -98,8 +98,11 @@ public class MemberServiceImpl implements MemberService {
                 .uploadPath(uploadPath)
                 .build();
 
-        String fileUrl = imageService.uploadImage(request).getFileUrl();
+        imageService.uploadImage(request);
 
+        // Pre-signed URL 생성
+        List<ImageResponse> imageResponses = imageService.getImagesByPath(uploadPath);
+        String fileUrl = imageResponses.getFirst().getFileUrl();
 
         return new MyPageImageResponseDTO(fileUrl);
     }
