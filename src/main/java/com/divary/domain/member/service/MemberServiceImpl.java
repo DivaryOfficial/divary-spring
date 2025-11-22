@@ -4,6 +4,7 @@ import com.divary.common.enums.SocialType;
 import com.divary.common.util.EnumValidator;
 import com.divary.domain.image.dto.request.ImageUploadRequest;
 import com.divary.domain.image.dto.response.ImageResponse;
+import com.divary.domain.image.entity.Image;
 import com.divary.domain.image.service.ImageService;
 import com.divary.domain.member.dto.requestDTO.MyPageGroupRequestDTO;
 import com.divary.domain.member.dto.requestDTO.MyPageLevelRequestDTO;
@@ -93,18 +94,22 @@ public class MemberServiceImpl implements MemberService {
     public MyPageImageResponseDTO uploadLicense(MultipartFile image, Long userId) {
         String uploadPath = "users/" + userId + "/license/";
 
+        // 기존 이미지 조회
+        List<Image> images = imageService.findByUploadPath(uploadPath);
+
+        for (Image image1 : images) {
+            imageService.deleteImage(image1.getId());
+        }
+
+        // 새로운 이미지 업로드
         ImageUploadRequest request = ImageUploadRequest.builder()
                 .file(image)
                 .uploadPath(uploadPath)
                 .build();
 
-        imageService.uploadImage(request);
+        ImageResponse imageResponse = imageService.uploadImage(request);
 
-        // Pre-signed URL 생성
-        List<ImageResponse> imageResponses = imageService.getImagesByPath(uploadPath);
-        String fileUrl = imageResponses.getFirst().getFileUrl();
-
-        return new MyPageImageResponseDTO(fileUrl);
+        return new MyPageImageResponseDTO(imageResponse.getFileUrl());
     }
 
     @Override
@@ -205,9 +210,9 @@ public class MemberServiceImpl implements MemberService {
 
         String uploadPath = "users/" + userId + "/license/";
 
-        List<ImageResponse> imageResponses = imageService.getImagesByPath(uploadPath);
+        List<Image> images = imageService.findByUploadPath(uploadPath);
 
-        String fileUrl = imageResponses.getFirst().getFileUrl();
+        String fileUrl = imageService.createFileUrl(images.getFirst());
 
         return new MyPageImageResponseDTO(fileUrl);
     }
