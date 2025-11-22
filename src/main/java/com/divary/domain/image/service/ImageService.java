@@ -192,9 +192,22 @@ public class ImageService {
         
         return updatedContent;
     }
+
+    public String createFileUrl(Image image){
+        String fileUrl;
+
+        //s3Key에 license가 포함된 경우 Pre-signed URL 생성
+        if (image.getS3Key() != null && image.getS3Key().contains("/license/")) {
+            fileUrl = imageStorageService.generatePreSignedUrl(image.getS3Key(), Duration.ofMinutes(10));
+            log.info("라이센스 이미지 Pre-signed URL 생성 완료: {}", fileUrl);
+        } else {
+            fileUrl = imageStorageService.generatePublicUrl(image.getS3Key());
+        }//이외의 경우에는 일반 public url 생성
+
+        return fileUrl;
+    }
     
     // 미디어 업로드 메인 로직 (이미지 + 동영상)
-    @Transactional
     public ImageResponse uploadImage(ImageUploadRequest request) {
         imageValidationService.validateUploadRequest(request);
         
@@ -227,10 +240,12 @@ public class ImageService {
                     .build();
             
             Image savedImage = imageRepository.save(image);
-            
-            String fileUrl = imageStorageService.generatePublicUrl(s3Key);
+
+            String fileUrl = createFileUrl(image);
+
             return ImageResponse.from(savedImage, fileUrl);
-            
+
+
         } catch (IOException e) {
             log.error("미디어 업로드 중 오류 발생: {}", e.getMessage());
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
@@ -244,20 +259,16 @@ public class ImageService {
 
         return images.stream()
                 .map(image -> {
-                    String s3Key = image.getS3Key();
-                    String fileUrl;
-
-                    //s3Key에 license가 포함된 경우 Pre-signed URL 생성
-                    if (s3Key != null && s3Key.contains("/license/")) {
-                        fileUrl = imageStorageService.generatePreSignedUrl(s3Key, Duration.ofMinutes(10));
-                        log.info("라이센스 이미지 Pre-signed URL 생성 완료: {}", fileUrl);
-                    } else {
-                        fileUrl = imageStorageService.generatePublicUrl(s3Key);
-                    }//이외의 경우에는 일반 public url 생성
+                    String fileUrl = createFileUrl(image);
 
                     return ImageResponse.from(image, fileUrl);
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Image> findByUploadPath(String pathPattern){
+        return imageRepository.findByS3KeyStartingWith(pathPattern);
     }
 
     // 이미지 상세 조회 (URL 포함)
@@ -387,7 +398,6 @@ public class ImageService {
     public List<Image> findByTypeAndPostId(ImageType imageType, Long postId) {
         return imageRepository.findByTypeAndPostId(imageType, postId);
     }
-    
     
     // 미디어 메타데이터 추출 
     private MediaMetadata extractMediaMetadata(MultipartFile file) throws IOException {
