@@ -1,6 +1,7 @@
 package com.divary.domain.member.entity;
 
 import com.divary.common.entity.BaseEntity;
+import com.divary.domain.avatar.entity.Avatar;
 import com.divary.domain.member.enums.Levels;
 import com.divary.domain.member.enums.Role;
 import com.divary.common.enums.SocialType;
@@ -54,6 +55,9 @@ public class Member extends BaseEntity {
 
     @Version
     private Long version; //버전을통해 레이스 컨디션 해결
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Avatar avatar;
 
 
     // 탈퇴 요청 처리
