@@ -28,7 +28,7 @@ public class AppleJwtParser {
 
     private static final String APPLE_PUBLIC_KEYS_URL = "https://appleid.apple.com/auth/keys";
     private static final String APPLE_ISSUER = "https://appleid.apple.com";
-    private static final String APPLE_CLIENT_ID = "io.tuist.Divary"; // TODO property로 변경
+    private static final String APPLE_CLIENT_ID = "io.tuist.DivaryOfficial"; // TODO property로 변경
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
