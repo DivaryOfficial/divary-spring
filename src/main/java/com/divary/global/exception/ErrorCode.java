@@ -64,6 +64,10 @@ public enum ErrorCode {
     OPENAI_QUOTA_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "OPENAI_002", "AI 서비스 사용량이 초과되었습니다."),
     OPENAI_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "OPENAI_003", "AI 서비스 요청이 올바르지 않습니다."),
     OPENAI_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "OPENAI_004", "AI 서비스 응답 시간이 초과되었습니다."),
+
+    // 토큰 사용량 제한 관련 에러코드
+    DAILY_TOKEN_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "TOKEN_001", "일일 토큰 사용량을 초과했습니다. 내일 다시 시도해주세요."),
+    MONTHLY_TOKEN_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "TOKEN_002", "월간 토큰 사용량을 초과했습니다. 다음 달에 다시 시도해주세요."),
     
     // 이미지 처리 관련 에러코드
     IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "IMAGE_001", "이미지 업로드에 실패했습니다."),

@@ -64,6 +64,7 @@ public class ChatRoomStreamService {
 
             List<Map<String, Object>> messageHistory = buildMessageHistoryForOpenAI(chatRoom);
             Flux<String> streamFlux = openAIStreamService.sendMessageStream(
+                    userId,
                     request.getMessage(),
                     request.getImage(),
                     messageHistory
@@ -90,7 +91,7 @@ public class ChatRoomStreamService {
     }
 
     private ChatRoom createNewChatRoom(Long userId, ChatRoomMessageRequest request) {
-        String title = openAIService.generateTitle(request.getMessage());
+        String title = openAIService.generateTitle(userId, request.getMessage());
 
         ChatRoom chatRoom = buildChatRoomWithoutImage(userId, title, request);
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
