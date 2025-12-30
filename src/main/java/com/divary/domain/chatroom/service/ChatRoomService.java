@@ -68,11 +68,11 @@ public class ChatRoomService {
         OpenAIResponse aiResponse;
         if (request.getChatRoomId() == null) {
             // 새 채팅방 - 히스토리 없이 메시지 전달
-            aiResponse = openAIService.sendMessageWithHistory(request.getMessage(), request.getImage(), null);
+            aiResponse = openAIService.sendMessageWithHistory(userId, request.getMessage(), request.getImage(), null);
         } else {
             // 기존 채팅방 - 기존 메세지 최대 20개 포함해서 전달
             List<Map<String, Object>> messageHistory = buildMessageHistoryForOpenAI(chatRoom);
-            aiResponse = openAIService.sendMessageWithHistory(request.getMessage(), request.getImage(), messageHistory);
+            aiResponse = openAIService.sendMessageWithHistory(userId, request.getMessage(), request.getImage(), messageHistory);
         }
         
         // AI 응답을 채팅방에 추가
@@ -84,7 +84,7 @@ public class ChatRoomService {
 
     // 새 채팅방 생성
     private ChatRoom createNewChatRoom(Long userId, ChatRoomMessageRequest request) {
-        String title = openAIService.generateTitle(request.getMessage());
+        String title = openAIService.generateTitle(userId, request.getMessage());
 
         // 채팅방을 먼저 저장 (이미지 없이)
         ChatRoom chatRoom = buildChatRoomWithoutImage(userId, title, request);
